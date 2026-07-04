@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import Container from "@/components/Container";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Luneva Platform",
-  description: "Платформа нового поколения для управления сайтами",
+  title: "Luneva Psy",
+  description:
+    "Психолог Лунева Александра Александровна. Гештальт-терапия, поддержка и путь к себе.",
 };
 
 export default function RootLayout({
@@ -16,12 +16,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ru">
-      <body className="min-h-screen bg-white text-slate-900 antialiased">
+      <body className="min-h-screen bg-[#fff8f6] text-[#332725] antialiased">
         <Header />
 
-        <Container>
-          <main className="py-10">{children}</main>
-        </Container>
+        <main>{children}</main>
 
         <Footer />
       </body>
