@@ -16,12 +16,12 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-[#ead7d1] bg-[#fff8f6]/85 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+      <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
         <Link href="/">
           <Logo />
         </Link>
 
-        <nav className="flex items-center gap-8 text-sm">
+        <nav className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
           <Link href="/" className={linkClass("/")}>
             Главная
           </Link>
