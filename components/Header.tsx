@@ -10,12 +10,12 @@ export default function Header() {
   const linkClass = (path: string) =>
     `transition-colors ${
       pathname === path
-        ? "text-slate-900 font-semibold"
-        : "text-slate-600 hover:text-slate-900"
+        ? "text-[#332725] font-semibold border-b border-[#c98778]"
+        : "text-[#5f5552] hover:text-[#332725]"
     }`;
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/70 backdrop-blur">
+    <header className="sticky top-0 z-50 border-b border-[#ead7d1] bg-[#fff8f6]/85 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         <Link href="/">
           <Logo />
@@ -27,7 +27,7 @@ export default function Header() {
           </Link>
 
           <Link href="/about" className={linkClass("/about")}>
-            О проекте
+            Обо мне
           </Link>
 
           <Link href="/blog" className={linkClass("/blog")}>
