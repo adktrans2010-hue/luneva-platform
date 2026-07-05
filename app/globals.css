@@ -1,32 +1,85 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fff8f6;
+  --foreground: #332725;
+  --muted: #5f5552;
+  --accent: #c98778;
+  --border: #ead7d1;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
+  margin: 0;
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
-:root {
-  --primary: #0f172a;
-  --accent: #6366f1;
-  --background: #ffffff;
-  --text: #0f172a;
+
+::selection {
+  background: #ead7d1;
+  color: #332725;
+}
+
+a,
+button {
+  transition:
+    color 200ms ease,
+    background-color 200ms ease,
+    border-color 200ms ease,
+    opacity 200ms ease,
+    transform 200ms ease,
+    box-shadow 200ms ease;
+}
+
+a:hover,
+button:hover {
+  opacity: 0.88;
+}
+
+button:active,
+a:active {
+  transform: translateY(1px);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+.font-serif {
+  font-family: Georgia, "Times New Roman", serif;
+}/* Luneva animations */
+
+.luneva-card {
+  transition:
+    transform 250ms ease,
+    box-shadow 250ms ease,
+    border-color 250ms ease;
+}
+
+.luneva-card:hover {
+  transform: translateY(-6px);
+  box-shadow:
+    0 24px 60px rgba(51, 39, 37, 0.08);
+  border-color: #e7b8ad;
+}
+
+.luneva-fade {
+  animation: lunevaFade 700ms ease both;
+}
+
+@keyframes lunevaFade {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

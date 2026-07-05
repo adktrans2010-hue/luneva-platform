@@ -1,20 +1,75 @@
-import Section from "@/components/Section";
+import Image from "next/image";
+import Link from "next/link";
 
-export default function About() {
+export default function AboutPage() {
   return (
-    <Section>
-      <p className="text-sm font-medium uppercase tracking-widest text-slate-500">
-        О проекте
-      </p>
+    <section className="bg-[#fff8f6] px-6 py-24">
+      <div className="mx-auto grid max-w-7xl gap-16 lg:grid-cols-[0.9fr_1.1fr]">
+        <div className="relative">
+          <div className="absolute -inset-6 rounded-[4rem] bg-[#e7b8ad]/40 blur-3xl" />
 
-      <h1 className="mt-4 text-5xl font-bold tracking-tight text-slate-900">
-        Luneva Platform
-      </h1>
+          <Image
+            src="/sasha-about.jpg"
+            alt="Лунева Александра Александровна"
+            width={900}
+            height={1100}
+            className="relative h-[720px] w-full rounded-[4rem] object-cover shadow-2xl"
+          />
+        </div>
 
-      <p className="mt-6 text-lg leading-8 text-slate-600">
-        Это платформа нового поколения для управления сайтами. Мы создаём
-        современную, быструю и гибкую альтернативу WordPress.
-      </p>
-    </Section>
+        <div>
+          <p className="mb-4 text-sm uppercase tracking-[0.25em] text-[#c98778]">
+            Обо мне
+          </p>
+
+          <h1 className="font-serif text-6xl leading-tight text-[#332725]">
+            Лунева Александра Александровна
+          </h1>
+
+          <p className="mt-8 text-lg leading-8 text-[#5f5552]">
+            Я дипломированный психолог, гештальт-терапевт, специалист по работе
+            с травмой, утратой, ПТСР и расстройствами пищевого поведения.
+          </p>
+
+          <p className="mt-6 text-lg leading-8 text-[#5f5552]">
+            В своей работе я опираюсь на бережность, конфиденциальность и
+            уважение к темпу клиента. Для меня важно создать пространство, где
+            можно говорить о сложном без давления и оценки.
+          </p>
+
+          <div className="mt-10 grid gap-4">
+            {[
+              "Гештальт-терапия",
+              "Работа с травмой и ПТСР",
+              "Расстройства пищевого поведения",
+              "Поддержка в кризисных состояниях",
+            ].map((item) => (
+              <div
+                key={item}
+                className="rounded-2xl border border-[#ead7d1] bg-white px-5 py-4 text-[#5f5552]"
+              >
+                {item}
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-10 flex flex-wrap gap-4">
+            <Link
+              href="/certificates"
+              className="rounded-2xl bg-[#332725] px-8 py-4 text-white shadow-lg"
+            >
+              Дипломы и сертификаты
+            </Link>
+
+            <Link
+              href="/contacts"
+              className="rounded-2xl border border-[#c98778] px-8 py-4 text-[#332725]"
+            >
+              Записаться
+            </Link>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }

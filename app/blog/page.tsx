@@ -1,18 +1,79 @@
-export default function Blog() {
+import Link from "next/link";
+
+const articles = [
+  {
+    title: "Как понять, что пора обратиться к психологу",
+    category: "Самопознание",
+    text: "Иногда мы долго справляемся самостоятельно, хотя внутри уже есть ощущение усталости, тревоги или потери опоры.",
+  },
+  {
+    title: "Что происходит на первой консультации",
+    category: "Терапия",
+    text: "Первая встреча — это знакомство, исследование вашего запроса и поиск комфортного направления работы.",
+  },
+  {
+    title: "Почему сложно говорить о своих чувствах",
+    category: "Отношения",
+    text: "Опыт прошлого может влиять на то, как мы выражаем эмоции и позволяем другим быть рядом.",
+  },
+];
+
+export default function BlogPage() {
   return (
-    <section className="max-w-3xl py-16">
-      <p className="text-sm font-medium uppercase tracking-widest text-slate-500">
-        Блог
-      </p>
+    <section className="luneva-fade bg-[#fff8f6] px-6 py-24">
+      <div className="mx-auto max-w-7xl">
+        <p className="mb-4 text-sm uppercase tracking-[0.25em] text-[#c98778]">
+          Блог
+        </p>
 
-      <h1 className="mt-4 text-5xl font-bold tracking-tight text-slate-900">
-        Статьи и заметки
-      </h1>
+        <h1 className="max-w-4xl font-serif text-6xl leading-tight text-[#332725]">
+          Статьи о психологии и пути к себе
+        </h1>
 
-      <p className="mt-6 text-lg leading-8 text-slate-600">
-        Здесь будут материалы о психологии, развитии проекта Luneva и создании
-        современной платформы для сайта.
-      </p>
+        <p className="mt-8 max-w-3xl text-lg leading-8 text-[#5f5552]">
+          Простые и бережные материалы о чувствах, отношениях, терапии
+          и внутренней устойчивости.
+        </p>
+
+        <div className="mt-14 grid gap-8 md:grid-cols-3">
+          {articles.map((article) => (
+            <article
+              key={article.title}
+              className="luneva-card rounded-[2rem] border border-[#ead7d1] bg-white p-8 shadow-sm"
+            >
+              <p className="text-sm uppercase tracking-[0.2em] text-[#c98778]">
+                {article.category}
+              </p>
+
+              <h2 className="mt-5 text-2xl font-medium leading-snug text-[#332725]">
+                {article.title}
+              </h2>
+
+              <p className="mt-5 leading-7 text-[#5f5552]">
+                {article.text}
+              </p>
+
+              <Link
+                href="#"
+                className="mt-8 inline-flex text-[#c98778]"
+              >
+                Читать →
+              </Link>
+            </article>
+          ))}
+        </div>
+
+        <div className="mt-16 rounded-[3rem] bg-[#332725] p-10 text-white md:p-14">
+          <h2 className="font-serif text-4xl">
+            Больше материалов скоро
+          </h2>
+
+          <p className="mt-6 max-w-2xl leading-8 text-[#ead7d1]">
+            Раздел будет постепенно пополняться статьями,
+            практиками и полезными материалами о психологии.
+          </p>
+        </div>
+      </div>
     </section>
   );
 }
