@@ -25,7 +25,7 @@ export default function Home() {
       <Process />
       <SectionDivider />
 
-      <Reviews />
+      <Reviews limit={3} />
       <SectionDivider />
 
       <ContactCta />

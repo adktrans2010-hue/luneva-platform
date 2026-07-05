@@ -1,7 +1,17 @@
 import Image from "next/image";
 import { reviews } from "@/data/reviews";
 
-export default function Reviews() {
+type ReviewsProps = {
+  limit?: number;
+};
+
+function getRandomReviews(limit: number) {
+  return [...reviews].sort(() => Math.random() - 0.5).slice(0, limit);
+}
+
+export default function Reviews({ limit }: ReviewsProps) {
+  const visibleReviews = limit ? getRandomReviews(limit) : reviews;
+
   return (
     <section className="luneva-fade bg-[#fff8f6] px-6 py-24">
       <div className="mx-auto max-w-7xl">
@@ -14,7 +24,7 @@ export default function Reviews() {
         </h2>
 
         <div className="mt-20 grid gap-10 md:grid-cols-2 lg:grid-cols-3">
-          {reviews.map((review) => (
+          {visibleReviews.map((review) => (
             <div
               key={`${review.name}-${review.date}`}
               className="luneva-card relative rounded-[2rem] border border-[#ead7d1] bg-white px-8 pb-8 pt-20 text-center shadow-sm"
