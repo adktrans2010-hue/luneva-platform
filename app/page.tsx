@@ -2,6 +2,7 @@ import Hero from "@/components/Hero";
 import Symptoms from "@/components/Symptoms";
 import About from "@/components/About";
 import Education from "@/components/Education";
+import Process from "@/components/Process";
 import ContactCta from "@/components/ContactCta";
 import SectionDivider from "@/components/SectionDivider";
 
@@ -18,6 +19,9 @@ export default function Home() {
       <SectionDivider />
 
       <Education />
+      <SectionDivider />
+
+      <Process />
       <SectionDivider />
 
       <ContactCta />
