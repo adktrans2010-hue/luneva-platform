@@ -1,77 +1,104 @@
+"use client";
+
+import Image from "next/image";
+import { useState } from "react";
+
 const education = [
-  {
-    year: "2015",
-    title: "Психологическое образование",
-    text: "Получение профессиональной подготовки в области психологии.",
-  },
-  {
-    year: "2018",
-    title: "Гештальт-терапия",
-    text: "Длительное обучение и практика в гештальт-подходе.",
-  },
-  {
-    year: "2020",
-    title: "Работа с травмой и ПТСР",
-    text: "Дополнительная специализация по работе с травматическим опытом.",
-  },
-  {
-    year: "2022",
-    title: "Расстройства пищевого поведения",
-    text: "Специализация по психологической помощи при РПП.",
-  },
+  "Дипломированный психолог",
+  "Гештальт-терапевт",
+  "Специалист по работе с травмой и ПТСР",
+  "Специалист по расстройствам пищевого поведения",
+];
+
+const certificates = [
+  "/certificates/cert-1.jpg",
+  "/certificates/cert-2.jpg",
+  "/certificates/cert-3.jpg",
 ];
 
 export default function Education() {
+  const [selectedCertificate, setSelectedCertificate] = useState<string | null>(
+    null
+  );
+
   return (
     <section className="bg-[#fff8f6] px-6 py-24">
       <div className="mx-auto max-w-7xl">
-
         <p className="mb-4 text-sm uppercase tracking-[0.25em] text-[#c98778]">
-          Профессиональный путь
+          Образование и опыт
         </p>
 
         <h2 className="font-serif text-5xl text-[#332725]">
-          Образование и опыт
+          Профессиональная основа моей работы
         </h2>
 
         <p className="mt-6 max-w-2xl text-lg leading-8 text-[#5f5552]">
-          Постоянное обучение и развитие — важная часть моей
-          профессиональной практики и ответственности перед клиентами.
+          Я постоянно обучаюсь и повышаю квалификацию, чтобы работать бережно,
+          профессионально и опираться на современные подходы в психотерапии.
         </p>
 
-
-        <div className="mt-14 space-y-6">
+        <div className="mt-10 grid gap-4 md:grid-cols-2">
           {education.map((item) => (
             <div
-              key={item.title}
-              className="
-                grid gap-6
-                rounded-[2rem]
-                bg-white
-                p-8
-                shadow-sm
-                md:grid-cols-[120px_1fr]
-              "
+              key={item}
+              className="rounded-2xl border border-[#ead7d1] bg-white px-5 py-4 text-[#5f5552]"
             >
-              <div className="font-serif text-4xl text-[#c98778]">
-                {item.year}
-              </div>
-
-              <div>
-                <h3 className="text-xl font-medium text-[#332725]">
-                  {item.title}
-                </h3>
-
-                <p className="mt-3 leading-7 text-[#5f5552]">
-                  {item.text}
-                </p>
-              </div>
-
+              {item}
             </div>
           ))}
         </div>
 
+        <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {certificates.map((src, index) => (
+            <button
+              key={src}
+              type="button"
+              onClick={() => setSelectedCertificate(src)}
+              className="group overflow-hidden rounded-[2rem] border border-[#ead7d1] bg-white p-3 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
+            >
+              <div className="relative h-64 overflow-hidden rounded-[1.5rem] bg-[#fff8f6]">
+                <Image
+                  src={src}
+                  alt={`Сертификат Александры Луневой ${index + 1}`}
+                  fill
+                  className="object-cover transition duration-300 group-hover:scale-105"
+                />
+              </div>
+
+              <p className="mt-4 px-2 pb-1 text-sm text-[#8a7a76]">
+                Нажмите, чтобы раскрыть
+              </p>
+            </button>
+          ))}
+        </div>
       </div>
+
+      {selectedCertificate && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-[#332725]/80 px-4 py-8 backdrop-blur-sm"
+          onClick={() => setSelectedCertificate(null)}
+        >
+          <button
+            type="button"
+            className="absolute right-6 top-6 rounded-full bg-white px-4 py-2 text-[#332725] shadow-lg"
+            onClick={() => setSelectedCertificate(null)}
+          >
+            Закрыть
+          </button>
+
+          <div
+            className="relative h-[85vh] w-full max-w-4xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <Image
+              src={selectedCertificate}
+              alt="Сертификат Александры Луневой"
+              fill
+              className="object-contain"
+            />
+          </div>
+        </div>
+      )}
     </section>
   );
 }
