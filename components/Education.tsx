@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 
 const education = [
@@ -14,6 +15,9 @@ const certificates = [
   "/certificates/cert-1.jpg",
   "/certificates/cert-2.jpg",
   "/certificates/cert-3.jpg",
+  "/certificates/cert-4.jpg",
+  "/certificates/cert-5.jpg",
+  "/certificates/cert-6.jpg",
 ];
 
 export default function Education() {
@@ -48,28 +52,38 @@ export default function Education() {
           ))}
         </div>
 
-        <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-14 grid gap-6 sm:grid-cols-3 lg:grid-cols-6">
           {certificates.map((src, index) => (
             <button
               key={src}
               type="button"
               onClick={() => setSelectedCertificate(src)}
-              className="group overflow-hidden rounded-[2rem] border border-[#ead7d1] bg-white p-3 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
+              className="group overflow-hidden rounded-[1rem] border border-[#ead7d1] bg-white p-2 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
             >
-              <div className="relative h-64 overflow-hidden rounded-[1.5rem] bg-[#fff8f6]">
+              <div className="relative flex h-36 items-center justify-center overflow-hidden rounded-xl bg-white">
                 <Image
                   src={src}
                   alt={`Сертификат Александры Луневой ${index + 1}`}
-                  fill
-                  className="object-cover transition duration-300 group-hover:scale-105"
+                  width={220}
+                  height={300}
+                  className="max-h-36 max-w-full object-contain transition duration-300 group-hover:scale-105"
                 />
               </div>
 
-              <p className="mt-4 px-2 pb-1 text-sm text-[#8a7a76]">
+              <p className="mt-2 text-center text-xs text-[#8a7a76]">
                 Нажмите, чтобы раскрыть
               </p>
             </button>
           ))}
+        </div>
+
+        <div className="mt-10">
+          <Link
+            href="/certificates"
+            className="inline-flex rounded-2xl border border-[#c98778] px-6 py-3 text-[#332725] transition hover:bg-white"
+          >
+            Смотреть все сертификаты
+          </Link>
         </div>
       </div>
 
@@ -87,7 +101,7 @@ export default function Education() {
           </button>
 
           <div
-            className="relative h-[85vh] w-full max-w-4xl"
+            className="relative h-[85vh] w-full max-w-5xl"
             onClick={(event) => event.stopPropagation()}
           >
             <Image
