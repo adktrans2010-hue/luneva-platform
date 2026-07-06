@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Reviews from "@/components/Reviews";
+import ReviewForm from "@/components/ReviewForm";
 
 export default async function ReviewsPage() {
   return (
@@ -31,6 +32,7 @@ export default async function ReviewsPage() {
         </div>
       </section>
 
+      <ReviewForm />
       <Reviews />
     </>
   );
