@@ -7,7 +7,7 @@ import Reviews from "@/components/Reviews";
 import ContactCta from "@/components/ContactCta";
 import SectionDivider from "@/components/SectionDivider";
 
-export default function Home() {
+export default async function Home() {
   return (
     <>
       <Hero />

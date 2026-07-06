@@ -1,7 +1,7 @@
-import Reviews from "@/components/Reviews";
 import Link from "next/link";
+import Reviews from "@/components/Reviews";
 
-export default function ReviewsPage() {
+export default async function ReviewsPage() {
   return (
     <>
       <section className="bg-[#fff8f6] px-6 py-24">
