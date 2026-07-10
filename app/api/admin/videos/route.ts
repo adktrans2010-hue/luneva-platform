@@ -14,6 +14,9 @@ function readVideoBody(body: Record<string, unknown>) {
     type: String(body.type ?? "").trim(),
     url: String(body.url ?? "").trim(),
     platform: String(body.platform ?? "").trim() || null,
+    seoTitle: String(body.seoTitle ?? "").trim() || null,
+    seoDescription: String(body.seoDescription ?? "").trim() || null,
+    seoKeywords: String(body.seoKeywords ?? "").trim() || null,
     published: Boolean(body.published),
   };
 }

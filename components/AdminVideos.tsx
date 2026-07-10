@@ -10,6 +10,9 @@ type Video = {
   type: "short" | "long";
   url: string;
   platform: string | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  seoKeywords: string | null;
   published: boolean;
   createdAt: string;
   updatedAt: string;
@@ -22,6 +25,9 @@ type VideoDraft = {
   type: "short" | "long";
   url: string;
   platform: string;
+  seoTitle: string;
+  seoDescription: string;
+  seoKeywords: string;
   published: boolean;
 };
 
@@ -32,6 +38,9 @@ const emptyDraft: VideoDraft = {
   type: "short",
   url: "",
   platform: "",
+  seoTitle: "",
+  seoDescription: "",
+  seoKeywords: "",
   published: false,
 };
 
@@ -214,6 +223,49 @@ export default function AdminVideos() {
             placeholder="Описание"
           />
 
+          <div className="mt-4 rounded-2xl bg-[#fff8f6] p-5">
+            <p className="text-sm uppercase tracking-[0.18em] text-[#8a7a76]">
+              SEO-метки
+            </p>
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <input
+                value={draft.seoTitle}
+                onChange={(event) =>
+                  setDraft((current) => ({
+                    ...current,
+                    seoTitle: event.target.value,
+                  }))
+                }
+                className="rounded-2xl border border-[#ead7d1] px-4 py-3"
+                placeholder="SEO-заголовок"
+              />
+
+              <input
+                value={draft.seoKeywords}
+                onChange={(event) =>
+                  setDraft((current) => ({
+                    ...current,
+                    seoKeywords: event.target.value,
+                  }))
+                }
+                className="rounded-2xl border border-[#ead7d1] px-4 py-3"
+                placeholder="Ключевые слова через запятую"
+              />
+            </div>
+            <textarea
+              value={draft.seoDescription}
+              onChange={(event) =>
+                setDraft((current) => ({
+                  ...current,
+                  seoDescription: event.target.value,
+                }))
+              }
+              rows={3}
+              className="mt-4 w-full rounded-2xl border border-[#ead7d1] px-4 py-3"
+              placeholder="SEO-описание"
+            />
+          </div>
+
           <label className="mt-5 flex items-center gap-3 text-[#5f5552]">
             <input
               type="checkbox"
@@ -379,6 +431,46 @@ export default function AdminVideos() {
                       className="mt-4 w-full rounded-2xl border border-[#ead7d1] px-4 py-3"
                       placeholder="Описание"
                     />
+
+                    <div className="mt-4 rounded-2xl bg-[#fff8f6] p-5">
+                      <p className="text-sm uppercase tracking-[0.18em] text-[#8a7a76]">
+                        SEO-метки
+                      </p>
+                      <div className="mt-4 grid gap-4 md:grid-cols-2">
+                        <input
+                          value={video.seoTitle ?? ""}
+                          onChange={(event) =>
+                            updateLocalVideo(video.id, {
+                              seoTitle: event.target.value,
+                            })
+                          }
+                          className="rounded-2xl border border-[#ead7d1] px-4 py-3"
+                          placeholder="SEO-заголовок"
+                        />
+
+                        <input
+                          value={video.seoKeywords ?? ""}
+                          onChange={(event) =>
+                            updateLocalVideo(video.id, {
+                              seoKeywords: event.target.value,
+                            })
+                          }
+                          className="rounded-2xl border border-[#ead7d1] px-4 py-3"
+                          placeholder="Ключевые слова через запятую"
+                        />
+                      </div>
+                      <textarea
+                        value={video.seoDescription ?? ""}
+                        onChange={(event) =>
+                          updateLocalVideo(video.id, {
+                            seoDescription: event.target.value,
+                          })
+                        }
+                        rows={3}
+                        className="mt-4 w-full rounded-2xl border border-[#ead7d1] px-4 py-3"
+                        placeholder="SEO-описание"
+                      />
+                    </div>
 
                     <button
                       onClick={() => updateVideo(video)}

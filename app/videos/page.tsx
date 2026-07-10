@@ -17,9 +17,33 @@ export default async function VideosPage() {
   const videos = await getPublishedVideos();
   const shortVideos = videos.filter((video) => video.type === "short");
   const longVideos = videos.filter((video) => video.type === "long");
+  const videosJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "Полезные видео Луневой Александры",
+    itemListElement: videos.map((video, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      item: {
+        "@type": "VideoObject",
+        name: video.seoTitle || video.title,
+        description: video.seoDescription || video.description || video.topic,
+        keywords: video.seoKeywords || video.topic,
+        uploadDate: video.createdAt.toISOString(),
+        url: video.url,
+      },
+    })),
+  };
 
   return (
     <section className="luneva-fade bg-[#fff8f6] px-6 py-24">
+      {videos.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(videosJsonLd) }}
+        />
+      )}
+
       <div className="mx-auto max-w-7xl">
         <p className="mb-4 text-sm uppercase tracking-[0.25em] text-[#c98778]">
           Видео

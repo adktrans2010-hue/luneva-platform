@@ -67,6 +67,12 @@ export const certificates = pgTable("certificates", {
 
   image: text("image").notNull(),
 
+  seoTitle: text("seo_title"),
+
+  seoDescription: text("seo_description"),
+
+  seoKeywords: text("seo_keywords"),
+
   published: boolean("published")
     .default(true)
     .notNull(),
@@ -198,6 +204,12 @@ export const videos = pgTable("videos", {
   url: text("url").notNull(),
 
   platform: text("platform"),
+
+  seoTitle: text("seo_title"),
+
+  seoDescription: text("seo_description"),
+
+  seoKeywords: text("seo_keywords"),
 
   published: boolean("published")
     .default(false)

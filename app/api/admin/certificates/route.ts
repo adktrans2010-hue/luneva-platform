@@ -11,6 +11,9 @@ function readCertificateForm(formData: FormData) {
   return {
     title: String(formData.get("title") ?? "").trim(),
     description: String(formData.get("description") ?? "").trim() || null,
+    seoTitle: String(formData.get("seoTitle") ?? "").trim() || null,
+    seoDescription: String(formData.get("seoDescription") ?? "").trim() || null,
+    seoKeywords: String(formData.get("seoKeywords") ?? "").trim() || null,
     published: formData.get("published") === "true",
     sortOrder: Number(formData.get("sortOrder") ?? 0) || 0,
   };

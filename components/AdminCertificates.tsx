@@ -8,6 +8,9 @@ type Certificate = {
   title: string;
   description: string | null;
   image: string;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  seoKeywords: string | null;
   published: boolean;
   sortOrder: number;
   createdAt: string;
@@ -17,6 +20,9 @@ type Certificate = {
 type CertificateDraft = {
   title: string;
   description: string;
+  seoTitle: string;
+  seoDescription: string;
+  seoKeywords: string;
   sortOrder: number;
   published: boolean;
   file: File | null;
@@ -25,6 +31,9 @@ type CertificateDraft = {
 const emptyDraft: CertificateDraft = {
   title: "",
   description: "",
+  seoTitle: "",
+  seoDescription: "",
+  seoKeywords: "",
   sortOrder: 0,
   published: true,
   file: null,
@@ -35,6 +44,9 @@ function buildFormData(certificate: CertificateDraft | Certificate, file?: File 
 
   formData.set("title", certificate.title);
   formData.set("description", certificate.description ?? "");
+  formData.set("seoTitle", certificate.seoTitle ?? "");
+  formData.set("seoDescription", certificate.seoDescription ?? "");
+  formData.set("seoKeywords", certificate.seoKeywords ?? "");
   formData.set("sortOrder", String(certificate.sortOrder));
   formData.set("published", certificate.published ? "true" : "false");
 
@@ -202,6 +214,49 @@ export default function AdminCertificates() {
             placeholder="Описание, если нужно"
           />
 
+          <div className="mt-4 rounded-2xl bg-[#fff8f6] p-5">
+            <p className="text-sm uppercase tracking-[0.18em] text-[#8a7a76]">
+              SEO-метки
+            </p>
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <input
+                value={draft.seoTitle}
+                onChange={(event) =>
+                  setDraft((current) => ({
+                    ...current,
+                    seoTitle: event.target.value,
+                  }))
+                }
+                className="rounded-2xl border border-[#ead7d1] px-4 py-3"
+                placeholder="SEO-заголовок"
+              />
+
+              <input
+                value={draft.seoKeywords}
+                onChange={(event) =>
+                  setDraft((current) => ({
+                    ...current,
+                    seoKeywords: event.target.value,
+                  }))
+                }
+                className="rounded-2xl border border-[#ead7d1] px-4 py-3"
+                placeholder="Ключевые слова через запятую"
+              />
+            </div>
+            <textarea
+              value={draft.seoDescription}
+              onChange={(event) =>
+                setDraft((current) => ({
+                  ...current,
+                  seoDescription: event.target.value,
+                }))
+              }
+              rows={3}
+              className="mt-4 w-full rounded-2xl border border-[#ead7d1] px-4 py-3"
+              placeholder="SEO-описание"
+            />
+          </div>
+
           <input
             type="file"
             accept="image/jpeg,image/png,image/webp"
@@ -347,6 +402,47 @@ export default function AdminCertificates() {
                       className="mt-4 w-full rounded-2xl border border-[#ead7d1] px-4 py-3"
                       placeholder="Описание"
                     />
+
+                    <div className="mt-4 rounded-2xl bg-[#fff8f6] p-5">
+                      <p className="text-sm uppercase tracking-[0.18em] text-[#8a7a76]">
+                        SEO-метки
+                      </p>
+                      <div className="mt-4 grid gap-4 md:grid-cols-2">
+                        <input
+                          value={certificate.seoTitle ?? ""}
+                          onChange={(event) =>
+                            updateLocalCertificate(certificate.id, {
+                              seoTitle: event.target.value,
+                            })
+                          }
+                          className="rounded-2xl border border-[#ead7d1] px-4 py-3"
+                          placeholder="SEO-заголовок"
+                        />
+
+                        <input
+                          value={certificate.seoKeywords ?? ""}
+                          onChange={(event) =>
+                            updateLocalCertificate(certificate.id, {
+                              seoKeywords: event.target.value,
+                            })
+                          }
+                          className="rounded-2xl border border-[#ead7d1] px-4 py-3"
+                          placeholder="Ключевые слова через запятую"
+                        />
+                      </div>
+
+                      <textarea
+                        value={certificate.seoDescription ?? ""}
+                        onChange={(event) =>
+                          updateLocalCertificate(certificate.id, {
+                            seoDescription: event.target.value,
+                          })
+                        }
+                        rows={3}
+                        className="mt-4 w-full rounded-2xl border border-[#ead7d1] px-4 py-3"
+                        placeholder="SEO-описание"
+                      />
+                    </div>
 
                     <input
                       type="file"

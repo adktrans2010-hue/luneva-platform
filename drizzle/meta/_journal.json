@@ -92,6 +92,13 @@
       "when": 1783724400000,
       "tag": "0012_availability_format",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1783728000000,
+      "tag": "0013_content_seo_tags",
+      "breakpoints": true
     }
   ]
 }

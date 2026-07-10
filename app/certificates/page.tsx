@@ -10,9 +10,37 @@ export async function generateMetadata() {
 
 export default async function CertificatesPage() {
   const certificates = await getPublishedCertificates();
+  const certificatesJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "Дипломы и сертификаты Луневой Александры",
+    itemListElement: certificates.map((certificate, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      item: {
+        "@type": "ImageObject",
+        name: certificate.seoTitle || certificate.title,
+        description:
+          certificate.seoDescription ||
+          certificate.description ||
+          certificate.title,
+        keywords: certificate.seoKeywords || undefined,
+        contentUrl: certificate.image,
+      },
+    })),
+  };
 
   return (
     <section className="bg-[#fff8f6] px-6 py-24">
+      {certificates.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(certificatesJsonLd),
+          }}
+        />
+      )}
+
       <div className="mx-auto max-w-7xl">
         <p className="mb-4 text-sm uppercase tracking-[0.25em] text-[#c98778]">
           Образование
