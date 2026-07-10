@@ -136,33 +136,44 @@ export async function PATCH(request: Request, { params }: AppointmentParams) {
 
   const previousTime = currentRequest.scheduledAt?.toISOString() ?? "";
   const nextTime = updatedRequest.scheduledAt?.toISOString() ?? "";
-  const action =
-    status === "cancelled"
-      ? "Отмена"
-      : previousTime && nextTime && previousTime !== nextTime
-        ? "Перенос"
-        : !previousTime && nextTime
-          ? "Назначение"
-          : "Статус";
-
+  const statusChanged = currentRequest.status !== updatedRequest.status;
+  const timeChanged = previousTime !== nextTime;
+  const notesChanged = (currentRequest.notes ?? "") !== (updatedRequest.notes ?? "");
   const paymentChanged =
     currentRequest.paymentStatus !== updatedRequest.paymentStatus ||
     currentRequest.paymentLink !== updatedRequest.paymentLink;
   const notificationChanged =
     currentRequest.notificationStatus !== updatedRequest.notificationStatus;
 
-  await db.insert(appointmentHistory).values({
-    appointmentId: id,
-    action,
-    details:
-      action === "Статус"
-        ? `Статус: ${statusLabels[status]}`
-        : `${action}: ${
-            updatedRequest.scheduledAt
-              ? updatedRequest.scheduledAt.toLocaleString("ru-RU")
-              : "без даты"
-          }`,
-  });
+  if (timeChanged) {
+    const action = previousTime && nextTime ? "Перенос" : "Назначение";
+
+    await db.insert(appointmentHistory).values({
+      appointmentId: id,
+      action,
+      details: `${action}: ${
+        updatedRequest.scheduledAt
+          ? updatedRequest.scheduledAt.toLocaleString("ru-RU")
+          : "без даты"
+      }`,
+    });
+  }
+
+  if (statusChanged) {
+    await db.insert(appointmentHistory).values({
+      appointmentId: id,
+      action: status === "cancelled" ? "Отмена" : "Статус",
+      details: `Статус: ${statusLabels[status]}`,
+    });
+  }
+
+  if (notesChanged) {
+    await db.insert(appointmentHistory).values({
+      appointmentId: id,
+      action: "Заметка",
+      details: updatedRequest.notes ? "Заметка обновлена" : "Заметка очищена",
+    });
+  }
 
   if (paymentChanged) {
     await db.insert(appointmentHistory).values({

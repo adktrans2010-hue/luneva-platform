@@ -128,7 +128,10 @@ export default function AdminAppointments() {
   const [slots, setSlots] = useState<AvailabilitySlot[]>([]);
   const [selectedDate, setSelectedDate] = useState(today);
   const [newSlotTime, setNewSlotTime] = useState("10:00");
-  const [view, setView] = useState<"calendar" | "list">("calendar");
+  const [view, setView] = useState<"calendar" | "list" | "journal">("calendar");
+  const [statusFilter, setStatusFilter] = useState<AppointmentStatus | "all">(
+    "all"
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -259,6 +262,28 @@ export default function AdminAppointments() {
     return toDateInputValue(new Date(appointment.scheduledAt)) === selectedDate;
   });
 
+  const statusCounts = useMemo(() => {
+    return {
+      all: appointments.length,
+      new: appointments.filter((appointment) => appointment.status === "new")
+        .length,
+      scheduled: appointments.filter(
+        (appointment) => appointment.status === "scheduled"
+      ).length,
+      completed: appointments.filter(
+        (appointment) => appointment.status === "completed"
+      ).length,
+      cancelled: appointments.filter(
+        (appointment) => appointment.status === "cancelled"
+      ).length,
+    };
+  }, [appointments]);
+
+  const filteredAppointments =
+    statusFilter === "all"
+      ? appointments
+      : appointments.filter((appointment) => appointment.status === statusFilter);
+
   if (loading) {
     return (
       <section className="px-6 py-16">
@@ -308,6 +333,16 @@ export default function AdminAppointments() {
                 }
               >
                 Список
+              </button>
+              <button
+                onClick={() => setView("journal")}
+                className={
+                  view === "journal"
+                    ? "rounded-xl bg-[#332725] px-4 py-2 text-white"
+                    : "rounded-xl border border-[#332725] px-4 py-2 text-[#332725]"
+                }
+              >
+                Журнал
               </button>
             </div>
           </div>
@@ -400,16 +435,66 @@ export default function AdminAppointments() {
         )}
 
         {view === "list" && (
-          <AppointmentList
-            appointments={appointments}
-            emptyText="Заявок пока нет."
-            onUpdate={updateAppointment}
-            onDelete={deleteAppointment}
-            onCreatePayment={createPayment}
-          />
+          <div className="mt-8">
+            <StatusFilters
+              value={statusFilter}
+              counts={statusCounts}
+              onChange={setStatusFilter}
+            />
+
+            <div className="mt-6">
+              <AppointmentList
+                appointments={filteredAppointments}
+                emptyText="Заявок пока нет."
+                onUpdate={updateAppointment}
+                onDelete={deleteAppointment}
+                onCreatePayment={createPayment}
+              />
+            </div>
+          </div>
+        )}
+
+        {view === "journal" && (
+          <ConsultationJournal appointments={appointments} />
         )}
       </div>
     </section>
+  );
+}
+
+function StatusFilters({
+  value,
+  counts,
+  onChange,
+}: {
+  value: AppointmentStatus | "all";
+  counts: Record<AppointmentStatus | "all", number>;
+  onChange: (value: AppointmentStatus | "all") => void;
+}) {
+  const items: Array<{ value: AppointmentStatus | "all"; label: string }> = [
+    { value: "all", label: "Все" },
+    { value: "new", label: "Новые" },
+    { value: "scheduled", label: "Запланированы" },
+    { value: "completed", label: "Проведены" },
+    { value: "cancelled", label: "Отменены" },
+  ];
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      {items.map((item) => (
+        <button
+          key={item.value}
+          onClick={() => onChange(item.value)}
+          className={
+            value === item.value
+              ? "rounded-full bg-[#332725] px-4 py-2 text-sm text-white"
+              : "rounded-full border border-[#ead7d1] bg-white px-4 py-2 text-sm text-[#5f5552]"
+          }
+        >
+          {item.label} · {counts[item.value]}
+        </button>
+      ))}
+    </div>
   );
 }
 
@@ -504,7 +589,11 @@ function AppointmentList({
                   })
                 }
                 className="rounded-xl border border-[#ead7d1] px-4 py-2"
+                aria-label="Перенос записи"
               />
+              <div className="-mt-2 text-xs uppercase tracking-[0.16em] text-[#8a7a76]">
+                Перенос записи
+              </div>
 
               <select
                 value={appointment.status}
@@ -569,7 +658,7 @@ function AppointmentList({
                 }
                 rows={3}
                 className="rounded-xl border border-[#ead7d1] px-4 py-2"
-                placeholder="Заметка администратора"
+                placeholder="Заметки Александры"
               />
 
               <textarea
@@ -595,7 +684,7 @@ function AppointmentList({
                 }
                 className="rounded-xl border border-[#b94a48] px-4 py-2 text-[#b94a48]"
               >
-                Отменить
+                Отменить запись
               </button>
 
               <button
@@ -625,5 +714,191 @@ function AppointmentList({
         </article>
       ))}
     </div>
+  );
+}
+
+function ConsultationJournal({
+  appointments,
+}: {
+  appointments: Appointment[];
+}) {
+  const people = useMemo(() => {
+    const grouped = new Map<string, Appointment[]>();
+
+    appointments.forEach((appointment) => {
+      const key = `${appointment.contact.toLowerCase()}-${appointment.name.toLowerCase()}`;
+      grouped.set(key, [...(grouped.get(key) ?? []), appointment]);
+    });
+
+    return Array.from(grouped.values())
+      .map((items) => {
+        const sorted = [...items].sort(
+          (first, second) =>
+            new Date(second.createdAt).getTime() -
+            new Date(first.createdAt).getTime()
+        );
+        const meetings = sorted
+          .filter((appointment) => appointment.scheduledAt)
+          .sort(
+            (first, second) =>
+              new Date(first.scheduledAt ?? "").getTime() -
+              new Date(second.scheduledAt ?? "").getTime()
+          );
+
+        return {
+          key: sorted[0].id,
+          name: sorted[0].name,
+          contact: sorted[0].contact,
+          contactMethod: sorted[0].contactMethod,
+          requests: sorted,
+          meetings,
+          lastRequest: sorted[0],
+          notes: sorted.filter((appointment) => appointment.notes),
+        };
+      })
+      .sort(
+        (first, second) =>
+          new Date(second.lastRequest.createdAt).getTime() -
+          new Date(first.lastRequest.createdAt).getTime()
+      );
+  }, [appointments]);
+
+  return (
+    <section className="mt-8 rounded-[2rem] border border-[#ead7d1] bg-white p-8 shadow-sm">
+      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div>
+          <h2 className="font-serif text-4xl text-[#332725]">
+            Журнал консультаций
+          </h2>
+          <p className="mt-3 max-w-3xl text-[#5f5552]">
+            Закрытый раздел для истории обращений, дат встреч и рабочих заметок
+            Александры.
+          </p>
+        </div>
+
+        <div className="rounded-2xl bg-[#fff8f6] px-5 py-3 text-sm uppercase tracking-[0.18em] text-[#c98778]">
+          Людей: {people.length}
+        </div>
+      </div>
+
+      <div className="mt-8 grid gap-5">
+        {people.length > 0 ? (
+          people.map((person) => (
+            <article
+              key={person.key}
+              className="rounded-[1.5rem] border border-[#ead7d1] bg-[#fff8f6] p-6"
+            >
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                  <h3 className="text-2xl font-medium text-[#332725]">
+                    {person.name}
+                  </h3>
+                  <p className="mt-2 text-[#5f5552]">
+                    {methodLabels[person.contactMethod] ??
+                      person.contactMethod}
+                    : {person.contact}
+                  </p>
+                  <p className="mt-2 text-sm text-[#8a7a76]">
+                    Обращений: {person.requests.length} · Встреч:{" "}
+                    {person.meetings.length}
+                  </p>
+                </div>
+
+                <div className="rounded-2xl bg-white px-4 py-3 text-sm text-[#5f5552]">
+                  Последнее обращение: {formatDateTime(person.lastRequest.createdAt)}
+                </div>
+              </div>
+
+              <div className="mt-5 grid gap-4 lg:grid-cols-3">
+                <div className="rounded-2xl bg-white p-4">
+                  <h4 className="text-sm uppercase tracking-[0.16em] text-[#8a7a76]">
+                    Даты встреч
+                  </h4>
+                  <div className="mt-3 grid gap-2 text-sm text-[#5f5552]">
+                    {person.meetings.length > 0 ? (
+                      person.meetings.map((appointment) => (
+                        <p key={appointment.id}>
+                          {formatDateTime(appointment.scheduledAt)} ·{" "}
+                          {statusLabels[appointment.status]}
+                        </p>
+                      ))
+                    ) : (
+                      <p>Встречи пока не назначены.</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl bg-white p-4">
+                  <h4 className="text-sm uppercase tracking-[0.16em] text-[#8a7a76]">
+                    История обращений
+                  </h4>
+                  <div className="mt-3 grid gap-2 text-sm text-[#5f5552]">
+                    {person.requests.map((appointment) => (
+                      <p key={appointment.id}>
+                        {formatDateTime(appointment.createdAt)} ·{" "}
+                        {formatLabels[appointment.consultationFormat]} ·{" "}
+                        {statusLabels[appointment.status]}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl bg-white p-4">
+                  <h4 className="text-sm uppercase tracking-[0.16em] text-[#8a7a76]">
+                    Заметки Александры
+                  </h4>
+                  <div className="mt-3 grid gap-2 whitespace-pre-line text-sm text-[#5f5552]">
+                    {person.notes.length > 0 ? (
+                      person.notes.map((appointment) => (
+                        <p key={appointment.id}>
+                          {formatDateTime(appointment.updatedAt)} ·{" "}
+                          {appointment.notes}
+                        </p>
+                      ))
+                    ) : (
+                      <p>Заметок пока нет.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <details className="mt-4 rounded-2xl bg-white p-4">
+                <summary className="cursor-pointer text-[#332725]">
+                  Подробная история
+                </summary>
+                <div className="mt-4 grid gap-4">
+                  {person.requests.map((appointment) => (
+                    <div
+                      key={appointment.id}
+                      className="border-t border-[#ead7d1] pt-4 first:border-t-0 first:pt-0"
+                    >
+                      <p className="font-medium text-[#332725]">
+                        {formatDateTime(appointment.createdAt)} ·{" "}
+                        {statusLabels[appointment.status]}
+                      </p>
+                      <p className="mt-2 whitespace-pre-line text-sm leading-6 text-[#5f5552]">
+                        {appointment.message}
+                      </p>
+                      {appointment.history.length > 0 && (
+                        <div className="mt-3 grid gap-1 text-sm text-[#8a7a76]">
+                          {appointment.history.map((entry) => (
+                            <p key={entry.id}>
+                              {formatDateTime(entry.createdAt)} · {entry.action}
+                              {entry.details ? ` · ${entry.details}` : ""}
+                            </p>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </details>
+            </article>
+          ))
+        ) : (
+          <p className="text-[#5f5552]">В журнале пока нет обращений.</p>
+        )}
+      </div>
+    </section>
   );
 }
