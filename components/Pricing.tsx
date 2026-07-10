@@ -24,29 +24,29 @@ export default async function Pricing() {
           Форматы консультаций
         </h2>
 
-        <div className="mt-12 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
           {items.map((item) => (
             <article
               key={item.id}
-              className="flex min-h-[400px] flex-col items-center justify-between bg-[#f2d6cc] px-8 py-14 text-center shadow-sm"
+              className="group flex min-h-[420px] flex-col justify-between rounded-[2rem] border border-[#ead7d1] bg-white px-8 py-10 text-center shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
             >
               <div>
                 <h3 className="text-base font-semibold uppercase tracking-[0.12em] text-[#332725]">
                   {item.title}
                 </h3>
 
-                <div className="mx-auto mt-7 h-[2px] w-28 bg-[#332725]" />
+                <div className="mx-auto mt-6 h-[2px] w-20 bg-[#c98778]" />
 
-                <p className="mt-7 text-xl leading-8 text-[#332725]">
+                <p className="mt-7 text-lg leading-8 text-[#5f5552]">
                   {item.description}, стоимость{" "}
-                  <span className="font-semibold">
+                  <span className="font-semibold text-[#332725]">
                     {formatPrice(item.price)}
                   </span>{" "}
                   руб.
                 </p>
 
                 {item.oldPrice && (
-                  <p className="mt-3 text-sm font-semibold text-[#1f1715] line-through">
+                  <p className="mt-3 text-sm font-semibold text-[#8a7a76] line-through">
                     {formatPrice(item.oldPrice)} руб
                   </p>
                 )}
@@ -54,7 +54,7 @@ export default async function Pricing() {
 
               <Link
                 href="/contacts#booking"
-                className="mt-8 inline-flex min-w-44 justify-center rounded bg-white px-8 py-4 font-semibold text-[#1f1715] transition hover:-translate-y-1"
+                className="mt-8 inline-flex min-w-44 justify-center rounded-2xl bg-[#332725] px-8 py-4 font-semibold text-white shadow-lg transition group-hover:bg-[#4a3935]"
               >
                 {item.buttonText}
               </Link>
