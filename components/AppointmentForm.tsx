@@ -39,9 +39,12 @@ export default function AppointmentForm() {
   useEffect(() => {
     const controller = new AbortController();
 
-    void fetch(`/api/appointments/availability?date=${appointmentDate}`, {
-      signal: controller.signal,
-    })
+    void fetch(
+      `/api/appointments/availability?date=${appointmentDate}&format=${consultationFormat}`,
+      {
+        signal: controller.signal,
+      }
+    )
       .then((response) => response.json())
       .then((data: { slots: string[] }) => {
         setAvailableSlots(data.slots);
@@ -57,10 +60,17 @@ export default function AppointmentForm() {
       });
 
     return () => controller.abort();
-  }, [appointmentDate]);
+  }, [appointmentDate, consultationFormat]);
 
   function changeAppointmentDate(date: string) {
     setAppointmentDate(date);
+    setAppointmentTime("");
+    setAvailableSlots([]);
+    setLoadingSlots(true);
+  }
+
+  function changeConsultationFormat(format: string) {
+    setConsultationFormat(format);
     setAppointmentTime("");
     setAvailableSlots([]);
     setLoadingSlots(true);
@@ -106,7 +116,7 @@ export default function AppointmentForm() {
     setSending(false);
 
     const slotsResponse = await fetch(
-      `/api/appointments/availability?date=${appointmentDate}`
+      `/api/appointments/availability?date=${appointmentDate}&format=${consultationFormat}`
     );
     const slotsData = (await slotsResponse.json()) as { slots: string[] };
     setAvailableSlots(slotsData.slots);
@@ -153,7 +163,7 @@ export default function AppointmentForm() {
             <button
               key={format.value}
               type="button"
-              onClick={() => setConsultationFormat(format.value)}
+              onClick={() => changeConsultationFormat(format.value)}
               className={
                 consultationFormat === format.value
                   ? "rounded-xl bg-[#332725] px-4 py-2 text-white"
@@ -192,6 +202,11 @@ export default function AppointmentForm() {
       <div className="rounded-2xl border border-[#ead7d1] bg-[#fff8f6] p-4">
         <p className="text-sm uppercase tracking-[0.18em] text-[#8a7a76]">
           Свободное время
+        </p>
+        <p className="mt-2 text-sm text-[#8a7a76]">
+          Показывается график для формата:{" "}
+          {consultationFormats.find((format) => format.value === consultationFormat)
+            ?.label ?? "Онлайн"}
         </p>
 
         {loadingSlots ? (

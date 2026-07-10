@@ -163,6 +163,10 @@ export const appointmentAvailability = pgTable(
 
     time: text("time").notNull(),
 
+    consultationFormat: text("consultation_format")
+      .default("online")
+      .notNull(),
+
     enabled: boolean("enabled")
       .default(true)
       .notNull(),
@@ -171,7 +175,13 @@ export const appointmentAvailability = pgTable(
       .defaultNow()
       .notNull(),
   },
-  (table) => [uniqueIndex("appointment_availability_date_time_unique").on(table.date, table.time)]
+  (table) => [
+    uniqueIndex("appointment_availability_date_time_format_unique").on(
+      table.date,
+      table.time,
+      table.consultationFormat
+    ),
+  ]
 );
 
 export const videos = pgTable("videos", {

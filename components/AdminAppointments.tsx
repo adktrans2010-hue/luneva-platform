@@ -44,6 +44,7 @@ type AvailabilitySlot = {
   id: string;
   date: string;
   time: string;
+  consultationFormat: "online" | "office";
   enabled: boolean;
   createdAt: string;
 };
@@ -67,6 +68,11 @@ const formatLabels: Record<string, string> = {
   online: "Онлайн",
   office: "Очно в кабинете",
 };
+
+const consultationFormats = [
+  { value: "online", label: "Онлайн" },
+  { value: "office", label: "Очно в кабинете" },
+];
 
 const paymentMethodLabels: Record<string, string> = {
   online: "ЮKassa",
@@ -128,6 +134,9 @@ export default function AdminAppointments() {
   const [slots, setSlots] = useState<AvailabilitySlot[]>([]);
   const [selectedDate, setSelectedDate] = useState(today);
   const [newSlotTime, setNewSlotTime] = useState("10:00");
+  const [scheduleFormat, setScheduleFormat] = useState<"online" | "office">(
+    "online"
+  );
   const [view, setView] = useState<"calendar" | "list" | "journal">("calendar");
   const [statusFilter, setStatusFilter] = useState<AppointmentStatus | "all">(
     "all"
@@ -138,7 +147,9 @@ export default function AdminAppointments() {
   async function loadAppointments() {
     const [appointmentsResponse, slotsResponse] = await Promise.all([
       fetch("/api/admin/appointments"),
-      fetch(`/api/admin/availability?date=${selectedDate}`),
+      fetch(
+        `/api/admin/availability?date=${selectedDate}&format=${scheduleFormat}`
+      ),
     ]);
 
     const appointmentsData = (await appointmentsResponse.json()) as Appointment[];
@@ -155,7 +166,11 @@ export default function AdminAppointments() {
     const response = await fetch("/api/admin/availability", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ date: selectedDate, time: newSlotTime }),
+      body: JSON.stringify({
+        date: selectedDate,
+        time: newSlotTime,
+        format: scheduleFormat,
+      }),
     });
 
     if (!response.ok) {
@@ -232,9 +247,12 @@ export default function AdminAppointments() {
 
     void Promise.all([
       fetch("/api/admin/appointments", { signal: controller.signal }),
-      fetch(`/api/admin/availability?date=${selectedDate}`, {
-        signal: controller.signal,
-      }),
+      fetch(
+        `/api/admin/availability?date=${selectedDate}&format=${scheduleFormat}`,
+        {
+          signal: controller.signal,
+        }
+      ),
     ])
       .then(async ([appointmentsResponse, slotsResponse]) => {
         const appointmentsData =
@@ -254,12 +272,15 @@ export default function AdminAppointments() {
       });
 
     return () => controller.abort();
-  }, [selectedDate]);
+  }, [selectedDate, scheduleFormat]);
 
   const selectedDateAppointments = appointments.filter((appointment) => {
     if (!appointment.scheduledAt) return false;
 
-    return toDateInputValue(new Date(appointment.scheduledAt)) === selectedDate;
+    return (
+      toDateInputValue(new Date(appointment.scheduledAt)) === selectedDate &&
+      appointment.consultationFormat === scheduleFormat
+    );
   });
 
   const statusCounts = useMemo(() => {
@@ -308,8 +329,8 @@ export default function AdminAppointments() {
                 Календарь приема
               </h2>
               <p className="mt-3 text-[#5f5552]">
-                Добавьте свободные окна. На сайте клиент увидит только эти
-                даты и время, кроме уже занятых консультаций.
+                Добавьте свободные окна отдельно для онлайн и очного приема.
+                На сайте клиент увидит график выбранного формата.
               </p>
             </div>
 
@@ -347,6 +368,29 @@ export default function AdminAppointments() {
             </div>
           </div>
 
+          <div className="mt-8 rounded-2xl bg-[#fff8f6] p-4">
+            <p className="text-sm uppercase tracking-[0.18em] text-[#8a7a76]">
+              График приема
+            </p>
+            <div className="mt-4 flex flex-wrap gap-3">
+              {consultationFormats.map((format) => (
+                <button
+                  key={format.value}
+                  onClick={() =>
+                    setScheduleFormat(format.value as "online" | "office")
+                  }
+                  className={
+                    scheduleFormat === format.value
+                      ? "rounded-xl bg-[#332725] px-4 py-2 text-white"
+                      : "rounded-xl border border-[#332725] px-4 py-2 text-[#332725]"
+                  }
+                >
+                  {format.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="mt-8 grid gap-4 md:grid-cols-[1fr_180px_auto]">
             <input
               type="date"
@@ -379,7 +423,7 @@ export default function AdminAppointments() {
                   onClick={() => deleteSlot(slot.id)}
                   className="rounded-xl border border-[#c98778] px-4 py-2 text-[#332725]"
                 >
-                  {slot.time} · удалить
+                  {slot.time} · {formatLabels[slot.consultationFormat]} · удалить
                 </button>
               ))
             ) : (
@@ -416,7 +460,11 @@ export default function AdminAppointments() {
                     >
                       <div className="font-medium text-[#332725]">{slot.time}</div>
                       <div className="mt-1 text-[#5f5552]">
-                        {appointment ? appointment.name : "Свободно"}
+                        {appointment
+                          ? `${appointment.name} · ${
+                              formatLabels[appointment.consultationFormat]
+                            }`
+                          : `${formatLabels[scheduleFormat]} · свободно`}
                       </div>
                     </div>
                   );

@@ -50,7 +50,10 @@ export async function POST(request: Request) {
     );
   }
 
-  const availableSlots = await getAvailableAppointmentSlots(appointmentDate);
+  const availableSlots = await getAvailableAppointmentSlots(
+    appointmentDate,
+    consultationFormat
+  );
 
   if (!availableSlots.includes(appointmentTime)) {
     return NextResponse.json(

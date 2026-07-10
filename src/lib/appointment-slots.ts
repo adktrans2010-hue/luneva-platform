@@ -24,7 +24,10 @@ export function createSlotDate(date: string, time: string) {
   return slotDate;
 }
 
-export async function getAvailableAppointmentSlots(date: string) {
+export async function getAvailableAppointmentSlots(
+  date: string,
+  consultationFormat = "online"
+) {
   const dayStart = new Date(`${date}T00:00:00`);
   const dayEnd = new Date(`${date}T23:59:59.999`);
 
@@ -38,6 +41,7 @@ export async function getAvailableAppointmentSlots(date: string) {
     .where(
       and(
         eq(appointmentAvailability.date, date),
+        eq(appointmentAvailability.consultationFormat, consultationFormat),
         eq(appointmentAvailability.enabled, true)
       )
     );
@@ -49,6 +53,7 @@ export async function getAvailableAppointmentSlots(date: string) {
       and(
         gte(appointmentRequests.scheduledAt, dayStart),
         lt(appointmentRequests.scheduledAt, dayEnd),
+        eq(appointmentRequests.consultationFormat, consultationFormat),
         ne(appointmentRequests.status, "cancelled")
       )
     );

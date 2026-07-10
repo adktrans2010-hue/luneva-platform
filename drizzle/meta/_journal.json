@@ -85,6 +85,13 @@
       "when": 1783720800000,
       "tag": "0011_analytics",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1783724400000,
+      "tag": "0012_availability_format",
+      "breakpoints": true
     }
   ]
 }
