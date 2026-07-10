@@ -7,16 +7,9 @@ const education = [
     image: "/education/migip.png",
   },
   {
-    name: "Бакалавр-Магистр",
-    image: "/education/bakalavr.png",
-  },
-  {
-    name: "Институт профессионального образования",
-    image: "/education/ipo.png",
-  },
-  {
-    name: "Сфера",
-    image: "/education/sfera.png",
+    name: "Московский институт психоанализа",
+    image: "/education/mip.png",
+    className: "max-h-28 max-w-full scale-125",
   },
   {
     name: "МАГ",
@@ -25,6 +18,14 @@ const education = [
   {
     name: "Метафора",
     image: "/education/metafora.png",
+  },
+  {
+    name: "АРППС",
+    image: "/education/arpps.jpg",
+  },
+  {
+    name: "CBT Clinic",
+    image: "/education/cbt-clinic.jpg",
   },
 ];
 
@@ -48,7 +49,7 @@ export default function Education() {
                   alt={item.name}
                   width={220}
                   height={120}
-                  className="max-h-20 w-auto object-contain"
+                  className={item.className ?? "max-h-20 w-auto object-contain"}
                 />
               </div>
             ))}
@@ -62,16 +63,15 @@ export default function Education() {
             <div className="my-8 h-[2px] w-20 bg-[#c98778]" />
 
             <p className="text-lg leading-8 text-[#5f5552]">
-              В этом разделе вы можете ознакомиться с дипломами,
-              сертификатами и документами о профессиональном обучении
-              Александры.
+              В этом разделе вы можете ознакомиться с моими дипломами и
+              сертификатами.
             </p>
 
             <Link
               href="/certificates"
               className="mt-10 inline-flex rounded-2xl bg-white px-8 py-4 text-[#332725] shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
             >
-              Смотреть все сертификаты →
+              Смотреть
             </Link>
           </div>
         </div>

@@ -8,6 +8,83 @@
       "when": 1783262738347,
       "tag": "0000_silly_moonstone",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1783530000000,
+      "tag": "0001_articles",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1783533600000,
+      "tag": "0002_certificates",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1783537200000,
+      "tag": "0003_appointment_requests",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1783540800000,
+      "tag": "0004_calendar",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1783544400000,
+      "tag": "0005_availability",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1783548000000,
+      "tag": "0006_consultation_format",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1783551600000,
+      "tag": "0007_videos",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1783555200000,
+      "tag": "0008_pricing",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1783558800000,
+      "tag": "0009_seo",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1783562400000,
+      "tag": "0010_appointment_payments",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1783720800000,
+      "tag": "0011_analytics",
+      "breakpoints": true
     }
   ]
 }

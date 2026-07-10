@@ -1,4 +1,5 @@
-import Button from "@/components/Button";
+import Link from "next/link";
+
 import Section from "@/components/Section";
 
 export default function CtaSection() {
@@ -15,7 +16,12 @@ export default function CtaSection() {
         </p>
 
         <div className="mt-8">
-          <Button>Записаться на консультацию</Button>
+          <Link
+            href="/contacts#booking"
+            className="inline-flex rounded-xl bg-white px-6 py-3 font-medium text-slate-900 transition hover:bg-slate-100"
+          >
+            Записаться на консультацию
+          </Link>
         </div>
       </div>
     </Section>

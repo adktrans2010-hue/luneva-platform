@@ -1,4 +1,6 @@
 import Image from "next/image";
+import Link from "next/link";
+
 import DecorLeaf from "@/components/DecorLeaf";
 
 export default function Hero() {
@@ -24,27 +26,31 @@ export default function Hero() {
           <div className="my-8 h-[2px] w-16 bg-[#c98778]" />
 
           <p className="max-w-xl text-lg leading-9 text-[#5f5552]">
-            Бережная психологическая помощь взрослым и подросткам. Поддержка в
-            трудных ситуациях, понимание себя и обретение внутренней опоры.
+            Бережная психологическая помощь подросткам и взрослым.
           </p>
 
           <div className="mt-10 flex gap-5 rounded-[2rem] bg-white/50 p-6">
             <DecorLeaf className="text-5xl" />
 
             <p className="max-w-md font-serif text-2xl leading-relaxed text-[#c98778]">
-              Когда становится трудно — важно, чтобы рядом был человек, который
-              поможет найти опору.
+              Когда становится трудно, важно, чтобы рядом был человек!
             </p>
           </div>
 
           <div className="mt-10 flex flex-col gap-5 sm:flex-row">
-            <button className="rounded-2xl bg-[#332725] px-10 py-5 text-white shadow-lg transition hover:-translate-y-1">
+            <Link
+              href="/contacts#booking"
+              className="rounded-2xl bg-[#332725] px-10 py-5 text-white shadow-lg transition hover:-translate-y-1"
+            >
               Записаться на консультацию →
-            </button>
+            </Link>
 
-            <button className="rounded-2xl border border-[#c98778] px-10 py-5 text-[#332725] transition hover:bg-white">
+            <Link
+              href="/about"
+              className="rounded-2xl border border-[#c98778] px-10 py-5 text-[#332725] transition hover:bg-white"
+            >
               Обо мне
-            </button>
+            </Link>
           </div>
         </div>
 

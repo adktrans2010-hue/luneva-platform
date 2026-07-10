@@ -1,19 +1,24 @@
 import Image from "next/image";
 import Link from "next/link";
+import { getSeoPage, seoToMetadata } from "@/src/lib/seo";
+
+export async function generateMetadata() {
+  return seoToMetadata(await getSeoPage("/about"));
+}
 
 export default function AboutPage() {
   return (
     <section className="bg-[#fff8f6] px-6 py-24">
-      <div className="mx-auto grid max-w-7xl gap-16 lg:grid-cols-[0.9fr_1.1fr]">
+      <div className="mx-auto grid max-w-7xl gap-16 lg:grid-cols-[1.15fr_0.85fr]">
         <div className="relative">
           <div className="absolute -inset-6 rounded-[4rem] bg-[#e7b8ad]/40 blur-3xl" />
 
           <Image
-            src="/sasha-about.jpg"
+            src="/sasha-about-page.jpg"
             alt="Лунева Александра Александровна"
-            width={900}
-            height={1100}
-            className="relative h-[720px] w-full rounded-[4rem] object-cover shadow-2xl"
+            width={1800}
+            height={1200}
+            className="relative h-[620px] w-full rounded-[4rem] object-cover object-[58%_42%] shadow-2xl"
           />
         </div>
 
@@ -62,7 +67,7 @@ export default function AboutPage() {
             </Link>
 
             <Link
-              href="/contacts"
+              href="/contacts#booking"
               className="rounded-2xl border border-[#c98778] px-8 py-4 text-[#332725]"
             >
               Записаться

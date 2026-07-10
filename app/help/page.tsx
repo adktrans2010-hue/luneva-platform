@@ -1,4 +1,9 @@
 import Link from "next/link";
+import { getSeoPage, seoToMetadata } from "@/src/lib/seo";
+
+export async function generateMetadata() {
+  return seoToMetadata(await getSeoPage("/help"));
+}
 
 const helpItems = [
   {
@@ -72,7 +77,7 @@ export default function HelpPage() {
           </p>
 
           <Link
-            href="/contacts"
+            href="/contacts#booking"
             className="mt-8 inline-flex rounded-2xl bg-white px-8 py-4 text-[#332725]"
           >
             Записаться на консультацию

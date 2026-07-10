@@ -55,7 +55,23 @@ export default function AdminReviews() {
   }
 
   useEffect(() => {
-    loadReviews();
+    const controller = new AbortController();
+
+    void fetch("/api/admin/reviews", { signal: controller.signal })
+      .then((response) => response.json())
+      .then((data: Review[]) => {
+        setReviews(data);
+        setLoading(false);
+      })
+      .catch((error: unknown) => {
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
+
+        setLoading(false);
+      });
+
+    return () => controller.abort();
   }, []);
 
   if (loading) {

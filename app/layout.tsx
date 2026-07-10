@@ -1,12 +1,19 @@
 import type { Metadata } from "next";
-import Header from "@/components/Header";
+
+import { Suspense } from "react";
+
+import AnalyticsTracker from "@/components/AnalyticsTracker";
 import Footer from "@/components/Footer";
+import Header from "@/components/Header";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Luneva Psy",
-  description:
-    "Психолог Лунева Александра Александровна. Гештальт-терапия, поддержка и путь к себе.",
+  metadataBase: new URL("https://luneva-psy.ru"),
+  title: {
+    default: "Luneva Psy",
+    template: "%s",
+  },
+  description: "Психолог Александра Лунева. Консультации онлайн и очно.",
 };
 
 export default function RootLayout({
@@ -17,6 +24,10 @@ export default function RootLayout({
   return (
     <html lang="ru">
       <body className="min-h-screen bg-[#fff8f6] text-[#332725] antialiased">
+        <Suspense fallback={null}>
+          <AnalyticsTracker />
+        </Suspense>
+
         <Header />
 
         <main>{children}</main>

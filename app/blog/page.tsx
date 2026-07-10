@@ -1,24 +1,17 @@
 import Link from "next/link";
 
-const articles = [
-  {
-    title: "Как понять, что пора обратиться к психологу",
-    category: "Самопознание",
-    text: "Иногда мы долго справляемся самостоятельно, хотя внутри уже есть ощущение усталости, тревоги или потери опоры.",
-  },
-  {
-    title: "Что происходит на первой консультации",
-    category: "Терапия",
-    text: "Первая встреча — это знакомство, исследование вашего запроса и поиск комфортного направления работы.",
-  },
-  {
-    title: "Почему сложно говорить о своих чувствах",
-    category: "Отношения",
-    text: "Опыт прошлого может влиять на то, как мы выражаем эмоции и позволяем другим быть рядом.",
-  },
-];
+import { getPublishedArticles } from "@/src/lib/articles";
+import { getSeoPage, seoToMetadata } from "@/src/lib/seo";
 
-export default function BlogPage() {
+export const dynamic = "force-dynamic";
+
+export async function generateMetadata() {
+  return seoToMetadata(await getSeoPage("/blog"));
+}
+
+export default async function BlogPage() {
+  const articles = await getPublishedArticles();
+
   return (
     <section className="luneva-fade bg-[#fff8f6] px-6 py-24">
       <div className="mx-auto max-w-7xl">
@@ -31,48 +24,50 @@ export default function BlogPage() {
         </h1>
 
         <p className="mt-8 max-w-3xl text-lg leading-8 text-[#5f5552]">
-          Простые и бережные материалы о чувствах, отношениях, терапии
-          и внутренней устойчивости.
+          Простые и бережные материалы о чувствах, отношениях, терапии и
+          внутренней устойчивости.
         </p>
 
-        <div className="mt-14 grid gap-8 md:grid-cols-3">
-          {articles.map((article) => (
-            <article
-              key={article.title}
-              className="luneva-card rounded-[2rem] border border-[#ead7d1] bg-white p-8 shadow-sm"
-            >
-              <p className="text-sm uppercase tracking-[0.2em] text-[#c98778]">
-                {article.category}
-              </p>
-
-              <h2 className="mt-5 text-2xl font-medium leading-snug text-[#332725]">
-                {article.title}
-              </h2>
-
-              <p className="mt-5 leading-7 text-[#5f5552]">
-                {article.text}
-              </p>
-
-              <Link
-                href="#"
-                className="mt-8 inline-flex text-[#c98778]"
+        {articles.length > 0 ? (
+          <div className="mt-14 grid gap-8 md:grid-cols-3">
+            {articles.map((article) => (
+              <article
+                key={article.id}
+                className="luneva-card rounded-[2rem] border border-[#ead7d1] bg-white p-8 shadow-sm"
               >
-                Читать →
-              </Link>
-            </article>
-          ))}
-        </div>
+                <p className="text-sm uppercase tracking-[0.2em] text-[#c98778]">
+                  {article.category}
+                </p>
 
-        <div className="mt-16 rounded-[3rem] bg-[#332725] p-10 text-white md:p-14">
-          <h2 className="font-serif text-4xl">
-            Больше материалов скоро
-          </h2>
+                <h2 className="mt-5 text-2xl font-medium leading-snug text-[#332725]">
+                  {article.title}
+                </h2>
 
-          <p className="mt-6 max-w-2xl leading-8 text-[#ead7d1]">
-            Раздел будет постепенно пополняться статьями,
-            практиками и полезными материалами о психологии.
-          </p>
-        </div>
+                <p className="mt-5 leading-7 text-[#5f5552]">
+                  {article.excerpt}
+                </p>
+
+                <Link
+                  href={`/blog/${article.slug}`}
+                  className="mt-8 inline-flex text-[#c98778]"
+                >
+                  Читать →
+                </Link>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-14 rounded-[3rem] bg-[#332725] p-10 text-white md:p-14">
+            <h2 className="font-serif text-4xl">
+              Больше материалов скоро
+            </h2>
+
+            <p className="mt-6 max-w-2xl leading-8 text-[#ead7d1]">
+              Раздел будет постепенно пополняться статьями, практиками и
+              полезными материалами о психологии.
+            </p>
+          </div>
+        )}
       </div>
     </section>
   );

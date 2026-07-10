@@ -7,9 +7,19 @@ const adminSections = [
     href: "/admin/reviews",
   },
   {
-    title: "Статьи",
-    text: "Публиковать материалы блога и полезные заметки.",
+    title: "Полезные статьи",
+    text: "Список статей, категории, поиск, похожие материалы и SEO-страницы.",
     href: "/admin/blog",
+  },
+  {
+    title: "Видео",
+    text: "Добавлять короткие и длинные видео, темы и внешние ссылки.",
+    href: "/admin/videos",
+  },
+  {
+    title: "Стоимость",
+    text: "Менять виды консультаций, цены, формат работы и длительность.",
+    href: "/admin/pricing",
   },
   {
     title: "Сертификаты",
@@ -17,9 +27,19 @@ const adminSections = [
     href: "/admin/certificates",
   },
   {
-    title: "Контакты",
-    text: "Менять способы связи, ссылки Telegram, WhatsApp и email.",
-    href: "/admin/contacts",
+    title: "Заявки",
+    text: "Смотреть обращения из формы онлайн-записи и вести календарь.",
+    href: "/admin/appointments",
+  },
+  {
+    title: "SEO",
+    text: "Настраивать адреса страниц, заголовки, описания, карту сайта и микроразметку.",
+    href: "/admin/seo",
+  },
+  {
+    title: "Как живёт сайт",
+    text: "Смотреть посетителей, популярные страницы, статьи, видео, записи и источники переходов.",
+    href: "/admin/site-life",
   },
 ];
 
@@ -36,30 +56,40 @@ export default function AdminPage() {
         </h1>
 
         <p className="mt-8 max-w-3xl text-lg leading-8 text-[#5f5552]">
-          Здесь Саша сможет управлять содержимым сайта без работы с кодом:
-          отзывами, статьями, сертификатами и контактами.
+          Здесь можно управлять содержимым сайта: отзывами, статьями, видео,
+          стоимостью, SEO, статистикой, сертификатами и заявками на
+          консультацию.
         </p>
+
+        <form action="/api/admin/logout" method="post" className="mt-8">
+          <button
+            type="submit"
+            className="rounded-2xl border border-[#c98778] px-5 py-3 text-[#c98778] transition hover:bg-white"
+          >
+            Выйти из админки
+          </button>
+        </form>
 
         <div className="mt-14 rounded-[3rem] border border-[#ead7d1] bg-white p-8 shadow-sm md:p-10">
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div>
               <h2 className="font-serif text-4xl text-[#332725]">
-                Вход администратора
+                Защищенная админка
               </h2>
 
               <p className="mt-4 max-w-2xl leading-7 text-[#5f5552]">
-                Авторизация будет подключена следующим шагом. Сейчас это
-                визуальная основа будущей админки.
+                После работы нажмите кнопку выхода, чтобы закрыть доступ на
+                этом устройстве.
               </p>
             </div>
 
             <div className="rounded-2xl bg-[#fff8f6] px-6 py-4 text-sm uppercase tracking-[0.2em] text-[#c98778]">
-              Draft mode
+              Protected
             </div>
           </div>
         </div>
 
-        <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {adminSections.map((section) => (
             <Link
               key={section.title}
@@ -72,27 +102,13 @@ export default function AdminPage() {
                 {section.title}
               </h2>
 
-              <p className="mt-4 leading-7 text-[#5f5552]">
-                {section.text}
-              </p>
+              <p className="mt-4 leading-7 text-[#5f5552]">{section.text}</p>
 
               <span className="mt-8 inline-flex text-[#c98778]">
                 Открыть →
               </span>
             </Link>
           ))}
-        </div>
-
-        <div className="mt-16 rounded-[3rem] bg-[#332725] p-10 text-white md:p-14">
-          <h2 className="font-serif text-4xl">
-            Следующий этап
-          </h2>
-
-          <p className="mt-6 max-w-2xl leading-8 text-[#ead7d1]">
-            Подключим простую защиту входа, затем сделаем первый настоящий
-            раздел управления отзывами: форма добавления, список отзывов и
-            сохранение данных.
-          </p>
         </div>
       </div>
     </section>

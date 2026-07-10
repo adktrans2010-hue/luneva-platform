@@ -1,6 +1,11 @@
 import Link from "next/link";
 import Reviews from "@/components/Reviews";
 import ReviewForm from "@/components/ReviewForm";
+import { getSeoPage, seoToMetadata } from "@/src/lib/seo";
+
+export async function generateMetadata() {
+  return seoToMetadata(await getSeoPage("/reviews"));
+}
 
 export default async function ReviewsPage() {
   return (
@@ -23,7 +28,7 @@ export default async function ReviewsPage() {
 
           <div className="mt-10">
             <Link
-              href="/contacts"
+              href="/contacts#booking"
               className="inline-flex rounded-2xl bg-[#332725] px-8 py-4 text-white shadow-lg"
             >
               Записаться на консультацию

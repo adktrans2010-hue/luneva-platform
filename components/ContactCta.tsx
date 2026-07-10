@@ -11,16 +11,16 @@ export default function ContactCta() {
         </h2>
 
         <p className="mt-6 max-w-2xl text-lg leading-8 text-[#ead7d1]">
-          Напишите мне, и мы обсудим ваш запрос, формат работы и первый удобный
-          шаг к консультации.
+          Оставьте заявку, и мы обсудим ваш запрос, формат работы и первый
+          удобный шаг к консультации.
         </p>
 
         <div className="mt-10 flex flex-wrap gap-4">
           <a
-            href="/contacts"
+            href="/contacts#booking"
             className="rounded-2xl bg-white px-8 py-4 text-[#332725]"
           >
-            Связаться
+            Записаться онлайн
           </a>
 
           <a

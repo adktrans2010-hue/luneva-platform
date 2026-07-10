@@ -8,11 +8,11 @@ export default function About() {
           <div className="absolute -inset-4 rounded-[3rem] bg-[#ead7d1] opacity-60 blur-2xl" />
 
           <Image
-            src="/sasha-about.jpg"
+            src="/sasha-about-portrait.jpg"
             alt="Лунева Александра Александровна"
             width={800}
             height={1000}
-            className="relative rounded-[3rem] object-cover shadow-xl"
+            className="relative h-[620px] w-full rounded-[3rem] object-cover object-[52%_45%] shadow-xl"
           />
         </div>
 

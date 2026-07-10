@@ -8,8 +8,6 @@ export default function Footer() {
 
       <div className="relative mx-auto max-w-7xl border-t border-[#ead7d1] pt-14">
         <div className="grid gap-14 md:grid-cols-[1.3fr_1fr_1fr]">
-
-          {/* Бренд */}
           <div>
             <div className="flex items-center gap-5">
               <Image
@@ -32,13 +30,11 @@ export default function Footer() {
             </div>
 
             <p className="mt-6 max-w-sm text-lg leading-8 text-[#5f5552]">
-              Пространство бережной психологической поддержки,
-              где можно лучше понять себя и найти внутреннюю опору.
+              Пространство бережной психологической поддержки, где можно лучше
+              понять себя и найти внутреннюю опору.
             </p>
           </div>
 
-
-          {/* Навигация */}
           <div>
             <p className="mb-5 text-sm uppercase tracking-[0.25em] text-[#c98778]">
               Навигация
@@ -47,31 +43,24 @@ export default function Footer() {
             <div className="grid gap-4 text-[#5f5552]">
               <Link href="/">Главная</Link>
               <Link href="/about">Обо мне</Link>
-              <Link href="/help">
-                Психологическая помощь
-              </Link>
+              <Link href="/help">Психологическая помощь</Link>
               <Link href="/reviews">Отзывы</Link>
-              <Link href="/blog">
-                Полезные статьи
-              </Link>
+              <Link href="/blog">Полезные статьи</Link>
+              <Link href="/videos">Полезные видео</Link>
             </div>
           </div>
 
-
-          {/* Контакты */}
           <div>
             <p className="mb-5 text-sm uppercase tracking-[0.25em] text-[#c98778]">
               Контакты
             </p>
 
             <div className="grid gap-4 text-[#5f5552]">
-              <Link href="/contacts">
+              <Link href="/contacts#booking">
                 Записаться на консультацию
               </Link>
 
-              <a href="mailto:hello@luneva-psy.ru">
-                hello@luneva-psy.ru
-              </a>
+              <a href="mailto:hello@luneva-psy.ru">hello@luneva-psy.ru</a>
 
               <div className="mt-4 flex gap-4">
                 <span className="rounded-full border border-[#ead7d1] px-4 py-2">
@@ -84,18 +73,12 @@ export default function Footer() {
               </div>
             </div>
           </div>
-
         </div>
 
-
         <div className="mt-16 flex flex-col justify-between gap-4 border-t border-[#ead7d1] pt-8 text-sm text-[#8a7a76] md:flex-row">
-          <p>
-            © 2026 Luneva Psy. Все права защищены.
-          </p>
+          <p>© 2026 Luneva Psy. Все права защищены.</p>
 
-          <p>
-            Создано с заботой 🌿
-          </p>
+          <p>Создано с заботой</p>
         </div>
       </div>
     </footer>
