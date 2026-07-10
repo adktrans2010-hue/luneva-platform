@@ -20,14 +20,14 @@ export default function Process() {
     <section className="bg-[#fff8f6] px-6 py-24">
       <div className="mx-auto max-w-7xl">
         <div className="overflow-hidden rounded-[3rem] border border-[#ead7d1] bg-white shadow-sm">
-          <div className="relative h-64 md:h-72 lg:h-80">
+          <div className="relative h-72 md:h-96 lg:h-[460px]">
             <Image
               src="/therapy-process.jpg"
               alt="Как проходит консультация"
               fill
               priority={false}
               sizes="(max-width: 768px) 100vw, 1280px"
-              className="object-cover object-[55%_45%]"
+              className="object-cover object-[52%_34%]"
             />
             <div className="absolute inset-0 bg-[#332725]/15" />
             <div className="absolute inset-0 bg-gradient-to-t from-[#fff8f6]/35 via-transparent to-transparent" />
