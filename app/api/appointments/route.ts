@@ -7,6 +7,7 @@ import {
   createSlotDate,
   getAvailableAppointmentSlots,
 } from "@/src/lib/appointment-slots";
+import { notifyOwnerNewAppointment } from "@/src/lib/telegram";
 import { createYooKassaPayment, isYooKassaConfigured } from "@/src/lib/yookassa";
 
 export async function POST(request: Request) {
@@ -130,6 +131,19 @@ export async function POST(request: Request) {
     details: `Клиент выбрал ${scheduledAt.toLocaleString("ru-RU")}. Оплата: ${
       paymentMethod === "online" ? "онлайн" : "после подтверждения"
     }`,
+  });
+
+  const telegramResult = await notifyOwnerNewAppointment({
+    ...createdRequest,
+    message,
+  });
+
+  await db.insert(appointmentHistory).values({
+    appointmentId: createdRequest.id,
+    action: "Telegram",
+    details: telegramResult.ok
+      ? "Владельцу отправлено уведомление о новой записи."
+      : telegramResult.reason,
   });
 
   return NextResponse.json({ ...createdRequest, paymentUrl }, { status: 201 });

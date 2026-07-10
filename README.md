@@ -20,6 +20,26 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Telegram notifications
+
+Telegram notifications are optional. If they are not configured, appointments and payments still work, and the admin appointment history records that Telegram was not configured.
+
+Add these values to `.env`:
+
+```bash
+TELEGRAM_BOT_TOKEN=your_bot_token
+TELEGRAM_OWNER_CHAT_ID=your_owner_chat_id
+```
+
+The owner receives notifications about:
+
+- new appointment requests;
+- new payment links;
+- YooKassa payment status changes;
+- appointment status or date changes.
+
+Telegram cannot send a private message to a client by phone number. Client Telegram messages require the client to start a chat with the bot first, so that the site can know their Telegram chat id.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

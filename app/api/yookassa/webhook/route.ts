@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 
 import { db } from "@/src/db";
 import { appointmentHistory, appointmentRequests } from "@/src/db/schema";
+import { notifyOwnerPayment } from "@/src/lib/telegram";
 import {
   getYooKassaPayment,
   isYooKassaConfigured,
@@ -53,7 +54,7 @@ export async function POST(request: Request) {
     paid: payment?.paid,
   });
 
-  await db
+  const [updatedAppointment] = await db
     .update(appointmentRequests)
     .set({
       yookassaPaymentId: paymentId,
@@ -62,12 +63,23 @@ export async function POST(request: Request) {
       notificationStatus: "sent",
       updatedAt: new Date(),
     })
-    .where(eq(appointmentRequests.id, appointmentId));
+    .where(eq(appointmentRequests.id, appointmentId))
+    .returning();
 
   await db.insert(appointmentHistory).values({
     appointmentId,
     action: "ЮKassa",
     details: `${notification.event ?? "payment.updated"}: ${paymentStatus}`,
+  });
+
+  const telegramResult = await notifyOwnerPayment(updatedAppointment);
+
+  await db.insert(appointmentHistory).values({
+    appointmentId,
+    action: "Telegram",
+    details: telegramResult.ok
+      ? "Владельцу отправлено уведомление об оплате."
+      : telegramResult.reason,
   });
 
   return NextResponse.json({ success: true });

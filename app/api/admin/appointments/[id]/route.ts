@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 
 import { db } from "@/src/db";
 import { appointmentHistory, appointmentRequests } from "@/src/db/schema";
+import { notifyOwnerAppointmentChanged, notifyOwnerPayment } from "@/src/lib/telegram";
 
 type AppointmentParams = {
   params: Promise<{
@@ -190,6 +191,34 @@ export async function PATCH(request: Request, { params }: AppointmentParams) {
       appointmentId: id,
       action: "Уведомление",
       details: `Статус: ${notificationStatusLabels[notificationStatus]}`,
+    });
+  }
+
+  if (timeChanged || statusChanged) {
+    const telegramResult = await notifyOwnerAppointmentChanged({
+      appointment: updatedRequest,
+      status,
+      dateChanged: timeChanged,
+    });
+
+    await db.insert(appointmentHistory).values({
+      appointmentId: id,
+      action: "Telegram",
+      details: telegramResult.ok
+        ? "Владельцу отправлено уведомление об изменении записи."
+        : telegramResult.reason,
+    });
+  }
+
+  if (paymentChanged) {
+    const telegramResult = await notifyOwnerPayment(updatedRequest);
+
+    await db.insert(appointmentHistory).values({
+      appointmentId: id,
+      action: "Telegram",
+      details: telegramResult.ok
+        ? "Владельцу отправлено уведомление об оплате."
+        : telegramResult.reason,
     });
   }
 

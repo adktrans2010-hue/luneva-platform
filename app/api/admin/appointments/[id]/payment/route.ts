@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 
 import { db } from "@/src/db";
 import { appointmentHistory, appointmentRequests } from "@/src/db/schema";
+import { notifyOwnerPayment } from "@/src/lib/telegram";
 import { createYooKassaPayment } from "@/src/lib/yookassa";
 
 type AppointmentPaymentParams = {
@@ -52,6 +53,16 @@ export async function POST(_request: Request, { params }: AppointmentPaymentPara
       details: payment.paymentUrl
         ? `Создан платеж ЮKassa: ${payment.paymentUrl}`
         : "Создан платеж ЮKassa без ссылки для перехода.",
+    });
+
+    const telegramResult = await notifyOwnerPayment(updatedAppointment);
+
+    await db.insert(appointmentHistory).values({
+      appointmentId: id,
+      action: "Telegram",
+      details: telegramResult.ok
+        ? "Владельцу отправлено уведомление о новой оплате."
+        : telegramResult.reason,
     });
 
     return NextResponse.json(updatedAppointment);
