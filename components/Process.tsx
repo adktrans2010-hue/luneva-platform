@@ -29,8 +29,9 @@ export default function Process() {
             className="object-cover object-[58%_45%]"
           />
 
-          <div className="absolute inset-0 bg-gradient-to-r from-[#fff8f6]/95 via-[#fff8f6]/82 to-[#fff8f6]/30" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#fff8f6]/95 via-transparent to-[#fff8f6]/20" />
+          <div className="absolute inset-0 bg-[#332725]/20" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#fff8f6]/45 via-[#fff8f6]/18 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#fff8f6]/35 via-transparent to-transparent" />
 
           <div className="relative px-6 py-14 md:px-12 lg:px-16 lg:py-20">
             <div className="mx-auto max-w-3xl text-center">
