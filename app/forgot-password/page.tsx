@@ -1,20 +1,24 @@
 import Link from "next/link";
 
-type LoginPageProps = {
+type ForgotPasswordPageProps = {
   searchParams: Promise<{
     error?: string;
-    next?: string;
+    sent?: string;
   }>;
 };
 
 const errorMessages: Record<string, string> = {
-  login: "Неверная почта или пароль.",
+  email: "Укажите email, который использовали при регистрации.",
+  email_send:
+    "Не удалось отправить код на почту. Проверьте email или настройки отправки писем.",
 };
 
-export default async function LoginPage({ searchParams }: LoginPageProps) {
+export default async function ForgotPasswordPage({
+  searchParams,
+}: ForgotPasswordPageProps) {
   const params = await searchParams;
   const error = params.error ? errorMessages[params.error] : null;
-  const nextPath = params.next?.startsWith("/") ? params.next : "/account";
+  const sent = params.sent === "1";
 
   return (
     <section className="bg-[#fff8f6] px-6 py-24">
@@ -24,16 +28,18 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         </p>
 
         <h1 className="font-serif text-5xl leading-tight text-[#332725]">
-          Вход
+          Восстановление пароля
         </h1>
 
+        <p className="mt-5 text-lg leading-8 text-[#5f5552]">
+          Введите почту от личного кабинета. Мы отправим код для смены пароля.
+        </p>
+
         <form
-          action="/api/auth/login"
+          action="/api/auth/forgot-password"
           method="post"
           className="mt-10 rounded-[2rem] border border-[#ead7d1] bg-white p-8 shadow-sm"
         >
-          <input type="hidden" name="next" value={nextPath} />
-
           <input
             name="email"
             type="email"
@@ -43,18 +49,15 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             required
           />
 
-          <input
-            name="password"
-            type="password"
-            className="mt-5 w-full rounded-2xl border border-[#ead7d1] px-4 py-3 outline-none transition focus:border-[#c98778]"
-            placeholder="Пароль"
-            autoComplete="current-password"
-            required
-          />
-
           {error && (
             <p className="mt-4 rounded-2xl bg-[#fff3df] px-4 py-3 text-sm text-[#9a5a1f]">
               {error}
+            </p>
+          )}
+
+          {sent && (
+            <p className="mt-4 rounded-2xl bg-[#edf7ed] px-4 py-3 text-sm text-[#5f8a5f]">
+              Если такой email есть в базе, код восстановления отправлен.
             </p>
           )}
 
@@ -62,19 +65,13 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             type="submit"
             className="mt-6 w-full rounded-2xl bg-[#332725] px-5 py-3 text-white transition hover:bg-[#4a3935]"
           >
-            Войти
+            Получить код
           </button>
 
-          <p className="mt-4 text-center text-sm">
-            <Link href="/forgot-password" className="text-[#c98778]">
-              Забыли пароль?
-            </Link>
-          </p>
-
           <p className="mt-5 text-center text-sm text-[#5f5552]">
-            Нет аккаунта?{" "}
-            <Link href="/register" className="text-[#c98778]">
-              Зарегистрироваться
+            Вспомнили пароль?{" "}
+            <Link href="/login" className="text-[#c98778]">
+              Войти
             </Link>
           </p>
         </form>

@@ -120,6 +120,13 @@
       "when": 1783821600000,
       "tag": "0016_registration_codes",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1783908000000,
+      "tag": "0017_password_reset_codes",
+      "breakpoints": true
     }
   ]
 }
