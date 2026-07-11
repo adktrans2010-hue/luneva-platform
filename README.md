@@ -40,6 +40,19 @@ The owner receives notifications about:
 
 Telegram cannot send a private message to a client by phone number. Client Telegram messages require the client to start a chat with the bot first, so that the site can know their Telegram chat id.
 
+## Email registration codes
+
+Client registration uses a 6-digit email code. Add SMTP values to `.env` so the site can send the code:
+
+```bash
+SMTP_HOST=smtp.yandex.ru
+SMTP_PORT=465
+SMTP_USER=your_email@yandex.ru
+SMTP_PASSWORD=your_app_password
+SMTP_FROM=your_email@yandex.ru
+SMTP_SECURE=true
+```
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

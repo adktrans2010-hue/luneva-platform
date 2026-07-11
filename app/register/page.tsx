@@ -7,8 +7,10 @@ type RegisterPageProps = {
 };
 
 const errorMessages: Record<string, string> = {
-  fields: "Заполните имя, email и пароль не короче 8 символов.",
   email: "Пользователь с такой почтой уже зарегистрирован.",
+  email_send:
+    "Не удалось отправить код на почту. Проверьте email или настройки отправки писем.",
+  fields: "Заполните имя, email и пароль не короче 8 символов.",
 };
 
 export default async function RegisterPage({ searchParams }: RegisterPageProps) {
@@ -25,6 +27,11 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
         <h1 className="font-serif text-5xl leading-tight text-[#332725]">
           Регистрация
         </h1>
+
+        <p className="mt-5 text-lg leading-8 text-[#5f5552]">
+          Укажите email и придумайте пароль. Мы отправим код подтверждения,
+          после ввода кода кабинет будет создан.
+        </p>
 
         <form
           action="/api/auth/register"
@@ -77,7 +84,7 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
             type="submit"
             className="mt-6 w-full rounded-2xl bg-[#332725] px-5 py-3 text-white transition hover:bg-[#4a3935]"
           >
-            Создать кабинет
+            Получить код
           </button>
 
           <p className="mt-5 text-center text-sm text-[#5f5552]">

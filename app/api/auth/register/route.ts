@@ -2,18 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 
 import { db } from "@/src/db";
-import { users } from "@/src/db/schema";
+import { userRegistrationCodes, users } from "@/src/db/schema";
+import { sendMail } from "@/src/lib/email";
 import { hashPassword } from "@/src/lib/password";
-import {
-  createUserSessionToken,
-  USER_COOKIE_NAME,
-  USER_SESSION_MAX_AGE,
-} from "@/src/lib/user-session";
 
 export const runtime = "nodejs";
 
 function normalizeEmail(value: string) {
   return value.trim().toLowerCase();
+}
+
+function createVerificationCode() {
+  return String(Math.floor(100000 + Math.random() * 900000));
 }
 
 export async function POST(request: NextRequest) {
@@ -43,29 +43,49 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const [createdUser] = await db
-    .insert(users)
-    .values({
-      name,
-      email,
-      phone,
-      passwordHash: hashPassword(password),
-    })
-    .returning();
+  const code = createVerificationCode();
+  const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
-  const response = NextResponse.redirect(new URL("/account", request.url), {
-    status: 303,
+  await db
+    .delete(userRegistrationCodes)
+    .where(eq(userRegistrationCodes.email, email));
+
+  await db.insert(userRegistrationCodes).values({
+    name,
+    email,
+    phone,
+    passwordHash: hashPassword(password),
+    codeHash: hashPassword(code),
+    expiresAt,
   });
 
-  response.cookies.set({
-    name: USER_COOKIE_NAME,
-    value: await createUserSessionToken(createdUser.id),
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: USER_SESSION_MAX_AGE,
-  });
+  try {
+    await sendMail({
+      to: email,
+      subject: "Код подтверждения Luneva Psy",
+      text: [
+        `Здравствуйте, ${name}!`,
+        "",
+        `Ваш код подтверждения регистрации: ${code}`,
+        "Код действует 15 минут.",
+        "",
+        "Если вы не регистрировались на сайте Luneva Psy, просто проигнорируйте это письмо.",
+      ].join("\n"),
+    });
+  } catch (error) {
+    console.error("Registration email failed", error);
+    await db
+      .delete(userRegistrationCodes)
+      .where(eq(userRegistrationCodes.email, email));
 
-  return response;
+    return NextResponse.redirect(
+      new URL("/register?error=email_send", request.url),
+      { status: 303 }
+    );
+  }
+
+  return NextResponse.redirect(
+    new URL(`/verify?email=${encodeURIComponent(email)}`, request.url),
+    { status: 303 }
+  );
 }

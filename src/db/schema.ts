@@ -124,6 +124,34 @@ export const users = pgTable(
   (table) => [uniqueIndex("users_email_unique").on(table.email)]
 );
 
+export const userRegistrationCodes = pgTable(
+  "user_registration_codes",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+
+    name: text("name").notNull(),
+
+    email: text("email").notNull(),
+
+    phone: text("phone"),
+
+    passwordHash: text("password_hash").notNull(),
+
+    codeHash: text("code_hash").notNull(),
+
+    attempts: integer("attempts")
+      .default(0)
+      .notNull(),
+
+    expiresAt: timestamp("expires_at").notNull(),
+
+    createdAt: timestamp("created_at")
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [uniqueIndex("user_registration_codes_email_unique").on(table.email)]
+);
+
 export const appointmentRequests = pgTable("appointment_requests", {
   id: uuid("id").defaultRandom().primaryKey(),
 
