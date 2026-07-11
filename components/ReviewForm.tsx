@@ -6,6 +6,8 @@ export default function ReviewForm() {
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
   const [text, setText] = useState("");
+  const [website, setWebsite] = useState("");
+  const [formStartedAt, setFormStartedAt] = useState(() => Date.now());
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">(
     "idle"
   );
@@ -19,7 +21,7 @@ export default function ReviewForm() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ name, age, text }),
+      body: JSON.stringify({ name, age, text, website, formStartedAt }),
     });
 
     if (!response.ok) {
@@ -30,6 +32,8 @@ export default function ReviewForm() {
     setName("");
     setAge("");
     setText("");
+    setWebsite("");
+    setFormStartedAt(Date.now());
     setStatus("success");
   }
 
@@ -49,6 +53,16 @@ export default function ReviewForm() {
         </p>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+          <input
+            value={website}
+            onChange={(event) => setWebsite(event.target.value)}
+            name="website"
+            tabIndex={-1}
+            autoComplete="off"
+            className="hidden"
+            aria-hidden="true"
+          />
+
           <input
             value={name}
             onChange={(event) => setName(event.target.value)}

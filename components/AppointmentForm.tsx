@@ -31,6 +31,8 @@ export default function AppointmentForm() {
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(true);
   const [message, setMessage] = useState("");
+  const [website, setWebsite] = useState("");
+  const [formStartedAt, setFormStartedAt] = useState(() => Date.now());
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
@@ -93,6 +95,8 @@ export default function AppointmentForm() {
         appointmentDate,
         appointmentTime,
         message,
+        website,
+        formStartedAt,
       }),
     });
 
@@ -110,6 +114,8 @@ export default function AppointmentForm() {
     setConsultationFormat("online");
     setPaymentMethod("online");
     setMessage("");
+    setWebsite("");
+    setFormStartedAt(Date.now());
     setAppointmentTime("");
     setPaymentUrl(data.paymentUrl ?? null);
     setSent(true);
@@ -124,6 +130,16 @@ export default function AppointmentForm() {
 
   return (
     <form id="booking" onSubmit={submitAppointment} className="mt-10 grid gap-4">
+      <input
+        value={website}
+        onChange={(event) => setWebsite(event.target.value)}
+        name="website"
+        tabIndex={-1}
+        autoComplete="off"
+        className="hidden"
+        aria-hidden="true"
+      />
+
       <div className="grid gap-4 md:grid-cols-2">
         <input
           value={name}

@@ -3,6 +3,10 @@ import { desc, eq } from "drizzle-orm";
 
 import { db } from "@/src/db";
 import { reviews } from "@/src/db/schema";
+import {
+  checkPublicFormSpam,
+  getSpamErrorMessage,
+} from "@/src/lib/spam-protection";
 
 export async function GET() {
   const data = await db
@@ -16,6 +20,21 @@ export async function GET() {
 
 export async function POST(request: Request) {
   const body = await request.json();
+
+  const spamReason = checkPublicFormSpam({
+    body,
+    request,
+    scope: "reviews",
+    limit: 3,
+    windowMs: 1000 * 60 * 10,
+  });
+
+  if (spamReason) {
+    return NextResponse.json(
+      { error: getSpamErrorMessage(spamReason) },
+      { status: spamReason === "rate" ? 429 : 400 }
+    );
+  }
 
   const name = String(body.name || "").trim();
   const age = body.age ? String(body.age).trim() : null;

@@ -12,6 +12,10 @@ import {
   getUserIdFromSession,
   USER_COOKIE_NAME,
 } from "@/src/lib/user-session";
+import {
+  checkPublicFormSpam,
+  getSpamErrorMessage,
+} from "@/src/lib/spam-protection";
 import { createYooKassaPayment, isYooKassaConfigured } from "@/src/lib/yookassa";
 
 export async function POST(request: Request) {
@@ -33,6 +37,22 @@ export async function POST(request: Request) {
   const appointmentTime = String(body.appointmentTime ?? "").trim();
   const paymentMethod = String(body.paymentMethod ?? "online").trim();
   const message = String(body.message ?? "").trim();
+
+  const spamReason = checkPublicFormSpam({
+    body,
+    request,
+    scope: "appointments",
+    limit: 5,
+    windowMs: 1000 * 60 * 15,
+    minFillMs: 3000,
+  });
+
+  if (spamReason) {
+    return NextResponse.json(
+      { error: getSpamErrorMessage(spamReason) },
+      { status: spamReason === "rate" ? 429 : 400 }
+    );
+  }
 
   if (!name || !contact || !appointmentDate || !appointmentTime || !message) {
     return NextResponse.json(
