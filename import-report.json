@@ -1,0 +1,197 @@
+{
+  "sourceDir": "C:\\Users\\User\\Documents\\Сайт Luneva-psy\\Luneva-Platform\\luneva-platform\\tmp\\articles-import-20260711201437",
+  "dryRun": false,
+  "total": 25,
+  "creates": 13,
+  "updates": 12,
+  "errors": 0,
+  "items": [
+    {
+      "id": 1,
+      "title": "Детокс-диеты: что действительно делает организм",
+      "slug": "detoks-diety-chto-deystvitelno-delaet-organizm",
+      "file": "articles_markdown/01-detoks-diety-chto-deystvitelno-delaet-organizm.md",
+      "action": "create"
+    },
+    {
+      "id": 2,
+      "title": "КАК ПЕРЕЖИТЬ КАРАНТИН И COVID-19",
+      "slug": "kak-perezhit-karantin-i-covid-19",
+      "file": "articles_markdown/02-kak-perezhit-karantin-i-covid-19.md",
+      "action": "update",
+      "articleId": "8ba2554d-920e-4d78-ba91-50370a23bec1"
+    },
+    {
+      "id": 3,
+      "title": "Как не вырастить абьюзера",
+      "slug": "kak-ne-vyrastit-abyuzera",
+      "file": "articles_markdown/03-kak-ne-vyrastit-abyuzera.md",
+      "action": "update",
+      "articleId": "3a348c88-387a-4805-9808-839601a81c17"
+    },
+    {
+      "id": 4,
+      "title": "ЧТО НУЖНО ДЕЛАТЬ ЕСЛИ ВЫ ПОПАЛИ В КРИЗИСНУЮ СИТУАЦИЮ",
+      "slug": "chto-nuzhno-delat-esli-vy-popali-v-krizisnuyu-situatsiyu",
+      "file": "articles_markdown/04-chto-nuzhno-delat-esli-vy-popali-v-krizisnuyu-situatsiyu.md",
+      "action": "create"
+    },
+    {
+      "id": 5,
+      "title": "Как ограничивающие убеждения мешают нам достигать целей",
+      "slug": "kak-ogranichivayuschie-ubezhdeniya-meshayut-nam-dostigat-tselei",
+      "file": "articles_markdown/05-kak-ogranichivayuschie-ubezhdeniya-meshayut-nam-dostigat-tselei.md",
+      "action": "create"
+    },
+    {
+      "id": 6,
+      "title": "5 🖐🏻 страхов обращения к психологу",
+      "slug": "5-strahov-obrascheniya-k-psihologu",
+      "file": "articles_markdown/06-5-strahov-obrascheniya-k-psihologu.md",
+      "action": "update",
+      "articleId": "e72296d3-214d-4bc9-8816-3e8b70e6ff93"
+    },
+    {
+      "id": 7,
+      "title": "УПРАЖНЕНИЕ «ОСВОБОЖДЕНИЕ ОТ НЕГАТИВА»",
+      "slug": "uprazhnenie-osvobozhdenie-ot-negativa",
+      "file": "articles_markdown/07-uprazhnenie-osvobozhdenie-ot-negativa.md",
+      "action": "update",
+      "articleId": "6a92fa96-3960-457e-b4e4-2ac40feaba23"
+    },
+    {
+      "id": 8,
+      "title": "Выстраиваем личные границы",
+      "slug": "vystraivaem-lichnye-granitsy",
+      "file": "articles_markdown/08-vystraivaem-lichnye-granitsy.md",
+      "action": "create"
+    },
+    {
+      "id": 9,
+      "title": "Как гештальт-терапия помогает жить здесь и сейчас",
+      "slug": "kak-geshtalt-terapiya-pomogaet-zhit-zdes-i-seychas",
+      "file": "articles_markdown/09-kak-geshtalt-terapiya-pomogaet-zhit-zdes-i-seychas.md",
+      "action": "update",
+      "articleId": "a5ea764c-9ab8-4464-8dc4-e80052624e24"
+    },
+    {
+      "id": 10,
+      "title": "Мечтаем как Уолт Дисней💫",
+      "slug": "mechtaem-kak-uolt-disnei",
+      "file": "articles_markdown/10-mechtaem-kak-uolt-disnei.md",
+      "action": "create"
+    },
+    {
+      "id": 11,
+      "title": "Психотерапия ожидание/реальность",
+      "slug": "psihoterapiya-ozhidanie-realnost",
+      "file": "articles_markdown/11-psihoterapiya-ozhidanie-realnost.md",
+      "action": "update",
+      "articleId": "2ce25ebd-287e-49e1-968a-537060d5928c"
+    },
+    {
+      "id": 12,
+      "title": "Перепады настроения у подростка, нормально ли это?🤨",
+      "slug": "perepady-nastroeniya-u-podrostka-normalno-li-eto",
+      "file": "articles_markdown/12-perepady-nastroeniya-u-podrostka-normalno-li-eto.md",
+      "action": "update",
+      "articleId": "871bf699-1f48-4772-86be-a23ed49b76f4"
+    },
+    {
+      "id": 13,
+      "title": "Как конструктивно критиковать подростка",
+      "slug": "kak-konstruktivno-kritikovat-podrostka",
+      "file": "articles_markdown/13-kak-konstruktivno-kritikovat-podrostka.md",
+      "action": "update",
+      "articleId": "7c2f7d0a-f962-46b5-924a-6f5094498bae"
+    },
+    {
+      "id": 14,
+      "title": "Self-harm 🔪🔪🔪",
+      "slug": "self-harm",
+      "file": "articles_markdown/14-self-harm.md",
+      "action": "create"
+    },
+    {
+      "id": 15,
+      "title": "ПОСЛЕДСТВИЯ SELF-HARM",
+      "slug": "posledstviya-self-harm",
+      "file": "articles_markdown/15-posledstviya-self-harm.md",
+      "action": "update",
+      "articleId": "0c228334-c21f-455c-90a9-7bdddad1e307"
+    },
+    {
+      "id": 16,
+      "title": "Как перестать совершать Self- harm",
+      "slug": "kak-perestat-sovershat-self-harm",
+      "file": "articles_markdown/16-kak-perestat-sovershat-self-harm.md",
+      "action": "update",
+      "articleId": "54e14037-9606-491b-b3bb-0e9fb625781e"
+    },
+    {
+      "id": 17,
+      "title": "Как преодолевать трудности не прибегая к #selfharm",
+      "slug": "kak-preodolevat-trudnosti-ne-pribegaya-k-selfharm",
+      "file": "articles_markdown/17-kak-preodolevat-trudnosti-ne-pribegaya-k-selfharm.md",
+      "action": "create"
+    },
+    {
+      "id": 18,
+      "title": "Мифы о Self-harm",
+      "slug": "mify-o-self-harm",
+      "file": "articles_markdown/18-mify-o-self-harm.md",
+      "action": "update",
+      "articleId": "044e71a7-6d7f-413c-826d-a8e00a4484eb"
+    },
+    {
+      "id": 19,
+      "title": "Как помочь тем, кто совершает Self-harm",
+      "slug": "kak-pomoch-tem-kto-sovershaet-self-harm",
+      "file": "articles_markdown/19-kak-pomoch-tem-kto-sovershaet-self-harm.md",
+      "action": "create"
+    },
+    {
+      "id": 20,
+      "title": "Фэтшейминг и расстройства пищевого поведения",
+      "slug": "fetsheyming-i-rasstroystva-pischevogo-povedeniya",
+      "file": "articles_markdown/20-fetsheyming-i-rasstroystva-pischevogo-povedeniya.md",
+      "action": "create"
+    },
+    {
+      "id": 21,
+      "title": "Травмы взрослых детей алкоголиков",
+      "slug": "travmy-vzroslyh-detei-alkogolikov",
+      "file": "articles_markdown/21-travmy-vzroslyh-detei-alkogolikov.md",
+      "action": "create"
+    },
+    {
+      "id": 22,
+      "title": "Расстройства пищевого поведения",
+      "slug": "rasstroi-stva-pischevogo-povedeniya",
+      "file": "articles_markdown/22-rasstroi-stva-pischevogo-povedeniya.md",
+      "action": "create"
+    },
+    {
+      "id": 23,
+      "title": "Компульсивное переедание: признаки и помощь",
+      "slug": "kompulsivnoe-pereedanie-priznaki-i-pomosch",
+      "file": "articles_markdown/23-kompulsivnoe-pereedanie-priznaki-i-pomosch.md",
+      "action": "create"
+    },
+    {
+      "id": 24,
+      "title": "Компульсия-навязчивые действия или поведение.Все мы знаем, что наше поведение формируется в детстве",
+      "slug": "kompulsiya-navyazchivye-deystviya-ili-povedenie-vse-my-znaem-chto-nashe-povedeni",
+      "file": "articles_markdown/24-kompulsiya-navyazchivye-deystviya-ili-povedenie-vse-my-znaem-chto-nashe-povedeni.md",
+      "action": "create"
+    },
+    {
+      "id": 25,
+      "title": "ПРОВЕРЬ,ЕСТЬ ЛИ У ТЕБЯ РАССТРОЙСТВО ПИЩЕВОГО ПОВЕДЕНИЯ?",
+      "slug": "prover-est-li-u-tebya-rasstroystvo-pischevogo-povedeniya",
+      "file": "articles_markdown/25-prover-est-li-u-tebya-rasstroystvo-pischevogo-povedeniya.md",
+      "action": "update",
+      "articleId": "00085195-5b61-454b-b390-9353c4fe7845"
+    }
+  ]
+}
