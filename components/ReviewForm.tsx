@@ -38,21 +38,28 @@ export default function ReviewForm() {
   }
 
   return (
-    <section className="bg-white px-6 py-24">
-      <div className="mx-auto max-w-3xl rounded-[2rem] border border-[#ead7d1] bg-[#fff8f6] p-8 shadow-sm">
-        <p className="mb-4 text-sm uppercase tracking-[0.25em] text-[#c98778]">
-          Поделиться опытом
-        </p>
+    <section className="bg-[#fffaf8] py-4">
+      <div className="mx-auto grid max-w-6xl gap-8 rounded-[1.6rem] border border-[#ead7d1] bg-white/72 p-8 shadow-sm md:grid-cols-[0.9fr_1.5fr] md:p-10">
+        <div>
+          <h2 className="font-serif text-3xl text-[#332725]">
+            Поделитесь своим опытом
+          </h2>
 
-        <h2 className="font-serif text-4xl text-[#332725]">
-          Оставить отзыв
-        </h2>
+          <p className="mt-5 leading-7 text-[#5f5552]">
+            Если вам хочется рассказать о своём опыте терапии, вы можете
+            оставить отзыв. После проверки он будет опубликован анонимно.
+          </p>
 
-        <p className="mt-4 leading-7 text-[#5f5552]">
-          Отзыв появится на сайте после проверки и публикации.
-        </p>
+          <div className="mt-8 flex gap-4 text-sm leading-6 text-[#8a7a76]">
+            <span className="text-xl text-[#c9a59b]">♙</span>
+            <p>
+              Ваши данные в безопасности
+              <br />и не будут опубликованы.
+            </p>
+          </div>
+        </div>
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+        <form onSubmit={handleSubmit}>
           <input
             value={website}
             onChange={(event) => setWebsite(event.target.value)}
@@ -63,20 +70,21 @@ export default function ReviewForm() {
             aria-hidden="true"
           />
 
-          <input
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            placeholder="Ваше имя"
-            required
-            className="w-full rounded-2xl border border-[#ead7d1] bg-white px-5 py-4 outline-none"
-          />
+          <div className="grid gap-4 md:grid-cols-2">
+            <input
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              placeholder="Ваше имя (необязательно)"
+              className="rounded-xl border border-[#ead7d1] bg-white px-5 py-4 outline-none transition focus:border-[#c98778]"
+            />
 
-          <input
-            value={age}
-            onChange={(event) => setAge(event.target.value)}
-            placeholder="Возраст, например: 34 года"
-            className="w-full rounded-2xl border border-[#ead7d1] bg-white px-5 py-4 outline-none"
-          />
+            <input
+              value={age}
+              onChange={(event) => setAge(event.target.value)}
+              placeholder="Возраст (необязательно)"
+              className="rounded-xl border border-[#ead7d1] bg-white px-5 py-4 outline-none transition focus:border-[#c98778]"
+            />
+          </div>
 
           <textarea
             value={text}
@@ -84,25 +92,34 @@ export default function ReviewForm() {
             placeholder="Ваш отзыв"
             required
             rows={6}
-            className="w-full rounded-2xl border border-[#ead7d1] bg-white px-5 py-4 outline-none"
+            className="mt-4 w-full rounded-xl border border-[#ead7d1] bg-white px-5 py-4 outline-none transition focus:border-[#c98778]"
           />
 
-          <button
-            type="submit"
-            disabled={status === "loading"}
-            className="rounded-2xl bg-[#332725] px-8 py-4 text-white shadow-lg disabled:opacity-60"
-          >
-            {status === "loading" ? "Отправляем..." : "Отправить отзыв"}
-          </button>
+          <div className="mt-4 grid items-center gap-5 md:grid-cols-[1fr_auto]">
+            <div className="flex items-center gap-4 text-[#8a7a76]">
+              <span>Оценка</span>
+              <span className="text-3xl tracking-[0.2em] text-[#c9a59b]">
+                ☆ ☆ ☆ ☆ ☆
+              </span>
+            </div>
+
+            <button
+              type="submit"
+              disabled={status === "loading"}
+              className="rounded-xl bg-[#332725] px-10 py-4 text-white shadow-lg disabled:opacity-60"
+            >
+              {status === "loading" ? "Отправляем..." : "Отправить отзыв"}
+            </button>
+          </div>
 
           {status === "success" && (
-            <p className="text-[#5f8a5f]">
+            <p className="mt-4 text-[#5f8a5f]">
               Спасибо! Отзыв отправлен и появится после проверки.
             </p>
           )}
 
           {status === "error" && (
-            <p className="text-[#b94a48]">
+            <p className="mt-4 text-[#b94a48]">
               Не удалось отправить отзыв. Проверьте поля и попробуйте ещё раз.
             </p>
           )}
