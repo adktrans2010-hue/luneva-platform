@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import ReviewForm from "@/components/ReviewForm";
@@ -118,12 +119,48 @@ export default async function ReviewsPage() {
           </div>
 
           <div className="mt-7 columns-1 gap-5 md:columns-2 lg:columns-3">
-            {reviews.map((review) => (
+            {reviews.map((review, index) => (
               <article
                 key={review.id}
                 className="mb-5 break-inside-avoid rounded-[1.4rem] border border-[#ead7d1] bg-white/78 p-7 shadow-sm"
               >
-                <div className="font-serif text-4xl leading-none text-[#c29a90]">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-[#ead7d1] bg-[#fff8f6] text-xl text-[#c29a90]">
+                      {review.image ? (
+                        <Image
+                          src={review.image}
+                          alt={review.name}
+                          width={44}
+                          height={44}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : index % 2 === 0 ? (
+                        <span aria-label="Женщина">♀</span>
+                      ) : (
+                        <span aria-label="Мужчина">♂</span>
+                      )}
+                    </div>
+
+                    <div>
+                      <div className="text-sm text-[#332725]">
+                        {review.name || "Клиент"}
+                      </div>
+                      {review.age && (
+                        <div className="text-xs text-[#8a7a76]">{review.age}</div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div
+                    aria-label="Оценка 5 из 5"
+                    className="text-lg tracking-[0.12em] text-[#c29a90]"
+                  >
+                    ★★★★★
+                  </div>
+                </div>
+
+                <div className="mt-5 font-serif text-4xl leading-none text-[#c29a90]">
                   “
                 </div>
 
