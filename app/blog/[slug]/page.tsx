@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -5,6 +6,7 @@ import { notFound } from "next/navigation";
 import {
   getPublishedArticleBySlug,
   getRelatedPublishedArticles,
+  type Article,
 } from "@/src/lib/articles";
 
 export const dynamic = "force-dynamic";
@@ -14,6 +16,97 @@ type ArticlePageProps = {
     slug: string;
   }>;
 };
+
+type FaqItem = {
+  question: string;
+  answer: string;
+};
+
+function parseFaq(value: string | null): FaqItem[] {
+  if (!value) return [];
+
+  try {
+    const parsed = JSON.parse(value) as unknown;
+
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed
+      .map((item) => {
+        if (!item || typeof item !== "object") return null;
+
+        const record = item as Record<string, unknown>;
+        const question = String(record.question ?? "").trim();
+        const answer = String(record.answer ?? "").trim();
+
+        return question && answer ? { question, answer } : null;
+      })
+      .filter((item): item is FaqItem => Boolean(item));
+  } catch {
+    return value
+      .split(/\n{2,}/)
+      .map((block) => {
+        const [question, ...answerParts] = block.split("\n");
+        const answer = answerParts.join("\n").trim();
+
+        return question?.trim() && answer
+          ? { question: question.trim(), answer }
+          : null;
+      })
+      .filter((item): item is FaqItem => Boolean(item));
+  }
+}
+
+function getArticleUrl(article: Article) {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
+
+  return siteUrl
+    ? `${siteUrl}/blog/${article.slug}`
+    : `/blog/${article.slug}`;
+}
+
+function buildArticleJsonLd(article: Article, faqItems: FaqItem[]) {
+  const url = getArticleUrl(article);
+  const articleJsonLd: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: article.h1 || article.title,
+    description: article.seoDescription || article.excerpt,
+    mainEntityOfPage: url,
+    datePublished: article.createdAt,
+    dateModified: article.updatedAt,
+    author: {
+      "@type": "Person",
+      name: "Александра Лунева",
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "Luneva Psy",
+    },
+  };
+
+  if (article.image) {
+    articleJsonLd.image = article.image;
+  }
+
+  const jsonLd: Record<string, unknown>[] = [articleJsonLd];
+
+  if (faqItems.length > 0) {
+    jsonLd.push({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: faqItems.map((item) => ({
+        "@type": "Question",
+        name: item.question,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: item.answer,
+        },
+      })),
+    });
+  }
+
+  return jsonLd;
+}
 
 export async function generateMetadata({
   params,
@@ -27,8 +120,8 @@ export async function generateMetadata({
     };
   }
 
-  const title = `${article.title} | Luneva Psy`;
-  const description = article.excerpt || article.title;
+  const title = article.seoTitle || `${article.title} | Luneva Psy`;
+  const description = article.seoDescription || article.excerpt || article.title;
   const url = `/blog/${article.slug}`;
 
   return {
@@ -42,6 +135,7 @@ export async function generateMetadata({
       description,
       url,
       type: "article",
+      images: article.image ? [article.image] : undefined,
     },
   };
 }
@@ -55,10 +149,17 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   }
 
   const relatedArticles = await getRelatedPublishedArticles(article);
+  const faqItems = parseFaq(article.faq);
+  const jsonLd = buildArticleJsonLd(article, faqItems);
 
   return (
     <article className="bg-[#fff8f6] px-6 py-20">
-      <div className="mx-auto max-w-3xl">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
+      <div className="mx-auto max-w-4xl">
         <Link href="/blog" className="text-[#c98778]">
           ← Назад к статьям
         </Link>
@@ -68,16 +169,64 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         </p>
 
         <h1 className="mt-5 font-serif text-5xl leading-tight text-[#332725]">
-          {article.title}
+          {article.h1 || article.title}
         </h1>
 
-        <p className="mt-7 text-xl leading-9 text-[#5f5552]">
+        <p className="mt-7 max-w-3xl text-xl leading-9 text-[#5f5552]">
           {article.excerpt}
         </p>
+
+        {article.image && (
+          <div className="mt-10 overflow-hidden rounded-[2rem] border border-[#ead7d1] bg-white shadow-sm">
+            <Image
+              src={article.image}
+              alt={article.h1 || article.title}
+              width={1200}
+              height={700}
+              className="h-auto w-full object-cover"
+            />
+          </div>
+        )}
 
         <div className="mt-12 whitespace-pre-line rounded-[2rem] border border-[#ead7d1] bg-white p-8 text-lg leading-9 text-[#332725] shadow-sm">
           {article.content}
         </div>
+
+        {faqItems.length > 0 && (
+          <section className="mt-14 rounded-[2rem] border border-[#ead7d1] bg-white p-8 shadow-sm">
+            <h2 className="font-serif text-3xl text-[#332725]">FAQ</h2>
+
+            <div className="mt-6 grid gap-4">
+              {faqItems.map((item) => (
+                <details
+                  key={item.question}
+                  className="rounded-2xl border border-[#ead7d1] bg-[#fff8f6] p-5"
+                >
+                  <summary className="cursor-pointer font-medium text-[#332725]">
+                    {item.question}
+                  </summary>
+                  <p className="mt-4 whitespace-pre-line leading-7 text-[#5f5552]">
+                    {item.answer}
+                  </p>
+                </details>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <section className="mt-14 rounded-[2rem] bg-[#332725] p-8 text-white shadow-sm">
+          <h2 className="font-serif text-3xl">Нужна личная консультация?</h2>
+          <p className="mt-4 max-w-2xl leading-8 text-[#ead7d1]">
+            Если тема статьи откликается и хочется разобраться в своей ситуации
+            бережно и спокойно, можно выбрать удобное время для записи.
+          </p>
+          <Link
+            href="/contacts#booking"
+            className="mt-6 inline-flex rounded-2xl bg-white px-6 py-3 text-[#332725]"
+          >
+            Записаться к психологу
+          </Link>
+        </section>
 
         {relatedArticles.length > 0 && (
           <section className="mt-14">
@@ -96,7 +245,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                     {relatedArticle.category}
                   </div>
                   <h3 className="mt-3 font-serif text-2xl text-[#332725]">
-                    {relatedArticle.title}
+                    {relatedArticle.h1 || relatedArticle.title}
                   </h3>
                   <p className="mt-3 line-clamp-2 text-[#5f5552]">
                     {relatedArticle.excerpt}

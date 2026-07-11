@@ -17,6 +17,11 @@ function readArticleBody(body: Record<string, unknown>) {
     category: String(body.category ?? "").trim(),
     excerpt: String(body.excerpt ?? "").trim(),
     content: String(body.content ?? "").trim(),
+    seoTitle: String(body.seoTitle ?? "").trim() || null,
+    seoDescription: String(body.seoDescription ?? "").trim() || null,
+    h1: String(body.h1 ?? "").trim() || null,
+    image: String(body.image ?? "").trim() || null,
+    faq: String(body.faq ?? "").trim() || null,
     published: Boolean(body.published),
   };
 }

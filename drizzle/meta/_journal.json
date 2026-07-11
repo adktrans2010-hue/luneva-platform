@@ -127,6 +127,13 @@
       "when": 1783908000000,
       "tag": "0017_password_reset_codes",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1783911600000,
+      "tag": "0018_article_seo_faq",
+      "breakpoints": true
     }
   ]
 }

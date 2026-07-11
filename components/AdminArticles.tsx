@@ -9,6 +9,11 @@ type Article = {
   category: string;
   excerpt: string;
   content: string;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  h1: string | null;
+  image: string | null;
+  faq: string | null;
   published: boolean;
   createdAt: string;
   updatedAt: string;
@@ -19,6 +24,11 @@ type ArticleDraft = {
   category: string;
   excerpt: string;
   content: string;
+  seoTitle: string;
+  seoDescription: string;
+  h1: string;
+  image: string;
+  faq: string;
   published: boolean;
 };
 
@@ -27,6 +37,11 @@ const emptyDraft: ArticleDraft = {
   category: "",
   excerpt: "",
   content: "",
+  seoTitle: "",
+  seoDescription: "",
+  h1: "",
+  image: "",
+  faq: "",
   published: false,
 };
 
@@ -226,6 +241,66 @@ export default function AdminArticles() {
             className="mt-4 w-full rounded-2xl border border-[#ead7d1] px-4 py-3"
             placeholder="Полный текст статьи"
           />
+
+          <div className="mt-4 rounded-2xl bg-[#fff8f6] p-5">
+            <div className="text-sm uppercase tracking-[0.18em] text-[#c98778]">
+              SEO и оформление страницы
+            </div>
+
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <input
+                value={draft.h1}
+                onChange={(event) =>
+                  setDraft((current) => ({ ...current, h1: event.target.value }))
+                }
+                className="rounded-2xl border border-[#ead7d1] px-4 py-3"
+                placeholder="H1 страницы"
+              />
+
+              <input
+                value={draft.image}
+                onChange={(event) =>
+                  setDraft((current) => ({ ...current, image: event.target.value }))
+                }
+                className="rounded-2xl border border-[#ead7d1] px-4 py-3"
+                placeholder="Изображение, например /blog/image.jpg"
+              />
+
+              <input
+                value={draft.seoTitle}
+                onChange={(event) =>
+                  setDraft((current) => ({
+                    ...current,
+                    seoTitle: event.target.value,
+                  }))
+                }
+                className="rounded-2xl border border-[#ead7d1] px-4 py-3"
+                placeholder="SEO Title"
+              />
+
+              <input
+                value={draft.seoDescription}
+                onChange={(event) =>
+                  setDraft((current) => ({
+                    ...current,
+                    seoDescription: event.target.value,
+                  }))
+                }
+                className="rounded-2xl border border-[#ead7d1] px-4 py-3"
+                placeholder="SEO Description"
+              />
+            </div>
+
+            <textarea
+              value={draft.faq}
+              onChange={(event) =>
+                setDraft((current) => ({ ...current, faq: event.target.value }))
+              }
+              rows={5}
+              className="mt-4 w-full rounded-2xl border border-[#ead7d1] px-4 py-3"
+              placeholder='FAQ JSON: [{"question":"Вопрос?","answer":"Ответ."}]'
+            />
+          </div>
 
           <label className="mt-5 flex items-center gap-3 text-[#5f5552]">
             <input
@@ -436,16 +511,86 @@ export default function AdminArticles() {
                       placeholder="Полный текст статьи"
                     />
 
+                    <div className="mt-4 rounded-2xl bg-[#fff8f6] p-5">
+                      <div className="text-xs uppercase tracking-[0.18em] text-[#c98778]">
+                        SEO, H1, изображение и FAQ
+                      </div>
+
+                      <div className="mt-4 grid gap-4 md:grid-cols-2">
+                        <input
+                          value={article.h1 ?? ""}
+                          onChange={(event) =>
+                            updateLocalArticle(article.id, {
+                              h1: event.target.value,
+                            })
+                          }
+                          className="rounded-2xl border border-[#ead7d1] px-4 py-3"
+                          placeholder="H1 страницы"
+                        />
+
+                        <input
+                          value={article.image ?? ""}
+                          onChange={(event) =>
+                            updateLocalArticle(article.id, {
+                              image: event.target.value,
+                            })
+                          }
+                          className="rounded-2xl border border-[#ead7d1] px-4 py-3"
+                          placeholder="Изображение, например /blog/image.jpg"
+                        />
+
+                        <input
+                          value={article.seoTitle ?? ""}
+                          onChange={(event) =>
+                            updateLocalArticle(article.id, {
+                              seoTitle: event.target.value,
+                            })
+                          }
+                          className="rounded-2xl border border-[#ead7d1] px-4 py-3"
+                          placeholder="SEO Title"
+                        />
+
+                        <input
+                          value={article.seoDescription ?? ""}
+                          onChange={(event) =>
+                            updateLocalArticle(article.id, {
+                              seoDescription: event.target.value,
+                            })
+                          }
+                          className="rounded-2xl border border-[#ead7d1] px-4 py-3"
+                          placeholder="SEO Description"
+                        />
+                      </div>
+
+                      <textarea
+                        value={article.faq ?? ""}
+                        onChange={(event) =>
+                          updateLocalArticle(article.id, {
+                            faq: event.target.value,
+                          })
+                        }
+                        rows={5}
+                        className="mt-4 w-full rounded-2xl border border-[#ead7d1] px-4 py-3"
+                        placeholder='FAQ JSON: [{"question":"Вопрос?","answer":"Ответ."}]'
+                      />
+                    </div>
+
                     <div className="mt-4 rounded-2xl bg-[#fff8f6] p-5 text-sm text-[#5f5552]">
                       <div className="text-xs uppercase tracking-[0.18em] text-[#c98778]">
                         SEO-страница
                       </div>
                       <div className="mt-3 text-[#332725]">
-                        Заголовок: {article.title || "Название статьи"}
+                        Title:{" "}
+                        {article.seoTitle || article.title || "Название статьи"}
+                      </div>
+                      <div className="mt-2">
+                        H1: {article.h1 || article.title || "Название статьи"}
                       </div>
                       <div className="mt-2">
                         Описание:{" "}
-                        {article.excerpt || "Краткое описание статьи"}
+                        {article.seoDescription ||
+                          article.excerpt ||
+                          "Краткое описание статьи"}
                       </div>
                       <div className="mt-2">Адрес: /blog/{article.slug}</div>
                     </div>

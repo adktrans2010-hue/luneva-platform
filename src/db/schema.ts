@@ -41,10 +41,20 @@ export const articles = pgTable(
 
     excerpt: text("excerpt").notNull(),
 
-    content: text("content").notNull(),
+      content: text("content").notNull(),
 
-    published: boolean("published")
-      .default(false)
+      seoTitle: text("seo_title"),
+
+      seoDescription: text("seo_description"),
+
+      h1: text("h1"),
+
+      image: text("image"),
+
+      faq: text("faq"),
+
+      published: boolean("published")
+        .default(false)
       .notNull(),
 
     createdAt: timestamp("created_at")
