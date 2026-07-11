@@ -14,7 +14,7 @@ export default function Hero() {
             fill
             priority
             sizes="(min-width: 1280px) 972px, 76vw"
-            className="object-cover object-[55%_48%] brightness-[0.84] contrast-[1.04] saturate-[1.08]"
+            className="object-cover object-[55%_48%] contrast-[1.04] saturate-[1.08]"
           />
         </div>
 
