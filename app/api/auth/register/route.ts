@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 
 import { db } from "@/src/db";
 import { userRegistrationCodes, users } from "@/src/db/schema";
-import { sendMail } from "@/src/lib/email";
+import { isEmailConfigured, sendMail } from "@/src/lib/email";
 import { hashPassword } from "@/src/lib/password";
 
 export const runtime = "nodejs";
@@ -59,21 +59,37 @@ export async function POST(request: NextRequest) {
     expiresAt,
   });
 
-  try {
-    await sendMail({
-      to: email,
-      subject: "Код подтверждения Luneva Psy",
-      text: [
-        `Здравствуйте, ${name}!`,
-        "",
-        `Ваш код подтверждения регистрации: ${code}`,
-        "Код действует 15 минут.",
-        "",
-        "Если вы не регистрировались на сайте Luneva Psy, просто проигнорируйте это письмо.",
-      ].join("\n"),
-    });
-  } catch (error) {
-    console.error("Registration email failed", error);
+  const canSendEmail = isEmailConfigured();
+  const canShowLocalCode = !canSendEmail && process.env.NODE_ENV !== "production";
+
+  if (canSendEmail) {
+    try {
+      await sendMail({
+        to: email,
+        subject: "Код подтверждения Luneva Psy",
+        text: [
+          `Здравствуйте, ${name}!`,
+          "",
+          `Ваш код подтверждения регистрации: ${code}`,
+          "Код действует 15 минут.",
+          "",
+          "Если вы не регистрировались на сайте Luneva Psy, просто проигнорируйте это письмо.",
+        ].join("\n"),
+      });
+    } catch (error) {
+      console.error("Registration email failed", error);
+      await db
+        .delete(userRegistrationCodes)
+        .where(eq(userRegistrationCodes.email, email));
+
+      return NextResponse.redirect(
+        new URL("/register?error=email_send", request.url),
+        { status: 303 }
+      );
+    }
+  }
+
+  if (!canSendEmail && !canShowLocalCode) {
     await db
       .delete(userRegistrationCodes)
       .where(eq(userRegistrationCodes.email, email));
@@ -85,7 +101,12 @@ export async function POST(request: NextRequest) {
   }
 
   return NextResponse.redirect(
-    new URL(`/verify?email=${encodeURIComponent(email)}`, request.url),
+    new URL(
+      `/verify?email=${encodeURIComponent(email)}${
+        canShowLocalCode ? `&localCode=${code}` : ""
+      }`,
+      request.url
+    ),
     { status: 303 }
   );
 }

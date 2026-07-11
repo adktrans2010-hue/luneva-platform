@@ -4,6 +4,7 @@ type VerifyPageProps = {
   searchParams: Promise<{
     email?: string;
     error?: string;
+    localCode?: string;
   }>;
 };
 
@@ -19,6 +20,10 @@ export default async function VerifyPage({ searchParams }: VerifyPageProps) {
   const params = await searchParams;
   const email = params.email ?? "";
   const error = params.error ? errorMessages[params.error] : null;
+  const localCode =
+    process.env.NODE_ENV !== "production" && params.localCode
+      ? params.localCode
+      : null;
 
   return (
     <section className="bg-[#fff8f6] px-6 py-24">
@@ -35,6 +40,16 @@ export default async function VerifyPage({ searchParams }: VerifyPageProps) {
           Мы отправили 6-значный код на почту {email || "которую вы указали"}.
           Введите его здесь, чтобы завершить регистрацию.
         </p>
+
+        {localCode && (
+          <p className="mt-5 rounded-2xl bg-[#fff3df] px-5 py-4 text-sm leading-6 text-[#9a5a1f]">
+            Почта на этом компьютере пока не настроена, поэтому для локальной
+            проверки используйте код:{" "}
+            <span className="font-semibold tracking-[0.25em]">
+              {localCode}
+            </span>
+          </p>
+        )}
 
         <form
           action="/api/auth/verify"
