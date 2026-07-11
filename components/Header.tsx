@@ -50,6 +50,10 @@ export default function Header() {
           <Link href="/contacts" className={linkClass("/contacts")}>
             Контакты
           </Link>
+
+          <Link href="/account" className={linkClass("/account")}>
+            Кабинет
+          </Link>
         </nav>
       </div>
     </header>

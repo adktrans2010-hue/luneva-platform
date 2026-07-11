@@ -1,4 +1,6 @@
-type AdminLoginPageProps = {
+import Link from "next/link";
+
+type LoginPageProps = {
   searchParams: Promise<{
     error?: string;
     next?: string;
@@ -6,65 +8,47 @@ type AdminLoginPageProps = {
 };
 
 const errorMessages: Record<string, string> = {
-  credentials: "Неверная почта или пароль. Попробуйте еще раз.",
-  password: "Неверный пароль. Попробуйте еще раз.",
-  setup: "Добавьте ADMIN_EMAIL и ADMIN_PASSWORD в .env, чтобы включить вход в админку.",
+  login: "Неверная почта или пароль.",
 };
 
-export default async function AdminLoginPage({
-  searchParams,
-}: AdminLoginPageProps) {
+export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = await searchParams;
-  const nextPath = params.next?.startsWith("/admin") ? params.next : "/admin";
   const error = params.error ? errorMessages[params.error] : null;
+  const nextPath = params.next?.startsWith("/") ? params.next : "/account";
 
   return (
     <section className="bg-[#fff8f6] px-6 py-24">
       <div className="mx-auto max-w-xl">
         <p className="mb-4 text-sm uppercase tracking-[0.25em] text-[#c98778]">
-          Luneva Admin
+          Личный кабинет
         </p>
 
         <h1 className="font-serif text-5xl leading-tight text-[#332725]">
-          Вход в админку
+          Вход
         </h1>
 
         <form
-          action="/api/admin/login"
+          action="/api/auth/login"
           method="post"
           className="mt-10 rounded-[2rem] border border-[#ead7d1] bg-white p-8 shadow-sm"
         >
           <input type="hidden" name="next" value={nextPath} />
 
-          <label
-            htmlFor="admin-email"
-            className="block text-sm uppercase tracking-[0.18em] text-[#8a7a76]"
-          >
-            Email администратора
-          </label>
-
           <input
-            id="admin-email"
             name="email"
             type="email"
+            className="w-full rounded-2xl border border-[#ead7d1] px-4 py-3 outline-none transition focus:border-[#c98778]"
+            placeholder="Email"
             autoComplete="email"
-            className="mt-3 w-full rounded-2xl border border-[#ead7d1] px-4 py-3 text-[#332725] outline-none transition focus:border-[#c98778]"
             required
           />
 
-          <label
-            htmlFor="admin-password"
-            className="mt-5 block text-sm uppercase tracking-[0.18em] text-[#8a7a76]"
-          >
-            Пароль
-          </label>
-
           <input
-            id="admin-password"
             name="password"
             type="password"
+            className="mt-5 w-full rounded-2xl border border-[#ead7d1] px-4 py-3 outline-none transition focus:border-[#c98778]"
+            placeholder="Пароль"
             autoComplete="current-password"
-            className="mt-3 w-full rounded-2xl border border-[#ead7d1] px-4 py-3 text-[#332725] outline-none transition focus:border-[#c98778]"
             required
           />
 
@@ -80,6 +64,13 @@ export default async function AdminLoginPage({
           >
             Войти
           </button>
+
+          <p className="mt-5 text-center text-sm text-[#5f5552]">
+            Нет аккаунта?{" "}
+            <Link href="/register" className="text-[#c98778]">
+              Зарегистрироваться
+            </Link>
+          </p>
         </form>
       </div>
     </section>

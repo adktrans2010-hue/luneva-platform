@@ -8,6 +8,10 @@ import {
   getAvailableAppointmentSlots,
 } from "@/src/lib/appointment-slots";
 import { notifyOwnerNewAppointment } from "@/src/lib/telegram";
+import {
+  getUserIdFromSession,
+  USER_COOKIE_NAME,
+} from "@/src/lib/user-session";
 import { createYooKassaPayment, isYooKassaConfigured } from "@/src/lib/yookassa";
 
 export async function POST(request: Request) {
@@ -72,9 +76,19 @@ export async function POST(request: Request) {
     );
   }
 
+  const userId = await getUserIdFromSession(
+    request.headers
+      .get("cookie")
+      ?.split(";")
+      .map((item) => item.trim())
+      .find((item) => item.startsWith(`${USER_COOKIE_NAME}=`))
+      ?.replace(`${USER_COOKIE_NAME}=`, "")
+  );
+
   const [createdRequest] = await db
     .insert(appointmentRequests)
     .values({
+      userId,
       name,
       contact,
       contactMethod: "contact",

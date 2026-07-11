@@ -4,6 +4,10 @@ import {
   ADMIN_COOKIE_NAME,
   isValidAdminSession,
 } from "@/src/lib/admin-auth";
+import {
+  getUserIdFromSession,
+  USER_COOKIE_NAME,
+} from "@/src/lib/user-session";
 
 const publicAdminPaths = new Set([
   "/admin/login",
@@ -13,6 +17,19 @@ const publicAdminPaths = new Set([
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  if (pathname.startsWith("/account")) {
+    const userToken = request.cookies.get(USER_COOKIE_NAME)?.value;
+
+    if (await getUserIdFromSession(userToken)) {
+      return NextResponse.next();
+    }
+
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("next", pathname);
+
+    return NextResponse.redirect(loginUrl);
+  }
 
   if (publicAdminPaths.has(pathname)) {
     return NextResponse.next();
@@ -35,5 +52,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/admin/:path*"],
+  matcher: ["/admin/:path*", "/api/admin/:path*", "/account/:path*", "/account"],
 };

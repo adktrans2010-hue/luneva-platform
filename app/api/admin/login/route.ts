@@ -5,11 +5,12 @@ import {
   ADMIN_SESSION_MAX_AGE,
   createAdminSessionToken,
   isAdminAuthConfigured,
-  isValidAdminPassword,
+  isValidAdminCredentials,
 } from "@/src/lib/admin-auth";
 
 export async function POST(request: NextRequest) {
   const formData = await request.formData();
+  const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
   const nextPath = String(formData.get("next") ?? "/admin");
   const redirectTo = nextPath.startsWith("/admin") ? nextPath : "/admin";
@@ -21,9 +22,9 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (!isValidAdminPassword(password)) {
+  if (!isValidAdminCredentials(email, password)) {
     return NextResponse.redirect(
-      new URL("/admin/login?error=password", request.url),
+      new URL("/admin/login?error=credentials", request.url),
       { status: 303 }
     );
   }

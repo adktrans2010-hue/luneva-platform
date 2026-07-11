@@ -5,6 +5,10 @@ function getAdminPassword() {
   return process.env.ADMIN_PASSWORD?.trim() ?? "";
 }
 
+function getAdminEmail() {
+  return process.env.ADMIN_EMAIL?.trim().toLowerCase() ?? "";
+}
+
 function getAdminSessionSecret() {
   return process.env.ADMIN_SESSION_SECRET?.trim() || getAdminPassword();
 }
@@ -30,21 +34,25 @@ function equalTokens(a: string, b: string) {
 }
 
 export function isAdminAuthConfigured() {
-  return getAdminPassword().length > 0;
+  return getAdminPassword().length > 0 && getAdminEmail().length > 0;
 }
 
-export function isValidAdminPassword(password: string) {
+export function isValidAdminCredentials(email: string, password: string) {
   const adminPassword = getAdminPassword();
+  const adminEmail = getAdminEmail();
 
-  if (!adminPassword) {
+  if (!adminPassword || !adminEmail) {
     return false;
   }
 
-  return equalTokens(password, adminPassword);
+  return (
+    equalTokens(email.trim().toLowerCase(), adminEmail) &&
+    equalTokens(password, adminPassword)
+  );
 }
 
 export async function createAdminSessionToken() {
-  const payload = `luneva-admin:${getAdminPassword()}:${getAdminSessionSecret()}`;
+  const payload = `luneva-admin:${getAdminEmail()}:${getAdminPassword()}:${getAdminSessionSecret()}`;
   const digest = await crypto.subtle.digest(
     "SHA-256",
     new TextEncoder().encode(payload)
