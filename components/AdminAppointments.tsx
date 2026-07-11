@@ -22,7 +22,7 @@ type Appointment = {
   scheduledAt: string | null;
   notes: string | null;
   status: AppointmentStatus;
-  paymentMethod: "online" | "after_confirmation";
+  paymentMethod: "online" | "after_confirmation" | "package";
   paymentStatus:
     | "waiting"
     | "invoice_sent"
@@ -77,6 +77,7 @@ const consultationFormats = [
 const paymentMethodLabels: Record<string, string> = {
   online: "ЮKassa",
   after_confirmation: "После подтверждения",
+  package: "Пакет консультаций",
 };
 
 const paymentStatusLabels: Record<string, string> = {

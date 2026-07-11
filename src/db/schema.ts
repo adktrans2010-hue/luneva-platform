@@ -191,6 +191,10 @@ export const appointmentRequests = pgTable("appointment_requests", {
     onDelete: "set null",
   }),
 
+  packageId: uuid("package_id").references(() => userConsultationPackages.id, {
+    onDelete: "set null",
+  }),
+
   name: text("name").notNull(),
 
   contact: text("contact").notNull(),
@@ -232,6 +236,38 @@ export const appointmentRequests = pgTable("appointment_requests", {
   notificationStatus: text("notification_status")
     .default("not_sent")
     .notNull(),
+
+  createdAt: timestamp("created_at")
+    .defaultNow()
+    .notNull(),
+
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .notNull(),
+});
+
+export const userConsultationPackages = pgTable("user_consultation_packages", {
+  id: uuid("id").defaultRandom().primaryKey(),
+
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+
+  title: text("title").notNull(),
+
+  consultationFormat: text("consultation_format")
+    .default("online")
+    .notNull(),
+
+  totalSessions: integer("total_sessions").notNull(),
+
+  remainingSessions: integer("remaining_sessions").notNull(),
+
+  status: text("status")
+    .default("active")
+    .notNull(),
+
+  paidAt: timestamp("paid_at"),
 
   createdAt: timestamp("created_at")
     .defaultNow()

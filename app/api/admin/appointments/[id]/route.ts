@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 
 import { db } from "@/src/db";
-import { appointmentHistory, appointmentRequests } from "@/src/db/schema";
+import {
+  appointmentHistory,
+  appointmentRequests,
+  userConsultationPackages,
+} from "@/src/db/schema";
 import { notifyOwnerAppointmentChanged, notifyOwnerPayment } from "@/src/lib/telegram";
 
 type AppointmentParams = {
@@ -166,6 +170,36 @@ export async function PATCH(request: Request, { params }: AppointmentParams) {
       action: status === "cancelled" ? "Отмена" : "Статус",
       details: `Статус: ${statusLabels[status]}`,
     });
+
+    if (
+      currentRequest.packageId &&
+      currentRequest.status !== "cancelled" &&
+      status === "cancelled"
+    ) {
+      const [currentPackage] = await db
+        .select()
+        .from(userConsultationPackages)
+        .where(eq(userConsultationPackages.id, currentRequest.packageId))
+        .limit(1);
+
+      if (currentPackage) {
+        await db
+          .update(userConsultationPackages)
+          .set({
+            remainingSessions: currentPackage.remainingSessions + 1,
+            status: "active",
+            updatedAt: new Date(),
+          })
+          .where(eq(userConsultationPackages.id, currentPackage.id));
+
+        await db.insert(appointmentHistory).values({
+          appointmentId: id,
+          action: "Пакет",
+          details:
+            "Консультация возвращена в оплаченный пакет клиента после отмены записи.",
+        });
+      }
+    }
   }
 
   if (notesChanged) {

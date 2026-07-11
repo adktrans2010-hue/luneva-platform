@@ -4,8 +4,9 @@ import { redirect } from "next/navigation";
 import { asc, desc, eq } from "drizzle-orm";
 
 import { db } from "@/src/db";
-import { appointmentRequests } from "@/src/db/schema";
+import { appointmentRequests, userConsultationPackages } from "@/src/db/schema";
 import { getCurrentUser } from "@/src/lib/auth-user";
+import AccountBookingForm from "@/components/AccountBookingForm";
 
 export const dynamic = "force-dynamic";
 
@@ -46,7 +47,9 @@ const contactMethodLabels: Record<string, string> = {
 
 const menuItems = [
   { label: "Сегодня", href: "#today" },
+  { label: "Записаться", href: "#booking" },
   { label: "Мои записи", href: "#appointments" },
+  { label: "Пакеты", href: "#packages" },
   { label: "Оплата", href: "#payments" },
   { label: "Материалы", href: "#materials" },
   { label: "Сообщения", href: "#messages" },
@@ -199,6 +202,20 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
   const payments = appointments.filter(
     (appointment) => appointment.paymentStatus !== "not_required"
   );
+  const packages = await db
+    .select()
+    .from(userConsultationPackages)
+    .where(eq(userConsultationPackages.userId, user.id))
+    .orderBy(desc(userConsultationPackages.createdAt));
+  const activePackages = packages
+    .filter((item) => item.status === "active" && item.remainingSessions > 0)
+    .map((item) => ({
+      id: item.id,
+      title: item.title,
+      consultationFormat: item.consultationFormat as "online" | "office",
+      totalSessions: item.totalSessions,
+      remainingSessions: item.remainingSessions,
+    }));
 
   return (
     <section className="bg-[#fff8f6] px-6 py-24">
@@ -308,6 +325,50 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                 </Link>
               </div>
             )}
+          </Section>
+
+          <Section id="booking" title="Записаться на консультацию">
+            <p className="mb-6 leading-7 text-[#5f5552]">
+              Выберите формат, дату и свободное время. Если у вас есть
+              оплаченный пакет, можно списать из него одну консультацию.
+            </p>
+            <AccountBookingForm packages={activePackages} />
+          </Section>
+
+          <Section id="packages" title="Пакеты консультаций">
+            <div className="grid gap-4 md:grid-cols-2">
+              {packages.length > 0 ? (
+                packages.map((item) => (
+                  <article
+                    key={item.id}
+                    className="rounded-2xl border border-[#ead7d1] bg-[#fff8f6] p-5"
+                  >
+                    <p className="text-sm uppercase tracking-[0.18em] text-[#c98778]">
+                      {formatLabels[item.consultationFormat] ??
+                        item.consultationFormat}
+                    </p>
+                    <h3 className="mt-3 text-2xl font-medium text-[#332725]">
+                      {item.title}
+                    </h3>
+                    <p className="mt-3 text-lg text-[#332725]">
+                      Осталось {item.remainingSessions} из {item.totalSessions}
+                    </p>
+                    <p className="mt-2 text-[#5f5552]">
+                      {item.status === "active"
+                        ? "Активен"
+                        : item.status === "used"
+                          ? "Использован"
+                          : item.status}
+                    </p>
+                  </article>
+                ))
+              ) : (
+                <p className="rounded-2xl bg-[#fff8f6] p-5 text-[#5f5552]">
+                  Активных пакетов пока нет. После оплаты пакета он появится
+                  здесь.
+                </p>
+              )}
+            </div>
           </Section>
 
           <Section id="appointments" title="Мои записи">
