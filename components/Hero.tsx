@@ -5,67 +5,62 @@ import DecorLeaf from "@/components/DecorLeaf";
 
 export default function Hero() {
   return (
-    <section className="relative overflow-hidden bg-[#fff8f6] px-6 py-16 lg:py-20">
-      <div className="absolute left-0 top-32 h-[500px] w-[500px] rounded-full bg-[#f3d4cc]/40 blur-[120px]" />
-      <div className="absolute bottom-0 right-0 h-[500px] w-[500px] rounded-full bg-[#e7b8ad]/40 blur-[140px]" />
+    <section className="relative min-h-[760px] overflow-hidden bg-[#fff8f6]">
+      <div className="absolute inset-y-0 right-0 w-[68%] overflow-hidden">
+        <Image
+          src="/sasha-hero.jpg"
+          alt="Лунева Александра Александровна"
+          fill
+          priority
+          sizes="68vw"
+          className="translate-x-[8%] object-cover object-[50%_46%] brightness-[0.84] contrast-[1.04] saturate-[1.08]"
+        />
+      </div>
 
-      <DecorLeaf className="absolute bottom-10 left-8 hidden text-[180px] md:block" />
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,#fff8f6_0%,rgba(255,248,246,0.99)_28%,rgba(255,248,246,0.76)_45%,rgba(255,248,246,0.18)_64%,rgba(255,248,246,0.02)_100%)]" />
+      <div className="absolute inset-y-0 left-0 w-[52%] bg-[radial-gradient(circle_at_20%_52%,rgba(255,255,255,0.52),rgba(255,248,246,0)_64%)]" />
 
-      <div className="relative mx-auto grid max-w-[1500px] items-center gap-16 lg:grid-cols-[0.9fr_1.1fr]">
-        <div>
+      <div className="relative mx-auto flex min-h-[760px] max-w-[1500px] items-center px-6 py-20 sm:px-10 lg:px-28 xl:px-36">
+        <div className="max-w-[560px]">
           <p className="mb-8 text-sm uppercase tracking-[0.35em] text-[#c98778]">
-            Психолог • Гештальт-терапевт
+            Психолог · Гештальт-терапевт
           </p>
 
-          <h1 className="font-serif text-5xl leading-[1.05] text-[#332725] md:text-7xl xl:text-8xl">
+          <h1 className="font-serif text-5xl leading-[1.08] text-[#332725] md:text-6xl xl:text-7xl">
             Лунева <br />
             Александра <br />
             Александровна
           </h1>
 
-          <div className="my-8 h-[2px] w-16 bg-[#c98778]" />
+          <div className="my-8 h-px w-16 bg-[#c98778]" />
 
-          <p className="max-w-xl text-lg leading-9 text-[#5f5552]">
+          <p className="max-w-md text-lg leading-8 text-[#5f5552]">
             Бережная психологическая помощь подросткам и взрослым.
           </p>
 
-          <div className="mt-10 flex gap-5 rounded-[2rem] bg-white/50 p-6">
-            <DecorLeaf className="text-5xl" />
+          <div className="mt-8 flex max-w-[520px] gap-5 rounded-2xl border border-white/70 bg-white/62 p-5 shadow-[0_18px_55px_rgba(94,55,45,0.08)] backdrop-blur-sm">
+            <DecorLeaf className="shrink-0 text-4xl text-[#c98778]" />
 
-            <p className="max-w-md font-serif text-2xl leading-relaxed text-[#c98778]">
+            <p className="font-serif text-xl leading-relaxed text-[#9f6a60]">
               Когда становится трудно, важно, чтобы рядом был человек!
             </p>
           </div>
 
-          <div className="mt-10 flex flex-col gap-5 sm:flex-row">
+          <div className="mt-9 flex flex-col gap-4 sm:flex-row">
             <Link
               href="/contacts#booking"
-              className="rounded-2xl bg-[#332725] px-10 py-5 text-white shadow-lg transition hover:-translate-y-1"
+              className="rounded-2xl bg-[#332725] px-8 py-4 text-center text-white shadow-lg shadow-[#332725]/15 transition hover:-translate-y-1"
             >
               Записаться на консультацию →
             </Link>
 
             <Link
               href="/about"
-              className="rounded-2xl border border-[#c98778] px-10 py-5 text-[#332725] transition hover:bg-white"
+              className="rounded-2xl border border-[#c98778]/50 bg-white/72 px-8 py-4 text-center text-[#332725] shadow-sm backdrop-blur-sm transition hover:bg-white"
             >
-              Обо мне
+              Узнать обо мне
             </Link>
           </div>
-        </div>
-
-        <div className="relative">
-          <div className="absolute -inset-8 rounded-[4rem] bg-[#e7b8ad]/45 blur-3xl" />
-          <div className="absolute -bottom-8 left-10 right-10 h-24 rounded-full bg-[#c98778]/25 blur-3xl" />
-
-          <Image
-            src="/sasha-hero.jpg"
-            alt="Лунева Александра Александровна"
-            width={1200}
-            height={1500}
-            priority
-            className="relative h-[780px] w-full rounded-[4rem] object-cover shadow-2xl"
-          />
         </div>
       </div>
     </section>
