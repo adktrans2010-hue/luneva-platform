@@ -101,6 +101,16 @@ export const users = pgTable(
 
     phone: text("phone"),
 
+    telegram: text("telegram"),
+
+    timeZone: text("time_zone")
+      .default("Europe/Moscow")
+      .notNull(),
+
+    preferredContact: text("preferred_contact")
+      .default("telegram")
+      .notNull(),
+
     passwordHash: text("password_hash").notNull(),
 
     createdAt: timestamp("created_at")

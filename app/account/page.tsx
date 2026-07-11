@@ -1,15 +1,20 @@
-import { cookies } from "next/headers";
 import Link from "next/link";
-import { desc, eq } from "drizzle-orm";
+import type { ReactNode } from "react";
+import { redirect } from "next/navigation";
+import { asc, desc, eq } from "drizzle-orm";
 
 import { db } from "@/src/db";
-import { appointmentRequests, users } from "@/src/db/schema";
-import {
-  getUserIdFromSession,
-  USER_COOKIE_NAME,
-} from "@/src/lib/user-session";
+import { appointmentRequests } from "@/src/db/schema";
+import { getCurrentUser } from "@/src/lib/auth-user";
 
 export const dynamic = "force-dynamic";
+
+type AccountPageProps = {
+  searchParams: Promise<{
+    profile?: string;
+    password?: string;
+  }>;
+};
 
 const statusLabels: Record<string, string> = {
   new: "Новая",
@@ -32,7 +37,35 @@ const paymentStatusLabels: Record<string, string> = {
   not_required: "Без онлайн-оплаты",
 };
 
+const contactMethodLabels: Record<string, string> = {
+  telegram: "Telegram",
+  phone: "Телефон",
+  email: "Email",
+  whatsapp: "WhatsApp",
+};
+
+const menuItems = [
+  { label: "Сегодня", href: "#today" },
+  { label: "Мои записи", href: "#appointments" },
+  { label: "Оплата", href: "#payments" },
+  { label: "Материалы", href: "#materials" },
+  { label: "Сообщения", href: "#messages" },
+  { label: "Профиль", href: "#profile" },
+];
+
 function formatDateTime(value: Date | null) {
+  if (!value) return "Дата уточняется";
+
+  return new Intl.DateTimeFormat("ru-RU", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(value);
+}
+
+function formatShortDate(value: Date | null) {
   if (!value) return "Дата уточняется";
 
   return new Intl.DateTimeFormat("ru-RU", {
@@ -44,40 +77,145 @@ function formatDateTime(value: Date | null) {
   }).format(value);
 }
 
-export default async function AccountPage() {
-  const cookieStore = await cookies();
-  const userId = await getUserIdFromSession(
-    cookieStore.get(USER_COOKIE_NAME)?.value
+function formatGoogleDate(value: Date) {
+  return value.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+}
+
+function buildCalendarLink(appointment: { scheduledAt: Date | null; consultationFormat: string }) {
+  if (!appointment.scheduledAt) return "/contacts#booking";
+
+  const start = appointment.scheduledAt;
+  const end = new Date(start.getTime() + 50 * 60 * 1000);
+  const location =
+    appointment.consultationFormat === "office"
+      ? "Москва, Кожевнический проезд, дом 4/5, строение 5"
+      : "Онлайн";
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: "Консультация с Александрой Луневой",
+    dates: `${formatGoogleDate(start)}/${formatGoogleDate(end)}`,
+    details: "Психологическая консультация. Детали встречи будут направлены отдельно.",
+    location,
+  });
+
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
+function Section({
+  id,
+  title,
+  children,
+}: {
+  id: string;
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <section
+      id={id}
+      className="rounded-[2rem] border border-[#ead7d1] bg-white p-8 shadow-sm"
+    >
+      <h2 className="font-serif text-4xl text-[#332725]">{title}</h2>
+      <div className="mt-6">{children}</div>
+    </section>
   );
+}
 
-  const [user] = userId
-    ? await db.select().from(users).where(eq(users.id, userId)).limit(1)
-    : [];
+function AppointmentCard({
+  appointment,
+}: {
+  appointment: typeof appointmentRequests.$inferSelect;
+}) {
+  return (
+    <article className="rounded-2xl border border-[#ead7d1] bg-[#fff8f6] p-5">
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div>
+          <p className="text-sm uppercase tracking-[0.18em] text-[#c98778]">
+            {statusLabels[appointment.status] ?? appointment.status}
+          </p>
+          <h3 className="mt-3 text-2xl font-medium text-[#332725]">
+            {formatShortDate(appointment.scheduledAt)}
+          </h3>
+          <p className="mt-2 text-[#5f5552]">
+            {formatLabels[appointment.consultationFormat] ??
+              appointment.consultationFormat}
+          </p>
+        </div>
 
-  const appointments = user
-    ? await db
-        .select()
-        .from(appointmentRequests)
-        .where(eq(appointmentRequests.userId, user.id))
-        .orderBy(desc(appointmentRequests.createdAt))
-    : [];
+        <div className="text-sm text-[#5f5552] md:text-right">
+          <p>
+            Оплата:{" "}
+            {paymentStatusLabels[appointment.paymentStatus] ??
+              appointment.paymentStatus}
+          </p>
+          {appointment.paymentLink && (
+            <a href={appointment.paymentLink} className="mt-2 inline-flex text-[#c98778]">
+              Перейти к оплате
+            </a>
+          )}
+        </div>
+      </div>
+    </article>
+  );
+}
+
+export default async function AccountPage({ searchParams }: AccountPageProps) {
+  const params = await searchParams;
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const appointments = await db
+    .select()
+    .from(appointmentRequests)
+    .where(eq(appointmentRequests.userId, user.id))
+    .orderBy(desc(appointmentRequests.createdAt));
+
+  const futureAppointments = await db
+    .select()
+    .from(appointmentRequests)
+    .where(eq(appointmentRequests.userId, user.id))
+    .orderBy(asc(appointmentRequests.scheduledAt));
+
+  const now = new Date();
+  const upcoming = futureAppointments.filter(
+    (appointment) =>
+      appointment.status !== "cancelled" &&
+      appointment.status !== "completed" &&
+      appointment.scheduledAt &&
+      appointment.scheduledAt >= now
+  );
+  const nearest = upcoming[0] ?? null;
+  const past = appointments.filter(
+    (appointment) =>
+      appointment.status === "completed" ||
+      (appointment.scheduledAt && appointment.scheduledAt < now)
+  );
+  const cancelled = appointments.filter(
+    (appointment) => appointment.status === "cancelled"
+  );
+  const payments = appointments.filter(
+    (appointment) => appointment.paymentStatus !== "not_required"
+  );
 
   return (
     <section className="bg-[#fff8f6] px-6 py-24">
       <div className="mx-auto max-w-7xl">
-        <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+        <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <p className="mb-4 text-sm uppercase tracking-[0.25em] text-[#c98778]">
-              Личный кабинет
+              Мой кабинет
             </p>
 
             <h1 className="font-serif text-6xl leading-tight text-[#332725]">
-              {user?.name}
+              Здравствуйте, {user.name}
             </h1>
 
-            <p className="mt-5 text-lg text-[#5f5552]">
-              {user?.email}
-              {user?.phone ? ` · ${user.phone}` : ""}
+            <p className="mt-6 max-w-3xl text-lg leading-8 text-[#5f5552]">
+              Здесь можно посмотреть ваши записи, оплату и материалы от
+              Александры.
             </p>
           </div>
 
@@ -91,73 +229,310 @@ export default async function AccountPage() {
           </form>
         </div>
 
-        <div className="mt-14 rounded-[2rem] border border-[#ead7d1] bg-white p-8 shadow-sm">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h2 className="font-serif text-4xl text-[#332725]">
-                Мои записи
-              </h2>
-              <p className="mt-3 text-[#5f5552]">
-                Здесь будут отображаться консультации, созданные после входа в
-                кабинет.
-              </p>
-            </div>
-
-            <Link
-              href="/contacts#booking"
-              className="rounded-2xl bg-[#332725] px-6 py-3 text-white"
+        <nav className="mt-10 flex flex-wrap gap-3">
+          {menuItems.map((item) => (
+            <a
+              key={item.href}
+              href={item.href}
+              className="rounded-full border border-[#ead7d1] bg-white px-5 py-3 text-sm text-[#5f5552] transition hover:border-[#c98778] hover:text-[#332725]"
             >
-              Записаться
-            </Link>
-          </div>
+              {item.label}
+            </a>
+          ))}
+          <form action="/api/auth/logout" method="post">
+            <button className="rounded-full border border-[#ead7d1] bg-white px-5 py-3 text-sm text-[#5f5552] transition hover:border-[#c98778] hover:text-[#332725]">
+              Выйти
+            </button>
+          </form>
+        </nav>
 
-          {appointments.length > 0 ? (
-            <div className="mt-8 grid gap-4">
-              {appointments.map((appointment) => (
-                <article
-                  key={appointment.id}
-                  className="rounded-2xl border border-[#ead7d1] bg-[#fff8f6] p-5"
-                >
-                  <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div className="mt-12 grid gap-8">
+          <Section id="today" title="Ближайшая консультация">
+            {nearest ? (
+              <div className="rounded-[2rem] bg-[#332725] p-8 text-white md:p-10">
+                <p className="text-sm uppercase tracking-[0.2em] text-[#ead7d1]">
+                  {statusLabels[nearest.status] ?? nearest.status}
+                </p>
+                <h3 className="mt-4 font-serif text-4xl">
+                  {formatDateTime(nearest.scheduledAt)}
+                </h3>
+                <p className="mt-4 text-lg text-[#ead7d1]">
+                  {formatLabels[nearest.consultationFormat]} · 50 минут
+                </p>
+                <p className="mt-2 text-[#ead7d1]">
+                  {nearest.consultationFormat === "office"
+                    ? "Москва, Кожевнический проезд, дом 4/5, строение 5"
+                    : "Ссылка на онлайн-встречу будет направлена отдельно."}
+                </p>
+                <p className="mt-4 text-lg">
+                  {paymentStatusLabels[nearest.paymentStatus] ??
+                    nearest.paymentStatus}
+                </p>
+
+                <div className="mt-8 flex flex-wrap gap-3">
+                  {nearest.consultationFormat === "online" && (
+                    <Link
+                      href="/contacts"
+                      className="rounded-2xl bg-white px-6 py-3 text-[#332725]"
+                    >
+                      Подключиться
+                    </Link>
+                  )}
+                  <Link
+                    href="/contacts#booking"
+                    className="rounded-2xl border border-white px-6 py-3 text-white"
+                  >
+                    Перенести
+                  </Link>
+                  <Link
+                    href="/contacts"
+                    className="rounded-2xl border border-white/60 px-6 py-3 text-white"
+                  >
+                    Отменить
+                  </Link>
+                  <a
+                    href={buildCalendarLink(nearest)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-2xl border border-white/60 px-6 py-3 text-white"
+                  >
+                    Добавить в календарь
+                  </a>
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-2xl bg-[#fff8f6] p-6 text-[#5f5552]">
+                Ближайшая консультация пока не запланирована.
+                <Link href="/contacts#booking" className="ml-2 text-[#c98778]">
+                  Выбрать время
+                </Link>
+              </div>
+            )}
+          </Section>
+
+          <Section id="appointments" title="Мои записи">
+            <div className="grid gap-8 lg:grid-cols-3">
+              <div>
+                <h3 className="text-xl font-medium text-[#332725]">
+                  Будущие консультации
+                </h3>
+                <div className="mt-4 grid gap-4">
+                  {upcoming.length > 0 ? (
+                    upcoming.map((appointment) => (
+                      <AppointmentCard
+                        key={appointment.id}
+                        appointment={appointment}
+                      />
+                    ))
+                  ) : (
+                    <p className="rounded-2xl bg-[#fff8f6] p-5 text-[#5f5552]">
+                      Будущих записей пока нет.
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-xl font-medium text-[#332725]">
+                  Прошедшие консультации
+                </h3>
+                <div className="mt-4 grid gap-4">
+                  {past.length > 0 ? (
+                    past.map((appointment) => (
+                      <AppointmentCard
+                        key={appointment.id}
+                        appointment={appointment}
+                      />
+                    ))
+                  ) : (
+                    <p className="rounded-2xl bg-[#fff8f6] p-5 text-[#5f5552]">
+                      Прошедших консультаций пока нет.
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-xl font-medium text-[#332725]">
+                  Отмененные записи
+                </h3>
+                <div className="mt-4 grid gap-4">
+                  {cancelled.length > 0 ? (
+                    cancelled.map((appointment) => (
+                      <AppointmentCard
+                        key={appointment.id}
+                        appointment={appointment}
+                      />
+                    ))
+                  ) : (
+                    <p className="rounded-2xl bg-[#fff8f6] p-5 text-[#5f5552]">
+                      Отмененных записей пока нет.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </Section>
+
+          <Section id="payments" title="Оплата">
+            <p className="mb-6 leading-7 text-[#5f5552]">
+              Данные банковской карты на сайте не хранятся.
+            </p>
+            <div className="grid gap-4">
+              {payments.length > 0 ? (
+                payments.map((appointment) => (
+                  <article
+                    key={appointment.id}
+                    className="flex flex-col gap-4 rounded-2xl bg-[#fff8f6] p-5 md:flex-row md:items-center md:justify-between"
+                  >
                     <div>
-                      <p className="text-sm uppercase tracking-[0.18em] text-[#c98778]">
-                        {statusLabels[appointment.status] ??
-                          appointment.status}
+                      <p className="font-medium text-[#332725]">
+                        {formatShortDate(appointment.scheduledAt)}
                       </p>
-                      <h3 className="mt-3 text-2xl font-medium text-[#332725]">
-                        {formatDateTime(appointment.scheduledAt)}
-                      </h3>
                       <p className="mt-2 text-[#5f5552]">
-                        Формат:{" "}
-                        {formatLabels[appointment.consultationFormat] ??
-                          appointment.consultationFormat}
-                      </p>
-                    </div>
-
-                    <div className="text-sm text-[#5f5552] md:text-right">
-                      <p>
-                        Оплата:{" "}
                         {paymentStatusLabels[appointment.paymentStatus] ??
                           appointment.paymentStatus}
+                        {appointment.paymentAmount
+                          ? ` · ${appointment.paymentAmount} руб.`
+                          : ""}
                       </p>
-                      {appointment.paymentLink && (
-                        <a
-                          href={appointment.paymentLink}
-                          className="mt-2 inline-flex text-[#c98778]"
-                        >
-                          Перейти к оплате
-                        </a>
-                      )}
                     </div>
-                  </div>
-                </article>
-              ))}
+                    {appointment.paymentLink && (
+                      <a
+                        href={appointment.paymentLink}
+                        className="rounded-2xl bg-[#332725] px-5 py-3 text-center text-white"
+                      >
+                        Повторить оплату
+                      </a>
+                    )}
+                  </article>
+                ))
+              ) : (
+                <p className="rounded-2xl bg-[#fff8f6] p-5 text-[#5f5552]">
+                  Оплат в кабинете пока нет.
+                </p>
+              )}
             </div>
-          ) : (
-            <div className="mt-8 rounded-2xl bg-[#fff8f6] p-6 text-[#5f5552]">
-              У вас пока нет записей в личном кабинете.
+          </Section>
+
+          <Section id="materials" title="Материалы от Александры">
+            <div className="rounded-2xl bg-[#fff8f6] p-6 text-[#5f5552]">
+              Здесь появятся статьи, видео, упражнения, памятки, PDF и
+              организационная информация, которые Александра отправит лично вам.
             </div>
-          )}
+          </Section>
+
+          <Section id="messages" title="Сообщения">
+            <div className="rounded-2xl bg-[#fff8f6] p-6 text-[#5f5552]">
+              В первой версии здесь будут только организационные сообщения:
+              подтверждение записи, напоминание, перенос, ссылка на консультацию
+              или сообщение от администратора. Терапевтический чат пока не
+              добавляем.
+            </div>
+          </Section>
+
+          <Section id="profile" title="Профиль">
+            <div className="grid gap-8 lg:grid-cols-2">
+              <form action="/api/auth/profile" method="post" className="grid gap-4">
+                <input
+                  name="name"
+                  defaultValue={user.name}
+                  className="rounded-2xl border border-[#ead7d1] px-4 py-3"
+                  placeholder="Имя"
+                  required
+                />
+                <input
+                  name="phone"
+                  defaultValue={user.phone ?? ""}
+                  className="rounded-2xl border border-[#ead7d1] px-4 py-3"
+                  placeholder="Телефон"
+                />
+                <input
+                  name="telegram"
+                  defaultValue={user.telegram ?? ""}
+                  className="rounded-2xl border border-[#ead7d1] px-4 py-3"
+                  placeholder="Telegram"
+                />
+                <input
+                  name="timeZone"
+                  defaultValue={user.timeZone}
+                  className="rounded-2xl border border-[#ead7d1] px-4 py-3"
+                  placeholder="Часовой пояс"
+                />
+                <select
+                  name="preferredContact"
+                  defaultValue={user.preferredContact}
+                  className="rounded-2xl border border-[#ead7d1] bg-white px-4 py-3"
+                >
+                  {Object.entries(contactMethodLabels).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+
+                {params.profile === "updated" && (
+                  <p className="rounded-2xl bg-[#edf7ed] px-4 py-3 text-sm text-[#5f8a5f]">
+                    Профиль обновлен.
+                  </p>
+                )}
+
+                <button className="rounded-2xl bg-[#332725] px-5 py-3 text-white">
+                  Сохранить профиль
+                </button>
+              </form>
+
+              <div className="grid gap-6">
+                <form
+                  action="/api/auth/password"
+                  method="post"
+                  className="grid gap-4 rounded-2xl bg-[#fff8f6] p-5"
+                >
+                  <h3 className="text-xl font-medium text-[#332725]">
+                    Смена пароля
+                  </h3>
+                  <input
+                    name="currentPassword"
+                    type="password"
+                    className="rounded-2xl border border-[#ead7d1] px-4 py-3"
+                    placeholder="Текущий пароль"
+                    required
+                  />
+                  <input
+                    name="nextPassword"
+                    type="password"
+                    minLength={8}
+                    className="rounded-2xl border border-[#ead7d1] px-4 py-3"
+                    placeholder="Новый пароль от 8 символов"
+                    required
+                  />
+                  {params.password === "updated" && (
+                    <p className="rounded-2xl bg-[#edf7ed] px-4 py-3 text-sm text-[#5f8a5f]">
+                      Пароль обновлен.
+                    </p>
+                  )}
+                  {params.password === "error" && (
+                    <p className="rounded-2xl bg-[#fff3df] px-4 py-3 text-sm text-[#9a5a1f]">
+                      Проверьте текущий пароль и длину нового пароля.
+                    </p>
+                  )}
+                  <button className="rounded-2xl border border-[#332725] px-5 py-3 text-[#332725]">
+                    Обновить пароль
+                  </button>
+                </form>
+
+                <form action="/api/auth/logout" method="post">
+                  <button className="w-full rounded-2xl border border-[#c98778] px-5 py-3 text-[#c98778]">
+                    Выйти со всех устройств
+                  </button>
+                  <p className="mt-3 text-sm leading-6 text-[#8a7a76]">
+                    Сейчас кнопка завершает текущий сеанс. Полное завершение
+                    всех устройств добавим вместе с 2FA.
+                  </p>
+                </form>
+              </div>
+            </div>
+          </Section>
         </div>
       </div>
     </section>
