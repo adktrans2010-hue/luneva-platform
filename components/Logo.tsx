@@ -4,7 +4,7 @@ export default function Logo() {
   return (
     <div className="flex items-center gap-4">
       <Image
-        src="/logo.png"
+        src="/logo-transparent.png"
         alt="Luneva Psy"
         width={72}
         height={72}
