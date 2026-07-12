@@ -438,6 +438,32 @@ export const seoPages = pgTable(
   (table) => [uniqueIndex("seo_pages_path_unique").on(table.path)]
 );
 
+export const adminSettings = pgTable("admin_settings", {
+  id: text("id")
+    .default("main")
+    .primaryKey(),
+
+  email: text("email").notNull(),
+
+  phone: text("phone"),
+
+  passwordHash: text("password_hash"),
+
+  totpSecret: text("totp_secret"),
+
+  totpEnabled: boolean("totp_enabled")
+    .default(false)
+    .notNull(),
+
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .notNull(),
+
+  createdAt: timestamp("created_at")
+    .defaultNow()
+    .notNull(),
+});
+
 export const analyticsEvents = pgTable("analytics_events", {
   id: uuid("id").defaultRandom().primaryKey(),
 

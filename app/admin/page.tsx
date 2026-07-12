@@ -46,6 +46,11 @@ const adminSections = [
     text: "Смотреть посетителей, популярные страницы, статьи, видео, записи и источники переходов.",
     href: "/admin/site-life",
   },
+  {
+    title: "Настройки администратора",
+    text: "Менять почту, телефон и включать вход с Google Authenticator.",
+    href: "/admin/settings",
+  },
 ];
 
 export default function AdminPage() {

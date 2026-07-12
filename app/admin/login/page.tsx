@@ -9,6 +9,7 @@ const errorMessages: Record<string, string> = {
   credentials: "Неверная почта или пароль. Попробуйте еще раз.",
   password: "Неверный пароль. Попробуйте еще раз.",
   setup: "Добавьте ADMIN_EMAIL и ADMIN_PASSWORD в .env, чтобы включить вход в админку.",
+  totp: "Неверный код Google Authenticator. Проверьте код и попробуйте ещё раз.",
 };
 
 export default async function AdminLoginPage({
@@ -66,6 +67,24 @@ export default async function AdminLoginPage({
             autoComplete="current-password"
             className="mt-3 w-full rounded-2xl border border-[#ead7d1] px-4 py-3 text-[#332725] outline-none transition focus:border-[#c98778]"
             required
+          />
+
+          <label
+            htmlFor="admin-totp"
+            className="mt-5 block text-sm uppercase tracking-[0.18em] text-[#8a7a76]"
+          >
+            Код Google Authenticator
+          </label>
+
+          <input
+            id="admin-totp"
+            name="totpCode"
+            type="text"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            pattern="[0-9]{6}"
+            placeholder="6 цифр, если 2FA включена"
+            className="mt-3 w-full rounded-2xl border border-[#ead7d1] px-4 py-3 text-[#332725] outline-none transition focus:border-[#c98778]"
           />
 
           {error && (

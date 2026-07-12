@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { ADMIN_COOKIE_NAME } from "@/src/lib/admin-auth";
+import { publicUrl } from "@/src/lib/public-url";
 
 export async function POST(request: NextRequest) {
-  const response = NextResponse.redirect(new URL("/admin/login", request.url), {
+  const response = NextResponse.redirect(publicUrl(request, "/admin/login"), {
     status: 303,
   });
 

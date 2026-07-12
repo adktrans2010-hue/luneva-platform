@@ -141,6 +141,20 @@
       "when": 1783920000000,
       "tag": "0019_user_consultation_packages",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1783933200000,
+      "tag": "0020_admin_settings",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1783936800000,
+      "tag": "0021_admin_password_hash",
+      "breakpoints": true
     }
   ]
 }

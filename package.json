@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "import:articles": "tsx scripts/import-articles-from-markdown.ts",
+    "admin:ensure": "tsx scripts/ensure-admin-settings.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",

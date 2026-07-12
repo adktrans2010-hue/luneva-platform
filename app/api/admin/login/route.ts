@@ -5,37 +5,56 @@ import {
   ADMIN_SESSION_MAX_AGE,
   createAdminSessionToken,
   isAdminAuthConfigured,
-  isValidAdminCredentials,
 } from "@/src/lib/admin-auth";
+import { getAdminSettings } from "@/src/lib/admin-settings";
+import { verifyPassword } from "@/src/lib/password";
+import { publicUrl } from "@/src/lib/public-url";
+import { verifyTotpCode } from "@/src/lib/totp";
 
 export async function POST(request: NextRequest) {
   const formData = await request.formData();
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
+  const totpCode = String(formData.get("totpCode") ?? "");
   const nextPath = String(formData.get("next") ?? "/admin");
   const redirectTo = nextPath.startsWith("/admin") ? nextPath : "/admin";
+  const settings = await getAdminSettings();
 
-  if (!isAdminAuthConfigured()) {
+  if (!isAdminAuthConfigured() || !settings?.email) {
     return NextResponse.redirect(
-      new URL("/admin/login?error=setup", request.url),
+      publicUrl(request, "/admin/login?error=setup"),
       { status: 303 }
     );
   }
 
-  if (!isValidAdminCredentials(email, password)) {
+  if (
+    email.trim().toLowerCase() !== settings.email.trim().toLowerCase() ||
+    !settings.passwordHash ||
+    !verifyPassword(password, settings.passwordHash)
+  ) {
     return NextResponse.redirect(
-      new URL("/admin/login?error=credentials", request.url),
+      publicUrl(request, "/admin/login?error=credentials"),
       { status: 303 }
     );
   }
 
-  const response = NextResponse.redirect(new URL(redirectTo, request.url), {
+  if (
+    settings.totpEnabled &&
+    (!settings.totpSecret || !verifyTotpCode(settings.totpSecret, totpCode))
+  ) {
+    return NextResponse.redirect(
+      publicUrl(request, "/admin/login?error=totp"),
+      { status: 303 }
+    );
+  }
+
+  const response = NextResponse.redirect(publicUrl(request, redirectTo), {
     status: 303,
   });
 
   response.cookies.set({
     name: ADMIN_COOKIE_NAME,
-    value: await createAdminSessionToken(),
+    value: await createAdminSessionToken(settings.passwordHash),
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",

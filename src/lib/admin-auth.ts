@@ -1,16 +1,12 @@
 export const ADMIN_COOKIE_NAME = "luneva_admin_session";
 export const ADMIN_SESSION_MAX_AGE = 60 * 60 * 8;
 
-function getAdminPassword() {
-  return process.env.ADMIN_PASSWORD?.trim() ?? "";
-}
-
 function getAdminEmail() {
   return process.env.ADMIN_EMAIL?.trim().toLowerCase() ?? "";
 }
 
 function getAdminSessionSecret() {
-  return process.env.ADMIN_SESSION_SECRET?.trim() || getAdminPassword();
+  return process.env.ADMIN_SESSION_SECRET?.trim() || process.env.ADMIN_PASSWORD?.trim() || "";
 }
 
 function toHex(buffer: ArrayBuffer) {
@@ -34,25 +30,11 @@ function equalTokens(a: string, b: string) {
 }
 
 export function isAdminAuthConfigured() {
-  return getAdminPassword().length > 0 && getAdminEmail().length > 0;
+  return getAdminEmail().length > 0 || Boolean(process.env.ADMIN_SESSION_SECRET?.trim());
 }
 
-export function isValidAdminCredentials(email: string, password: string) {
-  const adminPassword = getAdminPassword();
-  const adminEmail = getAdminEmail();
-
-  if (!adminPassword || !adminEmail) {
-    return false;
-  }
-
-  return (
-    equalTokens(email.trim().toLowerCase(), adminEmail) &&
-    equalTokens(password, adminPassword)
-  );
-}
-
-export async function createAdminSessionToken() {
-  const payload = `luneva-admin:${getAdminEmail()}:${getAdminPassword()}:${getAdminSessionSecret()}`;
+export async function createAdminSessionToken(passwordHash = "") {
+  const payload = `luneva-admin:${passwordHash}:${getAdminSessionSecret()}`;
   const digest = await crypto.subtle.digest(
     "SHA-256",
     new TextEncoder().encode(payload)
@@ -66,5 +48,12 @@ export async function isValidAdminSession(token?: string) {
     return false;
   }
 
-  return equalTokens(token, await createAdminSessionToken());
+  const { getAdminSettings } = await import("@/src/lib/admin-settings");
+  const settings = await getAdminSettings();
+
+  if (!settings?.passwordHash) {
+    return false;
+  }
+
+  return equalTokens(token, await createAdminSessionToken(settings.passwordHash));
 }
