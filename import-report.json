@@ -1,9 +1,9 @@
 {
-  "sourceDir": "C:\\Users\\User\\Documents\\Сайт Luneva-psy\\Luneva-Platform\\luneva-platform\\tmp\\articles-import-20260711201437",
+  "sourceDir": "C:\\Users\\User\\Documents\\Сайт Luneva-psy\\Luneva-Platform\\luneva-platform\\.tmp-articles-import-1",
   "dryRun": false,
   "total": 25,
-  "creates": 13,
-  "updates": 12,
+  "creates": 0,
+  "updates": 25,
   "errors": 0,
   "items": [
     {
@@ -11,7 +11,8 @@
       "title": "Детокс-диеты: что действительно делает организм",
       "slug": "detoks-diety-chto-deystvitelno-delaet-organizm",
       "file": "articles_markdown/01-detoks-diety-chto-deystvitelno-delaet-organizm.md",
-      "action": "create"
+      "action": "update",
+      "articleId": "62c5f0ab-9254-41b2-a169-64b3ecc72627"
     },
     {
       "id": 2,
@@ -34,14 +35,16 @@
       "title": "ЧТО НУЖНО ДЕЛАТЬ ЕСЛИ ВЫ ПОПАЛИ В КРИЗИСНУЮ СИТУАЦИЮ",
       "slug": "chto-nuzhno-delat-esli-vy-popali-v-krizisnuyu-situatsiyu",
       "file": "articles_markdown/04-chto-nuzhno-delat-esli-vy-popali-v-krizisnuyu-situatsiyu.md",
-      "action": "create"
+      "action": "update",
+      "articleId": "d5d442e9-cfc4-4c40-be70-3fa7fa199685"
     },
     {
       "id": 5,
       "title": "Как ограничивающие убеждения мешают нам достигать целей",
       "slug": "kak-ogranichivayuschie-ubezhdeniya-meshayut-nam-dostigat-tselei",
       "file": "articles_markdown/05-kak-ogranichivayuschie-ubezhdeniya-meshayut-nam-dostigat-tselei.md",
-      "action": "create"
+      "action": "update",
+      "articleId": "1cfc6623-bb01-4fab-bad8-a6f9890c27f7"
     },
     {
       "id": 6,
@@ -64,7 +67,8 @@
       "title": "Выстраиваем личные границы",
       "slug": "vystraivaem-lichnye-granitsy",
       "file": "articles_markdown/08-vystraivaem-lichnye-granitsy.md",
-      "action": "create"
+      "action": "update",
+      "articleId": "59600c77-18e5-47eb-8296-30d793cae5f9"
     },
     {
       "id": 9,
@@ -79,7 +83,8 @@
       "title": "Мечтаем как Уолт Дисней💫",
       "slug": "mechtaem-kak-uolt-disnei",
       "file": "articles_markdown/10-mechtaem-kak-uolt-disnei.md",
-      "action": "create"
+      "action": "update",
+      "articleId": "cdb7c238-bb22-4c1e-9c11-24b52d1f1188"
     },
     {
       "id": 11,
@@ -110,7 +115,8 @@
       "title": "Self-harm 🔪🔪🔪",
       "slug": "self-harm",
       "file": "articles_markdown/14-self-harm.md",
-      "action": "create"
+      "action": "update",
+      "articleId": "9d734819-08e5-40ba-8f83-f37e8dcf189e"
     },
     {
       "id": 15,
@@ -133,7 +139,8 @@
       "title": "Как преодолевать трудности не прибегая к #selfharm",
       "slug": "kak-preodolevat-trudnosti-ne-pribegaya-k-selfharm",
       "file": "articles_markdown/17-kak-preodolevat-trudnosti-ne-pribegaya-k-selfharm.md",
-      "action": "create"
+      "action": "update",
+      "articleId": "c6f02ec4-311c-44ff-9273-05be0aebace9"
     },
     {
       "id": 18,
@@ -148,42 +155,48 @@
       "title": "Как помочь тем, кто совершает Self-harm",
       "slug": "kak-pomoch-tem-kto-sovershaet-self-harm",
       "file": "articles_markdown/19-kak-pomoch-tem-kto-sovershaet-self-harm.md",
-      "action": "create"
+      "action": "update",
+      "articleId": "9e816e7b-6214-4026-8def-20e2b36eeef7"
     },
     {
       "id": 20,
       "title": "Фэтшейминг и расстройства пищевого поведения",
       "slug": "fetsheyming-i-rasstroystva-pischevogo-povedeniya",
       "file": "articles_markdown/20-fetsheyming-i-rasstroystva-pischevogo-povedeniya.md",
-      "action": "create"
+      "action": "update",
+      "articleId": "b635285a-60e7-414e-aa87-146f37f0837a"
     },
     {
       "id": 21,
       "title": "Травмы взрослых детей алкоголиков",
       "slug": "travmy-vzroslyh-detei-alkogolikov",
       "file": "articles_markdown/21-travmy-vzroslyh-detei-alkogolikov.md",
-      "action": "create"
+      "action": "update",
+      "articleId": "ab9b59e0-570e-470e-b862-8ed3c2f163e5"
     },
     {
       "id": 22,
       "title": "Расстройства пищевого поведения",
       "slug": "rasstroi-stva-pischevogo-povedeniya",
       "file": "articles_markdown/22-rasstroi-stva-pischevogo-povedeniya.md",
-      "action": "create"
+      "action": "update",
+      "articleId": "cf8172b1-cf5d-454b-92a7-a78dcf3d4308"
     },
     {
       "id": 23,
       "title": "Компульсивное переедание: признаки и помощь",
       "slug": "kompulsivnoe-pereedanie-priznaki-i-pomosch",
       "file": "articles_markdown/23-kompulsivnoe-pereedanie-priznaki-i-pomosch.md",
-      "action": "create"
+      "action": "update",
+      "articleId": "bf34592d-a739-4b63-8f47-7ac502df029a"
     },
     {
       "id": 24,
       "title": "Компульсия-навязчивые действия или поведение.Все мы знаем, что наше поведение формируется в детстве",
       "slug": "kompulsiya-navyazchivye-deystviya-ili-povedenie-vse-my-znaem-chto-nashe-povedeni",
       "file": "articles_markdown/24-kompulsiya-navyazchivye-deystviya-ili-povedenie-vse-my-znaem-chto-nashe-povedeni.md",
-      "action": "create"
+      "action": "update",
+      "articleId": "2ba69cb1-0182-42ac-8a23-77a1d5759e22"
     },
     {
       "id": 25,

@@ -26,7 +26,7 @@ type ImportReportItem = {
   title: string;
   slug: string;
   file: string;
-  action: "create" | "update" | "error";
+  action: "update" | "error";
   articleId?: string;
   reason?: string;
 };
@@ -107,18 +107,6 @@ function stripFirstH1(markdown: string, expectedTitle: string) {
   return lines.join("\n").trim();
 }
 
-function createExcerpt(content: string) {
-  const firstParagraph =
-    content
-      .split(/\n{2,}/)
-      .map((part) => part.replace(/^[-*]\s+/gm, "").trim())
-      .find(Boolean) ?? "";
-
-  return firstParagraph.length > 240
-    ? `${firstParagraph.slice(0, 237).trim()}...`
-    : firstParagraph || "Полезная статья по психологии.";
-}
-
 async function main() {
   const manifestPath = join(sourceDir, "articles_manifest.json");
 
@@ -188,7 +176,6 @@ async function main() {
           .update(articles)
           .set({
             content,
-            published: false,
             updatedAt: new Date(),
           })
           .where(eq(articles.id, article.id));
@@ -198,17 +185,8 @@ async function main() {
 
     report.push({
       ...item,
-      action: "create",
-    });
-    operations.push(async () => {
-      await db.insert(articles).values({
-        title: item.title,
-        slug: item.slug,
-        category: "Полезные статьи",
-        excerpt: createExcerpt(content),
-        content,
-        published: false,
-      });
+      action: "error",
+      reason: "Статья с таким slug не найдена. Создание новых статей отключено.",
     });
   }
 
@@ -232,7 +210,7 @@ async function main() {
         sourceDir,
         dryRun,
         total: report.length,
-        creates: report.filter((item) => item.action === "create").length,
+        creates: 0,
         updates: report.filter((item) => item.action === "update").length,
         errors: errors.length,
         items: report,
