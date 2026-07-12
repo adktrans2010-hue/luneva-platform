@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/src/db";
 import { users } from "@/src/db/schema";
 import { verifyPassword } from "@/src/lib/password";
+import { publicUrl } from "@/src/lib/public-url";
 import {
   createUserSessionToken,
   USER_COOKIE_NAME,
@@ -30,12 +31,12 @@ export async function POST(request: NextRequest) {
     .limit(1);
 
   if (!user || !verifyPassword(password, user.passwordHash)) {
-    return NextResponse.redirect(new URL("/login?error=login", request.url), {
+    return NextResponse.redirect(publicUrl(request, "/login?error=login"), {
       status: 303,
     });
   }
 
-  const response = NextResponse.redirect(new URL(redirectTo, request.url), {
+  const response = NextResponse.redirect(publicUrl(request, redirectTo), {
     status: 303,
   });
 

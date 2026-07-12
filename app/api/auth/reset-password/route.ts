@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/src/db";
 import { passwordResetCodes, users } from "@/src/db/schema";
 import { hashPassword, verifyPassword } from "@/src/lib/password";
+import { publicUrl } from "@/src/lib/public-url";
 import {
   createUserSessionToken,
   USER_COOKIE_NAME,
@@ -18,10 +19,7 @@ function normalizeEmail(value: string) {
 
 function redirectToReset(request: NextRequest, email: string, error: string) {
   return NextResponse.redirect(
-    new URL(
-      `/reset-password?email=${encodeURIComponent(email)}&error=${error}`,
-      request.url
-    ),
+    publicUrl(request, `/reset-password?email=${encodeURIComponent(email)}&error=${error}`),
     { status: 303 }
   );
 }
@@ -79,12 +77,12 @@ export async function POST(request: NextRequest) {
   await db.delete(passwordResetCodes).where(eq(passwordResetCodes.email, email));
 
   if (!user) {
-    return NextResponse.redirect(new URL("/login?error=login", request.url), {
+    return NextResponse.redirect(publicUrl(request, "/login?error=login"), {
       status: 303,
     });
   }
 
-  const response = NextResponse.redirect(new URL("/account", request.url), {
+  const response = NextResponse.redirect(publicUrl(request, "/account"), {
     status: 303,
   });
 

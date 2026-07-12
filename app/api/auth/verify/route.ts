@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/src/db";
 import { userRegistrationCodes, users } from "@/src/db/schema";
 import { verifyPassword } from "@/src/lib/password";
+import { publicUrl } from "@/src/lib/public-url";
 import {
   createUserSessionToken,
   USER_COOKIE_NAME,
@@ -18,10 +19,7 @@ function normalizeEmail(value: string) {
 
 function redirectToVerify(request: NextRequest, email: string, error: string) {
   return NextResponse.redirect(
-    new URL(
-      `/verify?email=${encodeURIComponent(email)}&error=${error}`,
-      request.url
-    ),
+    publicUrl(request, `/verify?email=${encodeURIComponent(email)}&error=${error}`),
     { status: 303 }
   );
 }
@@ -98,7 +96,7 @@ export async function POST(request: NextRequest) {
     .delete(userRegistrationCodes)
     .where(eq(userRegistrationCodes.email, email));
 
-  const response = NextResponse.redirect(new URL("/account", request.url), {
+  const response = NextResponse.redirect(publicUrl(request, "/account"), {
     status: 303,
   });
 

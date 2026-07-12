@@ -5,6 +5,7 @@ import { db } from "@/src/db";
 import { userRegistrationCodes, users } from "@/src/db/schema";
 import { isEmailConfigured, sendMail } from "@/src/lib/email";
 import { hashPassword } from "@/src/lib/password";
+import { publicUrl } from "@/src/lib/public-url";
 
 export const runtime = "nodejs";
 
@@ -25,7 +26,7 @@ export async function POST(request: NextRequest) {
 
   if (!name || !email || password.length < 8) {
     return NextResponse.redirect(
-      new URL("/register?error=fields", request.url),
+      publicUrl(request, "/register?error=fields"),
       { status: 303 }
     );
   }
@@ -38,7 +39,7 @@ export async function POST(request: NextRequest) {
 
   if (existing.length > 0) {
     return NextResponse.redirect(
-      new URL("/register?error=email", request.url),
+      publicUrl(request, "/register?error=email"),
       { status: 303 }
     );
   }
@@ -83,7 +84,7 @@ export async function POST(request: NextRequest) {
         .where(eq(userRegistrationCodes.email, email));
 
       return NextResponse.redirect(
-        new URL("/register?error=email_send", request.url),
+        publicUrl(request, "/register?error=email_send"),
         { status: 303 }
       );
     }
@@ -95,17 +96,17 @@ export async function POST(request: NextRequest) {
       .where(eq(userRegistrationCodes.email, email));
 
     return NextResponse.redirect(
-      new URL("/register?error=email_send", request.url),
+      publicUrl(request, "/register?error=email_send"),
       { status: 303 }
     );
   }
 
   return NextResponse.redirect(
-    new URL(
+    publicUrl(
+      request,
       `/verify?email=${encodeURIComponent(email)}${
         canShowLocalCode ? `&localCode=${code}` : ""
-      }`,
-      request.url
+      }`
     ),
     { status: 303 }
   );
