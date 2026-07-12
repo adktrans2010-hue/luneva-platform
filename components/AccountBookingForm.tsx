@@ -48,22 +48,7 @@ export default function AccountBookingForm({ packages }: AccountBookingFormProps
   );
 
   useEffect(() => {
-    if (
-      paymentMethod === "package" &&
-      !availablePackages.some((item) => item.id === packageId)
-    ) {
-      const firstPackage = availablePackages[0];
-      setPackageId(firstPackage?.id ?? "");
-      if (!firstPackage) {
-        setPaymentMethod("online");
-      }
-    }
-  }, [availablePackages, packageId, paymentMethod]);
-
-  useEffect(() => {
     const controller = new AbortController();
-
-    setLoadingSlots(true);
 
     void fetch(
       `/api/appointments/availability?date=${appointmentDate}&format=${consultationFormat}`,
@@ -90,12 +75,16 @@ export default function AccountBookingForm({ packages }: AccountBookingFormProps
     setConsultationFormat(format);
     setAppointmentTime("");
     setAvailableSlots([]);
+    setLoadingSlots(true);
+    setPaymentMethod("online");
+    setPackageId("");
   }
 
   function changeAppointmentDate(date: string) {
     setAppointmentDate(date);
     setAppointmentTime("");
     setAvailableSlots([]);
+    setLoadingSlots(true);
   }
 
   async function submitAppointment(event: FormEvent<HTMLFormElement>) {
