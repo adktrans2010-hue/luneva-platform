@@ -8,6 +8,7 @@ import {
   getRelatedPublishedArticles,
   type Article,
 } from "@/src/lib/articles";
+import ConsultationCta from "@/components/sections/ConsultationCta";
 
 export const dynamic = "force-dynamic";
 
@@ -214,19 +215,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           </section>
         )}
 
-        <section className="mt-14 rounded-[2rem] bg-[#332725] p-8 text-white shadow-sm">
-          <h2 className="font-serif text-3xl">Нужна личная консультация?</h2>
-          <p className="mt-4 max-w-2xl leading-8 text-[#ead7d1]">
-            Если тема статьи откликается и хочется разобраться в своей ситуации
-            бережно и спокойно, можно выбрать удобное время для записи.
-          </p>
-          <Link
-            href="/contacts#booking"
-            className="mt-6 inline-flex rounded-2xl bg-white px-6 py-3 text-[#332725]"
-          >
-            Записаться к психологу
-          </Link>
-        </section>
+        <ConsultationCta className="mt-14 px-0 py-0" />
 
         {relatedArticles.length > 0 && (
           <section className="mt-14">

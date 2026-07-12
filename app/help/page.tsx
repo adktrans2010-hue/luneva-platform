@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { getSeoPage, seoToMetadata } from "@/src/lib/seo";
+import ConsultationCta from "@/components/sections/ConsultationCta";
 
 export async function generateMetadata() {
   return seoToMetadata(await getSeoPage("/help"));
@@ -66,23 +66,7 @@ export default function HelpPage() {
           ))}
         </div>
 
-        <div className="mt-16 rounded-[3rem] bg-[#332725] p-10 text-white md:p-14">
-          <h2 className="font-serif text-4xl leading-tight">
-            Если вы не знаете, с чего начать
-          </h2>
-
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-[#ead7d1]">
-            Это нормально. На первой встрече мы спокойно обсудим ваш запрос и
-            поймём, какой формат поддержки будет для вас подходящим.
-          </p>
-
-          <Link
-            href="/contacts#booking"
-            className="mt-8 inline-flex rounded-2xl bg-white px-8 py-4 text-[#332725]"
-          >
-            Записаться на консультацию
-          </Link>
-        </div>
+        <ConsultationCta className="mt-16 px-0 py-0" />
       </div>
     </section>
   );
