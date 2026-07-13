@@ -9,7 +9,7 @@ export default function Logo({ variant = "header" }: LogoProps) {
 
   return (
     <span
-      className={`relative isolate block shrink-0 overflow-hidden bg-[#fff8f6] ${
+      className={`relative isolate block shrink-0 overflow-hidden ${
         isFooter
           ? "h-16 w-[281px] sm:h-20 sm:w-[365px]"
           : "h-14 w-[243px] min-[360px]:w-[273px] sm:h-16 sm:w-[330px]"
