@@ -1,30 +1,22 @@
 import Image from "next/image";
 
-export default function Logo() {
+type LogoProps = {
+  variant?: "header" | "footer";
+};
+
+export default function Logo({ variant = "header" }: LogoProps) {
+  const isFooter = variant === "footer";
+
   return (
-    <div className="flex items-center gap-4">
-      <Image
-        src="/logo-transparent.png"
-        alt="Luneva Psy"
-        width={72}
-        height={72}
-        priority
-        className="
-          h-16
-          w-16
-          object-contain
-        "
-      />
-
-      <div>
-        <div className="font-serif text-2xl text-[#332725]">
-          Luneva Psy
-        </div>
-
-        <div className="text-xs tracking-[0.2em] text-[#c98778]">
-          psychology
-        </div>
-      </div>
-    </div>
+    <Image
+      src="/luneva-alexandra-logo.png"
+      alt="Лунева Александра — психолог"
+      width={1774}
+      height={887}
+      priority={!isFooter}
+      className={`max-w-full object-contain ${
+        isFooter ? "h-16 w-auto sm:h-20" : "h-14 w-auto sm:h-16"
+      }`}
+    />
   );
 }

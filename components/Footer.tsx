@@ -1,5 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
+
+import Logo from "@/components/Logo";
 
 export default function Footer() {
   return (
@@ -9,25 +10,7 @@ export default function Footer() {
       <div className="relative mx-auto max-w-7xl border-t border-[#ead7d1] pt-14">
         <div className="grid gap-14 md:grid-cols-[1.3fr_1fr_1fr]">
           <div>
-            <div className="flex items-center gap-5">
-              <Image
-                src="/logo-transparent.png"
-                alt="Luneva Psy"
-                width={80}
-                height={80}
-                className="h-20 w-20 object-contain opacity-80"
-              />
-
-              <div>
-                <div className="font-serif text-3xl text-[#332725]">
-                  Luneva Psy
-                </div>
-
-                <div className="text-xs uppercase tracking-[0.25em] text-[#c98778]">
-                  psychology
-                </div>
-              </div>
-            </div>
+            <Logo variant="footer" />
 
             <p className="mt-6 max-w-sm text-lg leading-8 text-[#5f5552]">
               Пространство бережной психологической поддержки, где можно лучше
