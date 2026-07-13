@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 
 import AnalyticsTracker from "@/components/AnalyticsTracker";
+import CookieBanner from "@/components/CookieBanner";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import "./globals.css";
@@ -33,6 +34,8 @@ export default function RootLayout({
         <main>{children}</main>
 
         <Footer />
+
+        <CookieBanner />
       </body>
     </html>
   );

@@ -61,7 +61,10 @@ export default function Footer() {
         <div className="mt-16 flex flex-col justify-between gap-4 border-t border-[#ead7d1] pt-8 text-sm text-[#8a7a76] md:flex-row">
           <p>© 2026 Luneva Psy. Все права защищены.</p>
 
-          <p>Создано с заботой</p>
+          <div className="flex flex-wrap gap-x-6 gap-y-2">
+            <Link href="/cookies">Политика Cookie</Link>
+            <p>Создано с заботой</p>
+          </div>
         </div>
       </div>
     </footer>

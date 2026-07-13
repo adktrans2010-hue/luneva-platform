@@ -3,6 +3,11 @@
 import { useEffect } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 
+import {
+  COOKIE_CONSENT_EVENT,
+  COOKIE_CONSENT_KEY,
+} from "@/components/CookieBanner";
+
 function getStoredId(key: string) {
   const existing = window.localStorage.getItem(key);
 
@@ -23,22 +28,35 @@ export default function AnalyticsTracker() {
       return;
     }
 
-    const query = searchParams.toString();
-    const path = query ? `${pathname}?${query}` : pathname;
+    const trackPageView = () => {
+      if (window.localStorage.getItem(COOKIE_CONSENT_KEY) !== "accepted") {
+        return;
+      }
 
-    void fetch("/api/analytics", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      keepalive: true,
-      body: JSON.stringify({
-        eventType: "page_view",
-        path,
-        title: document.title,
-        referrer: document.referrer,
-        visitorId: getStoredId("luneva_visitor_id"),
-        sessionId: getStoredId("luneva_session_id"),
-      }),
-    });
+      const query = searchParams.toString();
+      const path = query ? `${pathname}?${query}` : pathname;
+
+      void fetch("/api/analytics", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        keepalive: true,
+        body: JSON.stringify({
+          eventType: "page_view",
+          path,
+          title: document.title,
+          referrer: document.referrer,
+          visitorId: getStoredId("luneva_visitor_id"),
+          sessionId: getStoredId("luneva_session_id"),
+        }),
+      });
+    };
+
+    trackPageView();
+    window.addEventListener(COOKIE_CONSENT_EVENT, trackPageView);
+
+    return () => {
+      window.removeEventListener(COOKIE_CONSENT_EVENT, trackPageView);
+    };
   }, [pathname, searchParams]);
 
   return null;
