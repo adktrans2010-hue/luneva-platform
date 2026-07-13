@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import LegalConsent from "@/components/legal/legal-consent";
+
 type RegisterPageProps = {
   searchParams: Promise<{
     error?: string;
@@ -7,6 +9,7 @@ type RegisterPageProps = {
 };
 
 const errorMessages: Record<string, string> = {
+  consent: "Подтвердите согласие с правовыми документами.",
   email: "Пользователь с такой почтой уже зарегистрирован.",
   email_send:
     "Не удалось отправить код на почту. Проверьте email или настройки отправки писем.",
@@ -79,6 +82,8 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
               {error}
             </p>
           )}
+
+          <LegalConsent className="mt-5" />
 
           <button
             type="submit"

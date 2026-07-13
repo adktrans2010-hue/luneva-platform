@@ -37,6 +37,14 @@ export async function POST(request: Request) {
   const appointmentTime = String(body.appointmentTime ?? "").trim();
   const paymentMethod = String(body.paymentMethod ?? "online").trim();
   const message = String(body.message ?? "").trim();
+  const legalConsent = body.legalConsent === true;
+
+  if (!legalConsent) {
+    return NextResponse.json(
+      { error: "Подтвердите согласие с правовыми документами." },
+      { status: 400 }
+    );
+  }
 
   const spamReason = checkPublicFormSpam({
     body,

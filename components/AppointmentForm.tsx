@@ -2,6 +2,8 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
+import LegalConsent from "@/components/legal/legal-consent";
+
 const consultationFormats = [
   { value: "online", label: "Онлайн" },
   { value: "office", label: "Очно в кабинете" },
@@ -37,6 +39,7 @@ export default function AppointmentForm() {
   const [sent, setSent] = useState(false);
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [legalAccepted, setLegalAccepted] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -97,6 +100,7 @@ export default function AppointmentForm() {
         message,
         website,
         formStartedAt,
+        legalConsent: legalAccepted,
       }),
     });
 
@@ -120,6 +124,7 @@ export default function AppointmentForm() {
     setPaymentUrl(data.paymentUrl ?? null);
     setSent(true);
     setSending(false);
+    setLegalAccepted(false);
 
     const slotsResponse = await fetch(
       `/api/appointments/availability?date=${appointmentDate}&format=${consultationFormat}`
@@ -284,9 +289,11 @@ export default function AppointmentForm() {
         </div>
       )}
 
+      <LegalConsent checked={legalAccepted} onChange={setLegalAccepted} />
+
       <button
         type="submit"
-        disabled={sending || !appointmentTime}
+        disabled={sending || !appointmentTime || !legalAccepted}
         className="rounded-2xl bg-[#332725] px-8 py-4 text-white transition hover:bg-[#4a3935] disabled:opacity-60"
       >
         {sending ? "Отправляю..." : "Записаться на выбранное время"}

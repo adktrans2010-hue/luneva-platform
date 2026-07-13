@@ -41,6 +41,14 @@ export async function POST(request: NextRequest) {
   }
 
   const body = (await request.json()) as Record<string, unknown>;
+
+  if (body.legalConsent !== true) {
+    return NextResponse.json(
+      { error: "Подтвердите согласие с правовыми документами." },
+      { status: 400 }
+    );
+  }
+
   const consultationFormat = String(body.consultationFormat ?? "online").trim();
   const appointmentDate = String(body.appointmentDate ?? "").trim();
   const appointmentTime = String(body.appointmentTime ?? "").trim();

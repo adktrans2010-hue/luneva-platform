@@ -31,6 +31,13 @@ export async function POST(request: NextRequest) {
     formData.get("preferredContact") ?? "telegram"
   ).trim();
 
+  if (formData.get("legalConsent") !== "on") {
+    return NextResponse.redirect(
+      new URL("/account?profile=consent#profile", request.url),
+      { status: 303 }
+    );
+  }
+
   if (!name || !allowedContactMethods.has(preferredContact)) {
     return NextResponse.redirect(
       new URL("/account?profile=error#profile", request.url),

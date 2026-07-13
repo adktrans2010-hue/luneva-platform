@@ -42,21 +42,15 @@ export default function CookieBanner() {
     >
       <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
         <p className="max-w-3xl text-sm leading-6 text-[#5f5552] sm:text-base sm:leading-7">
-          Мы используем файлы Cookie для корректной работы сайта, обеспечения
-          безопасности и анализа посещаемости. Продолжая пользоваться сайтом,
-          вы соглашаетесь с использованием Cookie в соответствии с нашей{" "}
-          <Link href="/cookies" className="text-[#9f665a] underline underline-offset-4">
-            Политикой использования файлов Cookie
-          </Link>
-          .
+          Мы используем Cookie, чтобы сайт работал корректно и становился удобнее.
         </p>
 
         <div className="flex shrink-0 flex-wrap gap-3">
           <Link
-            href="/cookies"
+            href="/legal/cookies"
             className="rounded-xl border border-[#c98778] px-5 py-3 text-sm text-[#332725]"
           >
-            Настройки Cookie
+            Подробнее
           </Link>
           <button
             type="button"

@@ -7,6 +7,7 @@ import { db } from "@/src/db";
 import { appointmentRequests, userConsultationPackages } from "@/src/db/schema";
 import { getCurrentUser } from "@/src/lib/auth-user";
 import AccountBookingForm from "@/components/AccountBookingForm";
+import LegalConsent from "@/components/legal/legal-consent";
 
 export const dynamic = "force-dynamic";
 
@@ -537,6 +538,14 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                     Профиль обновлен.
                   </p>
                 )}
+
+                {params.profile === "consent" && (
+                  <p className="rounded-2xl bg-[#fff3df] px-4 py-3 text-sm text-[#9a5a1f]">
+                    Подтвердите согласие с правовыми документами.
+                  </p>
+                )}
+
+                <LegalConsent />
 
                 <button className="rounded-2xl bg-[#332725] px-5 py-3 text-white">
                   Сохранить профиль

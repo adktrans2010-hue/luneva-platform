@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+import LegalConsent from "@/components/legal/legal-consent";
+
 export default function ReviewForm() {
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
@@ -11,6 +13,7 @@ export default function ReviewForm() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">(
     "idle"
   );
+  const [legalAccepted, setLegalAccepted] = useState(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -21,7 +24,14 @@ export default function ReviewForm() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ name, age, text, website, formStartedAt }),
+      body: JSON.stringify({
+        name,
+        age,
+        text,
+        website,
+        formStartedAt,
+        legalConsent: legalAccepted,
+      }),
     });
 
     if (!response.ok) {
@@ -34,6 +44,7 @@ export default function ReviewForm() {
     setText("");
     setWebsite("");
     setFormStartedAt(Date.now());
+    setLegalAccepted(false);
     setStatus("success");
   }
 
@@ -95,6 +106,12 @@ export default function ReviewForm() {
             className="mt-4 w-full rounded-xl border border-[#ead7d1] bg-white px-5 py-4 outline-none transition focus:border-[#c98778]"
           />
 
+          <LegalConsent
+            checked={legalAccepted}
+            onChange={setLegalAccepted}
+            className="mt-4"
+          />
+
           <div className="mt-4 grid items-center gap-5 md:grid-cols-[1fr_auto]">
             <div className="flex items-center gap-4 text-[#8a7a76]">
               <span>Оценка</span>
@@ -105,7 +122,7 @@ export default function ReviewForm() {
 
             <button
               type="submit"
-              disabled={status === "loading"}
+              disabled={status === "loading" || !legalAccepted}
               className="rounded-xl bg-[#332725] px-10 py-4 text-white shadow-lg disabled:opacity-60"
             >
               {status === "loading" ? "Отправляем..." : "Отправить отзыв"}

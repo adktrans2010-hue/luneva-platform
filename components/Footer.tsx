@@ -8,7 +8,7 @@ export default function Footer() {
       <div className="absolute -bottom-40 -left-40 h-[400px] w-[400px] rounded-full bg-[#e7b8ad]/30 blur-[120px]" />
 
       <div className="relative mx-auto max-w-7xl border-t border-[#ead7d1] pt-14">
-        <div className="grid gap-14 md:grid-cols-[1.3fr_1fr_1fr]">
+        <div className="grid gap-12 md:grid-cols-2 xl:grid-cols-[1.2fr_0.8fr_0.9fr_1.1fr]">
           <div>
             <Logo variant="footer" />
 
@@ -56,13 +56,25 @@ export default function Footer() {
               </div>
             </div>
           </div>
+
+          <div>
+            <p className="mb-5 text-sm uppercase tracking-[0.25em] text-[#c98778]">
+              Правовая информация
+            </p>
+
+            <div className="grid gap-4 text-sm leading-6 text-[#5f5552]">
+              <Link href="/legal/terms">Пользовательское соглашение</Link>
+              <Link href="/legal/privacy">Политика обработки персональных данных</Link>
+              <Link href="/legal/consent">Согласие на обработку персональных данных</Link>
+              <Link href="/legal/cookies">Политика использования Cookie</Link>
+            </div>
+          </div>
         </div>
 
         <div className="mt-16 flex flex-col justify-between gap-4 border-t border-[#ead7d1] pt-8 text-sm text-[#8a7a76] md:flex-row">
           <p>© 2026 Luneva Psy. Все права защищены.</p>
 
           <div className="flex flex-wrap gap-x-6 gap-y-2">
-            <Link href="/cookies">Политика Cookie</Link>
             <p>Создано с заботой</p>
           </div>
         </div>

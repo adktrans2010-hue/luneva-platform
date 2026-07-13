@@ -23,6 +23,14 @@ export async function POST(request: NextRequest) {
   const email = normalizeEmail(String(formData.get("email") ?? ""));
   const phone = String(formData.get("phone") ?? "").trim() || null;
   const password = String(formData.get("password") ?? "");
+  const legalConsent = formData.get("legalConsent") === "on";
+
+  if (!legalConsent) {
+    return NextResponse.redirect(
+      publicUrl(request, "/register?error=consent"),
+      { status: 303 }
+    );
+  }
 
   if (!name || !email || password.length < 8) {
     return NextResponse.redirect(

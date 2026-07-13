@@ -2,6 +2,8 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
+import LegalConsent from "@/components/legal/legal-consent";
+
 type AccountPackage = {
   id: string;
   title: string;
@@ -41,6 +43,7 @@ export default function AccountBookingForm({ packages }: AccountBookingFormProps
   const [sent, setSent] = useState(false);
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [legalAccepted, setLegalAccepted] = useState(false);
 
   const availablePackages = packages.filter(
     (item) =>
@@ -104,6 +107,7 @@ export default function AccountBookingForm({ packages }: AccountBookingFormProps
         paymentMethod,
         packageId: paymentMethod === "package" ? packageId : null,
         message,
+        legalConsent: legalAccepted,
       }),
     });
 
@@ -123,6 +127,7 @@ export default function AccountBookingForm({ packages }: AccountBookingFormProps
     setAppointmentTime("");
     setPaymentUrl(data.paymentUrl ?? null);
     setSending(false);
+    setLegalAccepted(false);
 
     const slotsResponse = await fetch(
       `/api/appointments/availability?date=${appointmentDate}&format=${consultationFormat}`
@@ -296,8 +301,10 @@ export default function AccountBookingForm({ packages }: AccountBookingFormProps
         </div>
       )}
 
+      <LegalConsent checked={legalAccepted} onChange={setLegalAccepted} />
+
       <button
-        disabled={sending || !appointmentTime}
+        disabled={sending || !appointmentTime || !legalAccepted}
         className="rounded-2xl bg-[#332725] px-8 py-4 text-white transition hover:bg-[#4a3935] disabled:opacity-60"
       >
         {sending ? "Записываю..." : "Записаться на выбранное время"}

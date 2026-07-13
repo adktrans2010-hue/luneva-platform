@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "type-check": "tsc --noEmit",
     "import:articles": "tsx scripts/import-articles-from-markdown.ts",
     "import:article-seo": "tsx scripts/import-article-seo.ts",
     "admin:ensure": "tsx scripts/ensure-admin-settings.ts",

@@ -21,6 +21,13 @@ export async function GET() {
 export async function POST(request: Request) {
   const body = await request.json();
 
+  if (body.legalConsent !== true) {
+    return NextResponse.json(
+      { error: "Подтвердите согласие с правовыми документами." },
+      { status: 400 }
+    );
+  }
+
   const spamReason = checkPublicFormSpam({
     body,
     request,
