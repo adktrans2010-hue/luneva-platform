@@ -16,12 +16,12 @@ export default function Logo({ variant = "header" }: LogoProps) {
       }`}
     >
       <Image
-        src="/luneva-alexandra-logo.png"
+        src="/luneva-alexandra-logo-transparent.png"
         alt="Лунева Александра — психолог"
         width={1774}
         height={887}
         priority={!isFooter}
-        className="absolute top-1/2 left-1/2 h-auto w-full max-w-none -translate-x-1/2 -translate-y-1/2 mix-blend-darken"
+        className="absolute top-1/2 left-1/2 h-auto w-full max-w-none -translate-x-1/2 -translate-y-1/2"
       />
     </span>
   );
