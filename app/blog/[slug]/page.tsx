@@ -9,6 +9,7 @@ import {
   type Article,
 } from "@/src/lib/articles";
 import ConsultationCta from "@/components/sections/ConsultationCta";
+import { defaultSocialImage, siteUrl } from "@/src/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -124,6 +125,9 @@ export async function generateMetadata({
   const title = article.seoTitle || `${article.title} | Luneva Psy`;
   const description = article.seoDescription || article.excerpt || article.title;
   const url = `/blog/${article.slug}`;
+  const socialImage = article.image
+    ? new URL(article.image, siteUrl).toString()
+    : defaultSocialImage.url;
 
   return {
     title,
@@ -136,7 +140,22 @@ export async function generateMetadata({
       description,
       url,
       type: "article",
-      images: article.image ? [article.image] : undefined,
+      siteName: "Luneva Psy",
+      locale: "ru_RU",
+      images: [
+        {
+          url: socialImage,
+          width: article.image ? undefined : defaultSocialImage.width,
+          height: article.image ? undefined : defaultSocialImage.height,
+          alt: article.h1 || article.title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [socialImage],
     },
   };
 }

@@ -1,5 +1,5 @@
 import { getPublishedFaqItems } from "@/src/lib/faq";
-import { getSeoPage, seoToMetadata } from "@/src/lib/seo";
+import { defaultSocialImage, getSeoPage, seoToMetadata } from "@/src/lib/seo";
 
 export async function generateMetadata() {
   const seo = await getSeoPage("/faq");
@@ -10,6 +10,21 @@ export async function generateMetadata() {
         description: "Ответы на частые вопросы о консультациях психолога Александры Луневой.",
         alternates: { canonical: "https://luneva-psy.ru/faq" },
         robots: { index: true, follow: true },
+        openGraph: {
+          title: "Частые вопросы | Luneva Psy",
+          description: "Ответы на частые вопросы о консультациях психолога Александры Луневой.",
+          url: "https://luneva-psy.ru/faq",
+          siteName: "Luneva Psy",
+          locale: "ru_RU",
+          type: "website" as const,
+          images: [defaultSocialImage],
+        },
+        twitter: {
+          card: "summary_large_image" as const,
+          title: "Частые вопросы | Luneva Psy",
+          description: "Ответы на частые вопросы о консультациях психолога Александры Луневой.",
+          images: [defaultSocialImage.url],
+        },
       };
 }
 

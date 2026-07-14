@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import LegalPage from "@/components/legal/legal-page";
+import { defaultSocialImage } from "@/src/lib/seo";
 
 const legalDocuments = {
   terms: {
@@ -64,6 +65,13 @@ export async function generateMetadata({ params }: LegalPageProps): Promise<Meta
       siteName: "Luneva Psy",
       type: "website",
       locale: "ru_RU",
+      images: [defaultSocialImage],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${document.title} | Luneva Psy`,
+      description: document.description,
+      images: [defaultSocialImage.url],
     },
     robots: { index: true, follow: true },
   };

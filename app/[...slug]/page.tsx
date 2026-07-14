@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 
-import { getSeoPage, seoToMetadata } from "@/src/lib/seo";
+import { defaultSocialImage, getSeoPage, seoToMetadata } from "@/src/lib/seo";
 import { getPublishedSitePage } from "@/src/lib/site-pages";
 
 type Props = { params: Promise<{ slug: string[] }> };
@@ -24,6 +24,21 @@ export async function generateMetadata({ params }: Props) {
         description: page.intro,
         alternates: { canonical: `https://luneva-psy.ru${path}` },
         robots: { index: true, follow: true },
+        openGraph: {
+          title: `${page.title} | Luneva Psy`,
+          description: page.intro,
+          url: `https://luneva-psy.ru${path}`,
+          siteName: "Luneva Psy",
+          locale: "ru_RU",
+          type: "website" as const,
+          images: [defaultSocialImage],
+        },
+        twitter: {
+          card: "summary_large_image" as const,
+          title: `${page.title} | Luneva Psy`,
+          description: page.intro,
+          images: [defaultSocialImage.url],
+        },
       };
 }
 

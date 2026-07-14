@@ -8,6 +8,13 @@ export type SeoPage = typeof seoPages.$inferSelect;
 
 export const siteUrl = "https://luneva-psy.ru";
 
+export const defaultSocialImage = {
+  url: `${siteUrl}/api/og-image`,
+  width: 1200,
+  height: 630,
+  alt: "Лунева Александра — психолог",
+};
+
 export async function getSeoPage(path: string) {
   const [page] = await db
     .select()
@@ -40,15 +47,34 @@ export function absoluteUrl(path: string) {
 
 export function seoToMetadata(page?: SeoPage, fallbackPath = "/"): Metadata {
   if (!page) {
+    const title = "Luneva Psy";
+    const description = "Психолог Александра Лунева. Консультации онлайн и очно.";
+    const canonical = absoluteUrl(fallbackPath);
+
     return {
-      title: "Luneva Psy",
-      description: "Психолог Александра Лунева. Консультации онлайн и очно.",
+      title,
+      description,
       alternates: {
-        canonical: absoluteUrl(fallbackPath),
+        canonical,
       },
       robots: {
         index: true,
         follow: true,
+      },
+      openGraph: {
+        title,
+        description,
+        url: canonical,
+        siteName: "Luneva Psy",
+        locale: "ru_RU",
+        type: "website",
+        images: [defaultSocialImage],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+        images: [defaultSocialImage.url],
       },
     };
   }
@@ -72,6 +98,13 @@ export function seoToMetadata(page?: SeoPage, fallbackPath = "/"): Metadata {
       siteName: "Luneva Psy",
       locale: "ru_RU",
       type: "website",
+      images: [defaultSocialImage],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: page.title,
+      description: page.description,
+      images: [defaultSocialImage.url],
     },
   };
 }
