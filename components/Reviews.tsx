@@ -10,6 +10,13 @@ function getRandomItems<T>(items: T[], limit: number) {
   return [...items].sort(() => Math.random() - 0.5).slice(0, limit);
 }
 
+function formatDate(date: Date) {
+  return new Intl.DateTimeFormat("ru-RU", {
+    month: "long",
+    year: "numeric",
+  }).format(date);
+}
+
 export default async function Reviews({ limit }: ReviewsProps) {
   const reviews = await getPublishedReviews();
 
@@ -58,7 +65,9 @@ export default async function Reviews({ limit }: ReviewsProps) {
                 {review.text}
               </p>
 
-              <p className="mt-8 text-sm text-[#8a7a76]">Архивный отзыв</p>
+              <p className="mt-8 text-sm text-[#8a7a76]">
+                {formatDate(review.createdAt)}
+              </p>
             </div>
           ))}
         </MobileCarousel>
