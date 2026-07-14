@@ -1,6 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
+
+import { adminFetch } from "@/src/lib/admin-fetch";
 
 type Video = {
   id: string;
@@ -58,7 +60,7 @@ export default function AdminVideos() {
   const [error, setError] = useState<string | null>(null);
 
   async function loadVideos() {
-    const response = await fetch("/api/admin/videos");
+    const response = await adminFetch("/api/admin/videos");
     const data = (await response.json()) as Video[];
 
     setVideos(data);
@@ -69,7 +71,7 @@ export default function AdminVideos() {
     setSaving(true);
     setError(null);
 
-    const response = await fetch("/api/admin/videos", {
+    const response = await adminFetch("/api/admin/videos", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(draft),
@@ -90,7 +92,7 @@ export default function AdminVideos() {
   async function updateVideo(video: Video) {
     setError(null);
 
-    const response = await fetch(`/api/admin/videos/${video.id}`, {
+    const response = await adminFetch(`/api/admin/videos/${video.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(video),
@@ -109,7 +111,7 @@ export default function AdminVideos() {
     const confirmed = window.confirm("Удалить это видео?");
     if (!confirmed) return;
 
-    await fetch(`/api/admin/videos/${id}`, { method: "DELETE" });
+    await adminFetch(`/api/admin/videos/${id}`, { method: "DELETE" });
     await loadVideos();
   }
 
@@ -122,7 +124,7 @@ export default function AdminVideos() {
   useEffect(() => {
     const controller = new AbortController();
 
-    void fetch("/api/admin/videos", { signal: controller.signal })
+    void adminFetch("/api/admin/videos", { signal: controller.signal })
       .then((response) => response.json())
       .then((data: Video[]) => {
         setVideos(data);

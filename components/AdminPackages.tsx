@@ -1,6 +1,8 @@
-"use client";
+﻿"use client";
 
 import { FormEvent, useEffect, useState } from "react";
+
+import { adminFetch } from "@/src/lib/admin-fetch";
 
 type ClientPackage = {
   id: string;
@@ -36,7 +38,7 @@ export default function AdminPackages() {
   const [error, setError] = useState<string | null>(null);
 
   async function loadPackages() {
-    const response = await fetch("/api/admin/packages");
+    const response = await adminFetch("/api/admin/packages");
     const data = (await response.json()) as ClientPackage[];
     setPackages(data);
   }
@@ -51,7 +53,7 @@ export default function AdminPackages() {
     setSaving(true);
     setError(null);
 
-    const response = await fetch("/api/admin/packages", {
+    const response = await adminFetch("/api/admin/packages", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

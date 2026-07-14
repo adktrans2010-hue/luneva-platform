@@ -1,6 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
+
+import { adminFetch } from "@/src/lib/admin-fetch";
 
 type Review = {
   id: string;
@@ -18,7 +20,7 @@ export default function AdminReviews() {
   const [openedId, setOpenedId] = useState<string | null>(null);
 
   async function loadReviews() {
-    const response = await fetch("/api/admin/reviews");
+    const response = await adminFetch("/api/admin/reviews");
     const data = await response.json();
 
     setReviews(data);
@@ -26,7 +28,7 @@ export default function AdminReviews() {
   }
 
   async function updateReview(review: Review) {
-    await fetch(`/api/admin/reviews/${review.id}`, {
+    await adminFetch(`/api/admin/reviews/${review.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(review),
@@ -39,7 +41,7 @@ export default function AdminReviews() {
     const confirmed = window.confirm("Удалить этот отзыв?");
     if (!confirmed) return;
 
-    await fetch(`/api/admin/reviews/${id}`, {
+    await adminFetch(`/api/admin/reviews/${id}`, {
       method: "DELETE",
     });
 
@@ -57,7 +59,7 @@ export default function AdminReviews() {
   useEffect(() => {
     const controller = new AbortController();
 
-    void fetch("/api/admin/reviews", { signal: controller.signal })
+    void adminFetch("/api/admin/reviews", { signal: controller.signal })
       .then((response) => response.json())
       .then((data: Review[]) => {
         setReviews(data);

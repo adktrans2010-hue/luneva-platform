@@ -17,6 +17,7 @@ import {
   isMatchingGoogleOAuthState,
 } from "@/src/lib/google-admin-oauth";
 import { publicUrl } from "@/src/lib/public-url";
+import { setNewAdminCsrfCookie } from "@/src/lib/admin-security";
 
 export const runtime = "nodejs";
 
@@ -92,6 +93,7 @@ export async function GET(request: NextRequest) {
       maxAge: ADMIN_SESSION_MAX_AGE,
     });
     clearOAuthCookies(response);
+    setNewAdminCsrfCookie(response);
 
     return response;
   } catch (error) {

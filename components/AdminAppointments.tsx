@@ -1,6 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
+
+import { adminFetch } from "@/src/lib/admin-fetch";
 
 type AppointmentStatus = "new" | "scheduled" | "completed" | "cancelled";
 
@@ -147,8 +149,8 @@ export default function AdminAppointments() {
 
   async function loadAppointments() {
     const [appointmentsResponse, slotsResponse] = await Promise.all([
-      fetch("/api/admin/appointments"),
-      fetch(
+      adminFetch("/api/admin/appointments"),
+      adminFetch(
         `/api/admin/availability?date=${selectedDate}&format=${scheduleFormat}`
       ),
     ]);
@@ -164,7 +166,7 @@ export default function AdminAppointments() {
   async function addSlot() {
     setError(null);
 
-    const response = await fetch("/api/admin/availability", {
+    const response = await adminFetch("/api/admin/availability", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -184,7 +186,7 @@ export default function AdminAppointments() {
   }
 
   async function deleteSlot(id: string) {
-    await fetch(`/api/admin/availability/${id}`, { method: "DELETE" });
+    await adminFetch(`/api/admin/availability/${id}`, { method: "DELETE" });
     await loadAppointments();
   }
 
@@ -195,7 +197,7 @@ export default function AdminAppointments() {
     setError(null);
 
     const nextAppointment = { ...appointment, ...patch };
-    const response = await fetch(`/api/admin/appointments/${appointment.id}`, {
+    const response = await adminFetch(`/api/admin/appointments/${appointment.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -222,14 +224,14 @@ export default function AdminAppointments() {
     const confirmed = window.confirm("Удалить эту запись и историю?");
     if (!confirmed) return;
 
-    await fetch(`/api/admin/appointments/${id}`, { method: "DELETE" });
+    await adminFetch(`/api/admin/appointments/${id}`, { method: "DELETE" });
     await loadAppointments();
   }
 
   async function createPayment(appointment: Appointment) {
     setError(null);
 
-    const response = await fetch(
+    const response = await adminFetch(
       `/api/admin/appointments/${appointment.id}/payment`,
       { method: "POST" }
     );
@@ -247,8 +249,8 @@ export default function AdminAppointments() {
     const controller = new AbortController();
 
     void Promise.all([
-      fetch("/api/admin/appointments", { signal: controller.signal }),
-      fetch(
+      adminFetch("/api/admin/appointments", { signal: controller.signal }),
+      adminFetch(
         `/api/admin/availability?date=${selectedDate}&format=${scheduleFormat}`,
         {
           signal: controller.signal,

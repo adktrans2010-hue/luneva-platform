@@ -1,7 +1,9 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import { ChangeEvent, useEffect, useState } from "react";
+
+import { adminFetch } from "@/src/lib/admin-fetch";
 
 type Certificate = {
   id: string;
@@ -69,7 +71,7 @@ export default function AdminCertificates() {
   const [error, setError] = useState<string | null>(null);
 
   async function loadCertificates() {
-    const response = await fetch("/api/admin/certificates");
+    const response = await adminFetch("/api/admin/certificates");
     const data = (await response.json()) as Certificate[];
 
     setCertificates(data);
@@ -80,7 +82,7 @@ export default function AdminCertificates() {
     setSaving(true);
     setError(null);
 
-    const response = await fetch("/api/admin/certificates", {
+    const response = await adminFetch("/api/admin/certificates", {
       method: "POST",
       body: buildFormData(draft),
     });
@@ -100,7 +102,7 @@ export default function AdminCertificates() {
   async function updateCertificate(certificate: Certificate) {
     setError(null);
 
-    const response = await fetch(`/api/admin/certificates/${certificate.id}`, {
+    const response = await adminFetch(`/api/admin/certificates/${certificate.id}`, {
       method: "PATCH",
       body: buildFormData(certificate, replacementFiles[certificate.id]),
     });
@@ -119,7 +121,7 @@ export default function AdminCertificates() {
     const confirmed = window.confirm("Удалить этот документ?");
     if (!confirmed) return;
 
-    await fetch(`/api/admin/certificates/${id}`, {
+    await adminFetch(`/api/admin/certificates/${id}`, {
       method: "DELETE",
     });
 
@@ -144,7 +146,7 @@ export default function AdminCertificates() {
   useEffect(() => {
     const controller = new AbortController();
 
-    void fetch("/api/admin/certificates", { signal: controller.signal })
+    void adminFetch("/api/admin/certificates", { signal: controller.signal })
       .then((response) => response.json())
       .then((data: Certificate[]) => {
         setCertificates(data);

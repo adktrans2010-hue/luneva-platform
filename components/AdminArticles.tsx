@@ -1,6 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
+
+import { adminFetch } from "@/src/lib/admin-fetch";
 
 type Article = {
   id: string;
@@ -56,7 +58,7 @@ export default function AdminArticles() {
   const [selectedCategory, setSelectedCategory] = useState("all");
 
   async function loadArticles() {
-    const response = await fetch("/api/admin/articles");
+    const response = await adminFetch("/api/admin/articles");
     const data = (await response.json()) as Article[];
 
     setArticles(data);
@@ -67,7 +69,7 @@ export default function AdminArticles() {
     setSaving(true);
     setError(null);
 
-    const response = await fetch("/api/admin/articles", {
+    const response = await adminFetch("/api/admin/articles", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(draft),
@@ -88,7 +90,7 @@ export default function AdminArticles() {
   async function updateArticle(article: Article) {
     setError(null);
 
-    const response = await fetch(`/api/admin/articles/${article.id}`, {
+    const response = await adminFetch(`/api/admin/articles/${article.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(article),
@@ -107,7 +109,7 @@ export default function AdminArticles() {
     const confirmed = window.confirm("Удалить эту статью?");
     if (!confirmed) return;
 
-    await fetch(`/api/admin/articles/${id}`, {
+    await adminFetch(`/api/admin/articles/${id}`, {
       method: "DELETE",
     });
 
@@ -133,7 +135,7 @@ export default function AdminArticles() {
   useEffect(() => {
     const controller = new AbortController();
 
-    void fetch("/api/admin/articles", { signal: controller.signal })
+    void adminFetch("/api/admin/articles", { signal: controller.signal })
       .then((response) => response.json())
       .then((data: Article[]) => {
         setArticles(data);

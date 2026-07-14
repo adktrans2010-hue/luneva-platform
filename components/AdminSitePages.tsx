@@ -1,6 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
+
+import { adminFetch } from "@/src/lib/admin-fetch";
 
 type SitePage = {
   id: string;
@@ -22,7 +24,7 @@ export default function AdminSitePages() {
   const [openedId, setOpenedId] = useState<string | null>(null);
 
   async function load() {
-    const response = await fetch("/api/admin/pages");
+    const response = await adminFetch("/api/admin/pages");
     setPages((await response.json()) as SitePage[]);
     setLoading(false);
   }
@@ -33,7 +35,7 @@ export default function AdminSitePages() {
 
   async function save(url: string, method: "POST" | "PATCH", value: PageDraft) {
     setError(null);
-    const response = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(value) });
+    const response = await adminFetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(value) });
     if (!response.ok) {
       const body = (await response.json()) as { error?: string };
       setError(body.error ?? "Не удалось сохранить страницу.");
@@ -64,7 +66,7 @@ export default function AdminSitePages() {
               <article key={page.id} className="rounded-[2rem] border border-[#ead7d1] bg-white p-6 shadow-sm">
                 <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                   <div><span className={page.published ? "rounded-full bg-[#edf7ed] px-3 py-1 text-sm text-[#5f8a5f]" : "rounded-full bg-[#ffe2c2] px-3 py-1 text-sm text-[#9a5a1f]"}>{page.published ? "Опубликована" : "Черновик"}</span><h3 className="mt-4 text-2xl font-medium text-[#332725]">{page.title}</h3><p className="mt-2 text-[#c98778]">{page.path}</p></div>
-                  <div className="flex gap-3"><button onClick={() => setOpenedId(opened ? null : page.id)} className="rounded-xl border border-[#332725] px-4 py-2 text-sm">{opened ? "Свернуть" : "Редактировать"}</button><button onClick={async () => { if (!window.confirm("Удалить страницу?")) return; await fetch(`/api/admin/pages/${page.id}`, { method: "DELETE" }); await load(); }} className="rounded-xl border border-[#b94a48] px-4 py-2 text-sm text-[#b94a48]">Удалить</button></div>
+                  <div className="flex gap-3"><button onClick={() => setOpenedId(opened ? null : page.id)} className="rounded-xl border border-[#332725] px-4 py-2 text-sm">{opened ? "Свернуть" : "Редактировать"}</button><button onClick={async () => { if (!window.confirm("Удалить страницу?")) return; await adminFetch(`/api/admin/pages/${page.id}`, { method: "DELETE" }); await load(); }} className="rounded-xl border border-[#b94a48] px-4 py-2 text-sm text-[#b94a48]">Удалить</button></div>
                 </div>
                 {opened && <div className="mt-6 border-t border-[#ead7d1] pt-6"><PageFields value={page} onChange={(patch) => setPages((current) => current.map((entry) => entry.id === page.id ? { ...entry, ...patch } : entry))} /><button onClick={() => save(`/api/admin/pages/${page.id}`, "PATCH", page)} className="mt-5 rounded-2xl border border-[#332725] px-5 py-3">Сохранить изменения</button></div>}
               </article>

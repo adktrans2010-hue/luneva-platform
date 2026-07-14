@@ -1,6 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
+
+import { adminFetch } from "@/src/lib/admin-fetch";
 
 type PricingItem = {
   id: string;
@@ -42,7 +44,7 @@ export default function AdminPricing() {
   const [error, setError] = useState<string | null>(null);
 
   async function loadItems() {
-    const response = await fetch("/api/admin/pricing");
+    const response = await adminFetch("/api/admin/pricing");
     const data = (await response.json()) as PricingItem[];
 
     setItems(data);
@@ -53,7 +55,7 @@ export default function AdminPricing() {
     setSaving(true);
     setError(null);
 
-    const response = await fetch("/api/admin/pricing", {
+    const response = await adminFetch("/api/admin/pricing", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(draft),
@@ -74,7 +76,7 @@ export default function AdminPricing() {
   async function updateItem(item: PricingItem) {
     setError(null);
 
-    const response = await fetch(`/api/admin/pricing/${item.id}`, {
+    const response = await adminFetch(`/api/admin/pricing/${item.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(item),
@@ -93,7 +95,7 @@ export default function AdminPricing() {
     const confirmed = window.confirm("Удалить эту карточку стоимости?");
     if (!confirmed) return;
 
-    await fetch(`/api/admin/pricing/${id}`, { method: "DELETE" });
+    await adminFetch(`/api/admin/pricing/${id}`, { method: "DELETE" });
     await loadItems();
   }
 
@@ -106,7 +108,7 @@ export default function AdminPricing() {
   useEffect(() => {
     const controller = new AbortController();
 
-    void fetch("/api/admin/pricing", { signal: controller.signal })
+    void adminFetch("/api/admin/pricing", { signal: controller.signal })
       .then((response) => response.json())
       .then((data: PricingItem[]) => {
         setItems(data);

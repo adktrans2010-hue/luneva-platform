@@ -1,7 +1,9 @@
-"use client";
+﻿"use client";
 
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
+
+import { adminFetch } from "@/src/lib/admin-fetch";
 
 const idleTimeoutMs = 60 * 60 * 1000;
 const renewalIntervalMs = 5 * 60 * 1000;
@@ -32,7 +34,7 @@ export function AdminSessionKeeper() {
       requestInProgress = true;
 
       try {
-        await fetch("/api/admin/logout", {
+        await adminFetch("/api/admin/logout", {
           method: "POST",
           credentials: "same-origin",
           cache: "no-store",
@@ -61,7 +63,7 @@ export function AdminSessionKeeper() {
 
       requestInProgress = true;
       try {
-        const response = await fetch("/api/admin/session", {
+        const response = await adminFetch("/api/admin/session", {
           method: "POST",
           credentials: "same-origin",
           cache: "no-store",

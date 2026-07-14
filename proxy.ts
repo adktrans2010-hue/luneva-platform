@@ -10,17 +10,30 @@ import {
   getUserIdFromSession,
   USER_COOKIE_NAME,
 } from "@/src/lib/user-session";
+import {
+  ensureAdminCsrfCookie,
+  hasValidCsrfToken,
+  hasValidRequestSource,
+  isUnsafeRequest,
+} from "@/src/lib/admin-security";
 
 const publicAdminPaths = new Set([
   "/admin/login",
   "/api/admin/login",
-  "/api/admin/logout",
   "/api/admin/google/start",
   "/api/admin/google/callback",
 ]);
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  if (
+    pathname.startsWith("/api/admin") &&
+    isUnsafeRequest(request) &&
+    !hasValidRequestSource(request)
+  ) {
+    return NextResponse.json({ error: "Invalid request source" }, { status: 403 });
+  }
 
   if (pathname.startsWith("/account")) {
     const userToken = request.cookies.get(USER_COOKIE_NAME)?.value;
@@ -43,6 +56,10 @@ export async function proxy(request: NextRequest) {
   const authorization = await authorizeAdminSession(token, ["admin"]);
 
   if (authorization.authorized) {
+    if (isUnsafeRequest(request) && !(await hasValidCsrfToken(request))) {
+      return NextResponse.json({ error: "Invalid CSRF token" }, { status: 403 });
+    }
+
     const response = NextResponse.next();
     response.cookies.set({
       name: ADMIN_COOKIE_NAME,
@@ -53,6 +70,7 @@ export async function proxy(request: NextRequest) {
       path: "/",
       maxAge: ADMIN_SESSION_MAX_AGE,
     });
+    ensureAdminCsrfCookie(request, response);
 
     return response;
   }

@@ -491,6 +491,14 @@ export const adminSettings = pgTable("admin_settings", {
     .notNull(),
 });
 
+export const adminLoginAttempts = pgTable("admin_login_attempts", {
+  id: text("id").primaryKey(),
+  failedAttempts: integer("failed_attempts").default(0).notNull(),
+  windowStartedAt: timestamp("window_started_at").defaultNow().notNull(),
+  blockedUntil: timestamp("blocked_until"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const analyticsEvents = pgTable("analytics_events", {
   id: uuid("id").defaultRandom().primaryKey(),
 

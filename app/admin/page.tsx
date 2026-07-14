@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { AdminCsrfField } from "@/components/admin/admin-csrf-field";
+
 const adminSections = [
   {
     title: "Отзывы",
@@ -82,6 +84,7 @@ export default function AdminPage() {
         </p>
 
         <form action="/api/admin/logout" method="post" className="mt-8">
+          <AdminCsrfField />
           <button
             type="submit"
             className="rounded-2xl border border-[#c98778] px-5 py-3 text-[#c98778] transition hover:bg-white"

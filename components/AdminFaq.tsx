@@ -1,6 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
+
+import { adminFetch } from "@/src/lib/admin-fetch";
 
 type FaqItem = {
   id: string;
@@ -27,7 +29,7 @@ export default function AdminFaq() {
   const [error, setError] = useState<string | null>(null);
 
   async function load() {
-    const response = await fetch("/api/admin/faq");
+    const response = await adminFetch("/api/admin/faq");
     setItems((await response.json()) as FaqItem[]);
     setLoading(false);
   }
@@ -39,7 +41,7 @@ export default function AdminFaq() {
 
   async function save(url: string, method: "POST" | "PATCH", value: FaqDraft) {
     setError(null);
-    const response = await fetch(url, {
+    const response = await adminFetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(value),
@@ -83,7 +85,7 @@ export default function AdminFaq() {
                 <button
                   onClick={async () => {
                     if (!window.confirm("Удалить этот вопрос?")) return;
-                    await fetch(`/api/admin/faq/${item.id}`, { method: "DELETE" });
+                    await adminFetch(`/api/admin/faq/${item.id}`, { method: "DELETE" });
                     await load();
                   }}
                   className="rounded-xl border border-[#b94a48] px-4 py-2 text-sm text-[#b94a48]"

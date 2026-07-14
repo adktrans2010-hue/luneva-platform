@@ -14,6 +14,20 @@ import {
 } from "@/src/lib/password";
 import { publicUrl } from "@/src/lib/public-url";
 import { verifyTotpCode } from "@/src/lib/totp";
+import {
+  clearLoginFailures,
+  getLoginBlock,
+  getLoginClientIp,
+  recordLoginFailure,
+} from "@/src/lib/admin-login-rate-limit";
+import { setNewAdminCsrfCookie } from "@/src/lib/admin-security";
+
+function loginError(request: NextRequest, error: string) {
+  return NextResponse.redirect(
+    publicUrl(request, `/admin/login?error=${error}`),
+    { status: 303 }
+  );
+}
 
 export async function POST(request: NextRequest) {
   const formData = await request.formData();
@@ -22,6 +36,16 @@ export async function POST(request: NextRequest) {
   const totpCode = String(formData.get("totpCode") ?? "");
   const nextPath = String(formData.get("next") ?? "/admin");
   const redirectTo = nextPath.startsWith("/admin") ? nextPath : "/admin";
+  const normalizedEmail = email.trim().toLowerCase();
+  const clientIp = getLoginClientIp(request.headers);
+  const block = await getLoginBlock(clientIp, normalizedEmail);
+
+  if (block) {
+    const response = loginError(request, "locked");
+    response.headers.set("Retry-After", String(block.retryAfterSeconds));
+    return response;
+  }
+
   const settings = await getAdminSettings();
 
   if (!isAdminAuthConfigured() || !settings?.email) {
@@ -32,25 +56,23 @@ export async function POST(request: NextRequest) {
   }
 
   if (
-    email.trim().toLowerCase() !== settings.email.trim().toLowerCase() ||
+    normalizedEmail !== settings.email.trim().toLowerCase() ||
     !settings.passwordHash ||
     !verifyPassword(password, settings.passwordHash)
   ) {
-    return NextResponse.redirect(
-      publicUrl(request, "/admin/login?error=credentials"),
-      { status: 303 }
-    );
+    const blockedUntil = await recordLoginFailure(clientIp, normalizedEmail);
+    return loginError(request, blockedUntil ? "locked" : "credentials");
   }
 
   if (
     settings.totpEnabled &&
     (!settings.totpSecret || !verifyTotpCode(settings.totpSecret, totpCode))
   ) {
-    return NextResponse.redirect(
-      publicUrl(request, "/admin/login?error=totp"),
-      { status: 303 }
-    );
+    const blockedUntil = await recordLoginFailure(clientIp, normalizedEmail);
+    return loginError(request, blockedUntil ? "locked" : "totp");
   }
+
+  await clearLoginFailures(clientIp, normalizedEmail);
 
   let sessionPasswordHash = settings.passwordHash;
   if (needsPasswordRehash(settings.passwordHash)) {
@@ -75,6 +97,7 @@ export async function POST(request: NextRequest) {
     path: "/",
     maxAge: ADMIN_SESSION_MAX_AGE,
   });
+  setNewAdminCsrfCookie(response);
 
   return response;
 }

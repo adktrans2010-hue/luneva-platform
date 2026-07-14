@@ -1,4 +1,5 @@
 import { getAdminSettings } from "@/src/lib/admin-settings";
+import { AdminCsrfField } from "@/components/admin/admin-csrf-field";
 import { createOtpAuthUrl } from "@/src/lib/totp";
 
 type AdminSettingsPageProps = {
@@ -54,6 +55,7 @@ export default async function AdminSettingsPage({
             method="post"
             className="rounded-[2rem] border border-[#ead7d1] bg-white p-8 shadow-sm"
           >
+            <AdminCsrfField />
             <input type="hidden" name="action" value="profile" />
 
             <h2 className="font-serif text-3xl text-[#332725]">
@@ -104,6 +106,7 @@ export default async function AdminSettingsPage({
             method="post"
             className="rounded-[2rem] border border-[#ead7d1] bg-white p-8 shadow-sm"
           >
+            <AdminCsrfField />
             <input type="hidden" name="action" value="password" />
 
             <h2 className="font-serif text-3xl text-[#332725]">
@@ -187,6 +190,7 @@ export default async function AdminSettingsPage({
 
             {!settings?.totpEnabled && !settings?.totpSecret && (
               <form action="/api/admin/settings" method="post" className="mt-6">
+                <AdminCsrfField />
                 <input type="hidden" name="action" value="create-2fa" />
                 <button
                   type="submit"
@@ -218,6 +222,7 @@ export default async function AdminSettingsPage({
                 </div>
 
                 <form action="/api/admin/settings" method="post">
+                  <AdminCsrfField />
                   <input type="hidden" name="action" value="enable-2fa" />
 
                   <label
@@ -248,6 +253,7 @@ export default async function AdminSettingsPage({
 
             {settings?.totpEnabled && (
               <form action="/api/admin/settings" method="post" className="mt-6">
+                <AdminCsrfField />
                 <input type="hidden" name="action" value="disable-2fa" />
 
                 <label

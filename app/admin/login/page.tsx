@@ -17,6 +17,7 @@ const errorMessages: Record<string, string> = {
   google: "Не удалось войти через Google. Попробуйте ещё раз.",
   google_email: "Этот Google-аккаунт не имеет доступа к админке.",
   google_setup: "Вход через Google ещё не настроен: добавьте Client ID и Client Secret.",
+  locked: "Слишком много неудачных попыток. Вход временно заблокирован на 30 минут.",
 };
 
 export default async function AdminLoginPage({

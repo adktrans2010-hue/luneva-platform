@@ -1,6 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
+
+import { adminFetch } from "@/src/lib/admin-fetch";
 
 type SeoPage = {
   id: string;
@@ -46,7 +48,7 @@ export default function AdminSeo() {
   const [error, setError] = useState<string | null>(null);
 
   async function loadPages() {
-    const response = await fetch("/api/admin/seo");
+    const response = await adminFetch("/api/admin/seo");
     const data = (await response.json()) as SeoPage[];
 
     setPages(data);
@@ -57,7 +59,7 @@ export default function AdminSeo() {
     setSaving(true);
     setError(null);
 
-    const response = await fetch("/api/admin/seo", {
+    const response = await adminFetch("/api/admin/seo", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(draft),
@@ -78,7 +80,7 @@ export default function AdminSeo() {
   async function updatePage(page: SeoPage) {
     setError(null);
 
-    const response = await fetch(`/api/admin/seo/${page.id}`, {
+    const response = await adminFetch(`/api/admin/seo/${page.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(page),
@@ -97,7 +99,7 @@ export default function AdminSeo() {
     const confirmed = window.confirm("Удалить SEO-настройки этой страницы?");
     if (!confirmed) return;
 
-    await fetch(`/api/admin/seo/${id}`, { method: "DELETE" });
+    await adminFetch(`/api/admin/seo/${id}`, { method: "DELETE" });
     await loadPages();
   }
 
