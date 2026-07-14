@@ -9,6 +9,7 @@ type LoginPageProps = {
 
 const errorMessages: Record<string, string> = {
   login: "Неверная почта или пароль.",
+  rate: "Слишком много попыток входа. Попробуйте снова через 30 минут.",
 };
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {

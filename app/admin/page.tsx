@@ -63,6 +63,11 @@ const adminSections = [
     text: "Менять почту, телефон и включать вход с Google Authenticator.",
     href: "/admin/settings",
   },
+  {
+    title: "Журнал входов",
+    text: "Проверять успешные и отклонённые входы, IP-адреса и блокировки.",
+    href: "/admin/login-history",
+  },
 ];
 
 export default function AdminPage() {

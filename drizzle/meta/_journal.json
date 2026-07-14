@@ -169,6 +169,13 @@
       "when": 1784028439372,
       "tag": "0023_kind_sprite",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1784029797339,
+      "tag": "0024_redundant_sinister_six",
+      "breakpoints": true
     }
   ]
 }

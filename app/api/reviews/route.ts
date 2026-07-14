@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const spamReason = checkPublicFormSpam({
+  const spamReason = await checkPublicFormSpam({
     body,
     request,
     scope: "reviews",

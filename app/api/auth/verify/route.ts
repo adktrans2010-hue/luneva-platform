@@ -10,6 +10,7 @@ import {
   USER_COOKIE_NAME,
   USER_SESSION_MAX_AGE,
 } from "@/src/lib/user-session";
+import { consumeRateLimit, getRequestClientIp } from "@/src/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -28,6 +29,13 @@ export async function POST(request: NextRequest) {
   const formData = await request.formData();
   const email = normalizeEmail(String(formData.get("email") ?? ""));
   const code = String(formData.get("code") ?? "").trim();
+  const rate = await consumeRateLimit({
+    scope: "verify-registration",
+    identifier: `${getRequestClientIp(request.headers)}|${email}`,
+    limit: 10,
+    windowMs: 15 * 60 * 1000,
+  });
+  if (!rate.allowed) return redirectToVerify(request, email, "rate");
 
   if (!email || !/^\d{6}$/.test(code)) {
     return redirectToVerify(request, email, "code");

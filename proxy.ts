@@ -28,11 +28,16 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (
-    pathname.startsWith("/api/admin") &&
+    pathname.startsWith("/api") &&
+    pathname !== "/api/yookassa/webhook" &&
     isUnsafeRequest(request) &&
     !hasValidRequestSource(request)
   ) {
     return NextResponse.json({ error: "Invalid request source" }, { status: 403 });
+  }
+
+  if (pathname.startsWith("/api") && !pathname.startsWith("/api/admin")) {
+    return NextResponse.next();
   }
 
   if (pathname.startsWith("/account")) {
@@ -86,5 +91,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/admin/:path*", "/account/:path*", "/account"],
+  matcher: ["/admin/:path*", "/api/:path*", "/account/:path*", "/account"],
 };

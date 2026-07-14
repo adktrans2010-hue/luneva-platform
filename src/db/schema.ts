@@ -5,6 +5,7 @@ import {
   uuid,
   boolean,
   integer,
+  index,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 
@@ -498,6 +499,29 @@ export const adminLoginAttempts = pgTable("admin_login_attempts", {
   blockedUntil: timestamp("blocked_until"),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+export const securityRateLimits = pgTable("security_rate_limits", {
+  id: text("id").primaryKey(),
+  requestCount: integer("request_count").default(0).notNull(),
+  windowStartedAt: timestamp("window_started_at").defaultNow().notNull(),
+  blockedUntil: timestamp("blocked_until"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const loginAuditLogs = pgTable(
+  "login_audit_logs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    actorType: text("actor_type").notNull(),
+    email: text("email").notNull(),
+    ipAddress: text("ip_address").notNull(),
+    success: boolean("success").notNull(),
+    reason: text("reason").notNull(),
+    userAgent: text("user_agent"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [index("login_audit_logs_created_at_index").on(table.createdAt)]
+);
 
 export const analyticsEvents = pgTable("analytics_events", {
   id: uuid("id").defaultRandom().primaryKey(),

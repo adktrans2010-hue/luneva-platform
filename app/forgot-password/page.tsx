@@ -11,6 +11,7 @@ const errorMessages: Record<string, string> = {
   email: "Укажите email, который использовали при регистрации.",
   email_send:
     "Не удалось отправить код на почту. Проверьте email или настройки отправки писем.",
+  rate: "Слишком много запросов. Попробуйте снова через час.",
 };
 
 export default async function ForgotPasswordPage({

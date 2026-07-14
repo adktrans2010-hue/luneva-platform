@@ -1,3 +1,5 @@
+import { consumeRateLimit, getRequestClientIp } from "@/src/lib/rate-limit";
+
 type SpamCheckOptions = {
   body: Record<string, unknown>;
   request: Request;
@@ -7,51 +9,7 @@ type SpamCheckOptions = {
   minFillMs?: number;
 };
 
-type RateEntry = {
-  count: number;
-  resetAt: number;
-};
-
-const rateStore = new Map<string, RateEntry>();
-
-function getClientIp(request: Request) {
-  const forwardedFor = request.headers.get("x-forwarded-for");
-  const realIp = request.headers.get("x-real-ip");
-
-  return forwardedFor?.split(",")[0]?.trim() || realIp || "unknown";
-}
-
-function cleanupRateStore(now: number) {
-  for (const [key, entry] of rateStore.entries()) {
-    if (entry.resetAt <= now) {
-      rateStore.delete(key);
-    }
-  }
-}
-
-function isRateLimited(
-  request: Request,
-  scope: string,
-  limit: number,
-  windowMs: number
-) {
-  const now = Date.now();
-  cleanupRateStore(now);
-
-  const key = `${scope}:${getClientIp(request)}`;
-  const entry = rateStore.get(key);
-
-  if (!entry || entry.resetAt <= now) {
-    rateStore.set(key, { count: 1, resetAt: now + windowMs });
-    return false;
-  }
-
-  entry.count += 1;
-
-  return entry.count > limit;
-}
-
-export function checkPublicFormSpam({
+export async function checkPublicFormSpam({
   body,
   request,
   scope,
@@ -75,7 +33,14 @@ export function checkPublicFormSpam({
     return "timer";
   }
 
-  if (isRateLimited(request, scope, limit, windowMs)) {
+  const rate = await consumeRateLimit({
+    scope,
+    identifier: getRequestClientIp(request.headers),
+    limit,
+    windowMs,
+  });
+
+  if (!rate.allowed) {
     return "rate";
   }
 

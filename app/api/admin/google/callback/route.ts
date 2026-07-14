@@ -18,6 +18,7 @@ import {
 } from "@/src/lib/google-admin-oauth";
 import { publicUrl } from "@/src/lib/public-url";
 import { setNewAdminCsrfCookie } from "@/src/lib/admin-security";
+import { recordLoginAudit } from "@/src/lib/login-audit";
 
 export const runtime = "nodejs";
 
@@ -55,6 +56,13 @@ export async function GET(request: NextRequest) {
     !codeVerifier ||
     !isMatchingGoogleOAuthState(expectedState, state)
   ) {
+    await recordLoginAudit({
+      actorType: "admin",
+      email: "unknown",
+      success: false,
+      reason: "google_state_or_code",
+      headers: request.headers,
+    });
     return loginError(request, "google");
   }
 
@@ -75,6 +83,13 @@ export async function GET(request: NextRequest) {
       user.email_verified !== true ||
       user.email?.trim().toLowerCase() !== allowedEmail
     ) {
+      await recordLoginAudit({
+        actorType: "admin",
+        email: user.email ?? "unknown",
+        success: false,
+        reason: "google_email_denied",
+        headers: request.headers,
+      });
       return loginError(request, "google_email");
     }
 
@@ -94,10 +109,24 @@ export async function GET(request: NextRequest) {
     });
     clearOAuthCookies(response);
     setNewAdminCsrfCookie(response);
+    await recordLoginAudit({
+      actorType: "admin",
+      email: allowedEmail,
+      success: true,
+      reason: "google_oauth",
+      headers: request.headers,
+    });
 
     return response;
   } catch (error) {
     console.error("Google admin OAuth failed", error);
+    await recordLoginAudit({
+      actorType: "admin",
+      email: "unknown",
+      success: false,
+      reason: "google_error",
+      headers: request.headers,
+    });
     return loginError(request, "google");
   }
 }

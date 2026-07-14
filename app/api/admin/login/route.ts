@@ -21,6 +21,7 @@ import {
   recordLoginFailure,
 } from "@/src/lib/admin-login-rate-limit";
 import { setNewAdminCsrfCookie } from "@/src/lib/admin-security";
+import { recordLoginAudit } from "@/src/lib/login-audit";
 
 function loginError(request: NextRequest, error: string) {
   return NextResponse.redirect(
@@ -41,6 +42,7 @@ export async function POST(request: NextRequest) {
   const block = await getLoginBlock(clientIp, normalizedEmail);
 
   if (block) {
+    await recordLoginAudit({ actorType: "admin", email: normalizedEmail, success: false, reason: "rate_limited", headers: request.headers });
     const response = loginError(request, "locked");
     response.headers.set("Retry-After", String(block.retryAfterSeconds));
     return response;
@@ -61,6 +63,7 @@ export async function POST(request: NextRequest) {
     !verifyPassword(password, settings.passwordHash)
   ) {
     const blockedUntil = await recordLoginFailure(clientIp, normalizedEmail);
+    await recordLoginAudit({ actorType: "admin", email: normalizedEmail, success: false, reason: "invalid_credentials", headers: request.headers });
     return loginError(request, blockedUntil ? "locked" : "credentials");
   }
 
@@ -69,10 +72,12 @@ export async function POST(request: NextRequest) {
     (!settings.totpSecret || !verifyTotpCode(settings.totpSecret, totpCode))
   ) {
     const blockedUntil = await recordLoginFailure(clientIp, normalizedEmail);
+    await recordLoginAudit({ actorType: "admin", email: normalizedEmail, success: false, reason: "invalid_2fa", headers: request.headers });
     return loginError(request, blockedUntil ? "locked" : "totp");
   }
 
   await clearLoginFailures(clientIp, normalizedEmail);
+  await recordLoginAudit({ actorType: "admin", email: normalizedEmail, success: true, reason: "password", headers: request.headers });
 
   let sessionPasswordHash = settings.passwordHash;
   if (needsPasswordRehash(settings.passwordHash)) {

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { db } from "@/src/db";
 import { analyticsEvents } from "@/src/db/schema";
+import { consumeRateLimit, getRequestClientIp } from "@/src/lib/rate-limit";
 
 const allowedEvents = new Set(["page_view", "video_click"]);
 
@@ -47,6 +48,16 @@ export async function POST(request: Request) {
 
   if (!allowedEvents.has(eventType) || path.startsWith("/admin") || path.startsWith("/api")) {
     return NextResponse.json({ success: true });
+  }
+
+  const rate = await consumeRateLimit({
+    scope: "analytics",
+    identifier: getRequestClientIp(request.headers),
+    limit: 120,
+    windowMs: 60 * 1000,
+  });
+  if (!rate.allowed) {
+    return NextResponse.json({ success: true }, { status: 202 });
   }
 
   await db.insert(analyticsEvents).values({

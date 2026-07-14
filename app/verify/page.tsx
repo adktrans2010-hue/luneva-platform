@@ -14,6 +14,7 @@ const errorMessages: Record<string, string> = {
   email: "Пользователь с такой почтой уже зарегистрирован.",
   expired: "Код истёк. Зарегистрируйтесь ещё раз и получите новый код.",
   missing: "Код не найден. Зарегистрируйтесь ещё раз.",
+  rate: "Слишком много запросов. Попробуйте снова через 15 минут.",
 };
 
 export default async function VerifyPage({ searchParams }: VerifyPageProps) {

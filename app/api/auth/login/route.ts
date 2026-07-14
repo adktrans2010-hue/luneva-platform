@@ -14,6 +14,12 @@ import {
   USER_COOKIE_NAME,
   USER_SESSION_MAX_AGE,
 } from "@/src/lib/user-session";
+import {
+  clearRateLimit,
+  consumeRateLimit,
+  getRequestClientIp,
+} from "@/src/lib/rate-limit";
+import { recordLoginAudit } from "@/src/lib/login-audit";
 
 export const runtime = "nodejs";
 
@@ -27,6 +33,23 @@ export async function POST(request: NextRequest) {
   const password = String(formData.get("password") ?? "");
   const nextPath = String(formData.get("next") ?? "/account");
   const redirectTo = nextPath.startsWith("/") ? nextPath : "/account";
+  const ip = getRequestClientIp(request.headers);
+  const rateIdentifier = `${ip}|${email}`;
+  const rate = await consumeRateLimit({
+    scope: "user-login",
+    identifier: rateIdentifier,
+    limit: 5,
+    windowMs: 15 * 60 * 1000,
+    blockMs: 30 * 60 * 1000,
+  });
+
+  if (!rate.allowed) {
+    await recordLoginAudit({ actorType: "user", email, success: false, reason: "rate_limited", headers: request.headers });
+    return NextResponse.redirect(publicUrl(request, "/login?error=rate"), {
+      status: 303,
+      headers: { "Retry-After": String(rate.retryAfterSeconds) },
+    });
+  }
 
   const [user] = await db
     .select()
@@ -35,10 +58,14 @@ export async function POST(request: NextRequest) {
     .limit(1);
 
   if (!user || !verifyPassword(password, user.passwordHash)) {
+    await recordLoginAudit({ actorType: "user", email, success: false, reason: "invalid_credentials", headers: request.headers });
     return NextResponse.redirect(publicUrl(request, "/login?error=login"), {
       status: 303,
     });
   }
+
+  await clearRateLimit("user-login", rateIdentifier);
+  await recordLoginAudit({ actorType: "user", email, success: true, reason: "password", headers: request.headers });
 
   if (needsPasswordRehash(user.passwordHash)) {
     await db

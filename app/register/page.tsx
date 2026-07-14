@@ -14,6 +14,7 @@ const errorMessages: Record<string, string> = {
   email_send:
     "Не удалось отправить код на почту. Проверьте email или настройки отправки писем.",
   fields: "Заполните имя, email и пароль не короче 8 символов.",
+  rate: "Слишком много регистраций. Попробуйте снова через час.",
 };
 
 export default async function RegisterPage({ searchParams }: RegisterPageProps) {

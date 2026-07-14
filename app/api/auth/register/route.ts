@@ -6,6 +6,7 @@ import { userRegistrationCodes, users } from "@/src/db/schema";
 import { isEmailConfigured, sendMail } from "@/src/lib/email";
 import { hashPassword } from "@/src/lib/password";
 import { publicUrl } from "@/src/lib/public-url";
+import { consumeRateLimit, getRequestClientIp } from "@/src/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -24,6 +25,18 @@ export async function POST(request: NextRequest) {
   const phone = String(formData.get("phone") ?? "").trim() || null;
   const password = String(formData.get("password") ?? "");
   const legalConsent = formData.get("legalConsent") === "on";
+  const rate = await consumeRateLimit({
+    scope: "register",
+    identifier: `${getRequestClientIp(request.headers)}|${email}`,
+    limit: 5,
+    windowMs: 60 * 60 * 1000,
+  });
+  if (!rate.allowed) {
+    return NextResponse.redirect(publicUrl(request, "/register?error=rate"), {
+      status: 303,
+      headers: { "Retry-After": String(rate.retryAfterSeconds) },
+    });
+  }
 
   if (!legalConsent) {
     return NextResponse.redirect(

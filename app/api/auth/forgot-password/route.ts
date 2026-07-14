@@ -6,6 +6,7 @@ import { passwordResetCodes, users } from "@/src/db/schema";
 import { isEmailConfigured, sendMail } from "@/src/lib/email";
 import { hashPassword } from "@/src/lib/password";
 import { publicUrl } from "@/src/lib/public-url";
+import { consumeRateLimit, getRequestClientIp } from "@/src/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -20,6 +21,18 @@ function createVerificationCode() {
 export async function POST(request: NextRequest) {
   const formData = await request.formData();
   const email = normalizeEmail(String(formData.get("email") ?? ""));
+  const rate = await consumeRateLimit({
+    scope: "forgot-password",
+    identifier: `${getRequestClientIp(request.headers)}|${email}`,
+    limit: 3,
+    windowMs: 60 * 60 * 1000,
+  });
+  if (!rate.allowed) {
+    return NextResponse.redirect(publicUrl(request, "/forgot-password?error=rate"), {
+      status: 303,
+      headers: { "Retry-After": String(rate.retryAfterSeconds) },
+    });
+  }
 
   if (!email) {
     return NextResponse.redirect(

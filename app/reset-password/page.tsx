@@ -14,6 +14,7 @@ const errorMessages: Record<string, string> = {
   expired: "Код истёк. Запросите новый код.",
   fields: "Введите email, 6-значный код и новый пароль не короче 8 символов.",
   missing: "Код не найден. Запросите новый код.",
+  rate: "Слишком много запросов. Попробуйте снова через 15 минут.",
 };
 
 export default async function ResetPasswordPage({
