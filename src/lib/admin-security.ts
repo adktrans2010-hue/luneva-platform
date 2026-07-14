@@ -23,18 +23,38 @@ export function isUnsafeRequest(request: NextRequest) {
   return unsafeMethods.has(request.method.toUpperCase());
 }
 
+function getAllowedRequestOrigins(request: NextRequest) {
+  const origins = new Set([request.nextUrl.origin]);
+  const configuredUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+
+  for (const value of [
+    configuredUrl,
+    process.env.NODE_ENV === "production" ? "https://luneva-psy.ru" : undefined,
+  ]) {
+    if (!value) continue;
+
+    try {
+      origins.add(new URL(value).origin);
+    } catch {
+      // Invalid configuration must not disable source validation.
+    }
+  }
+
+  return origins;
+}
+
 export function hasValidRequestSource(request: NextRequest) {
   if (!isUnsafeRequest(request)) return true;
 
-  const expectedOrigin = request.nextUrl.origin;
+  const allowedOrigins = getAllowedRequestOrigins(request);
   const origin = request.headers.get("origin");
-  if (origin) return origin === expectedOrigin;
+  if (origin) return allowedOrigins.has(origin);
 
   const referer = request.headers.get("referer");
   if (!referer) return false;
 
   try {
-    return new URL(referer).origin === expectedOrigin;
+    return allowedOrigins.has(new URL(referer).origin);
   } catch {
     return false;
   }
