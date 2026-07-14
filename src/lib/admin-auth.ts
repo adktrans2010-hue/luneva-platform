@@ -1,5 +1,5 @@
 export const ADMIN_COOKIE_NAME = "luneva_admin_session";
-export const ADMIN_SESSION_MAX_AGE = 60 * 60 * 8;
+export const ADMIN_SESSION_MAX_AGE = 60 * 60;
 
 export const ADMIN_ROLES = ["admin", "editor", "assistant"] as const;
 export type AdminRole = (typeof ADMIN_ROLES)[number];
@@ -88,6 +88,17 @@ export function isAdminAuthConfigured() {
   return getAdminEmail().length > 0 || Boolean(getAdminSessionSecret());
 }
 
+async function signAdminSession(payload: AdminSession) {
+  const encodedPayload = stringToBase64Url(JSON.stringify(payload));
+  const signature = await crypto.subtle.sign(
+    "HMAC",
+    await createSigningKey(),
+    new TextEncoder().encode(encodedPayload)
+  );
+
+  return `${encodedPayload}.${bytesToBase64Url(new Uint8Array(signature))}`;
+}
+
 export async function createAdminSessionToken(options: {
   email: string;
   passwordHash: string;
@@ -101,14 +112,15 @@ export async function createAdminSessionToken(options: {
     credentialVersion: await getCredentialVersion(options.passwordHash),
     expiresAt: Date.now() + ADMIN_SESSION_MAX_AGE * 1000,
   };
-  const encodedPayload = stringToBase64Url(JSON.stringify(payload));
-  const signature = await crypto.subtle.sign(
-    "HMAC",
-    await createSigningKey(),
-    new TextEncoder().encode(encodedPayload)
-  );
 
-  return `${encodedPayload}.${bytesToBase64Url(new Uint8Array(signature))}`;
+  return signAdminSession(payload);
+}
+
+export async function renewAdminSessionToken(session: AdminSession) {
+  return signAdminSession({
+    ...session,
+    expiresAt: Date.now() + ADMIN_SESSION_MAX_AGE * 1000,
+  });
 }
 
 async function readAdminSession(token?: string): Promise<AdminSession | null> {

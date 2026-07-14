@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 import {
   ADMIN_COOKIE_NAME,
+  ADMIN_SESSION_MAX_AGE,
   authorizeAdminSession,
+  renewAdminSessionToken,
 } from "@/src/lib/admin-auth";
 import {
   getUserIdFromSession,
@@ -41,7 +43,18 @@ export async function proxy(request: NextRequest) {
   const authorization = await authorizeAdminSession(token, ["admin"]);
 
   if (authorization.authorized) {
-    return NextResponse.next();
+    const response = NextResponse.next();
+    response.cookies.set({
+      name: ADMIN_COOKIE_NAME,
+      value: await renewAdminSessionToken(authorization.session),
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: ADMIN_SESSION_MAX_AGE,
+    });
+
+    return response;
   }
 
   if (pathname.startsWith("/api/admin")) {
