@@ -29,13 +29,6 @@ export default function Footer() {
               <Link href="/help">Психологическая помощь</Link>
               <Link href="/reviews">Отзывы</Link>
               <Link href="/blog">Полезные статьи</Link>
-              <span
-                aria-disabled="true"
-                title="Раздел временно недоступен"
-                className="cursor-not-allowed text-[#b8aeab]"
-              >
-                Полезные видео
-              </span>
               <Link href="/faq">Частые вопросы</Link>
             </div>
           </div>

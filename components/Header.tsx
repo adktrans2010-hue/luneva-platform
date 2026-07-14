@@ -16,7 +16,6 @@ export default function Header() {
     { href: "/help", label: "Помощь" },
     { href: "/reviews", label: "Отзывы" },
     { href: "/blog", label: "Статьи" },
-    { href: "/videos", label: "Видео", disabled: true },
     { href: "/contacts", label: "Контакты" },
     { href: "/account", label: "Кабинет" },
   ];
@@ -36,22 +35,11 @@ export default function Header() {
         </Link>
 
         <nav className="hidden items-center gap-10 text-sm md:flex">
-          {links.map((link) =>
-            link.disabled ? (
-              <span
-                key={link.href}
-                aria-disabled="true"
-                title="Раздел временно недоступен"
-                className="cursor-not-allowed text-[#b8aeab]"
-              >
-                {link.label}
-              </span>
-            ) : (
-              <Link key={link.href} href={link.href} className={linkClass(link.href)}>
-                {link.label}
-              </Link>
-            ),
-          )}
+          {links.map((link) => (
+            <Link key={link.href} href={link.href} className={linkClass(link.href)}>
+              {link.label}
+            </Link>
+          ))}
         </nav>
 
         <button
@@ -74,31 +62,20 @@ export default function Header() {
           className="absolute inset-x-0 top-full border-y border-[#ead7d1] bg-[#fff8f6]/98 px-6 py-5 shadow-[0_20px_50px_rgba(51,39,37,0.14)] backdrop-blur-xl md:hidden"
         >
           <div className="mx-auto grid max-w-xl gap-1">
-            {links.map((link) =>
-              link.disabled ? (
-                <span
-                  key={link.href}
-                  aria-disabled="true"
-                  className="cursor-not-allowed rounded-xl px-4 py-3 text-base text-[#b8aeab]"
-                >
-                  {link.label}
-                  <span className="ml-2 text-xs">Скоро</span>
-                </span>
-              ) : (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setMenuOpen(false)}
-                  className={`rounded-xl px-4 py-3 text-base ${
-                    pathname === link.href
-                      ? "bg-white text-[#332725] shadow-sm"
-                      : "text-[#5f5552]"
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              ),
-            )}
+            {links.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setMenuOpen(false)}
+                className={`rounded-xl px-4 py-3 text-base ${
+                  pathname === link.href
+                    ? "bg-white text-[#332725] shadow-sm"
+                    : "text-[#5f5552]"
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))}
           </div>
         </nav>
       )}
