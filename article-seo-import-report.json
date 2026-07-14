@@ -1,0 +1,637 @@
+{
+  "sourcePath": "C:\\Users\\User\\Documents\\Сайт Luneva-psy\\Luneva-Platform\\luneva-platform\\.tmp-seo-package\\articles-seo.json",
+  "dryRun": false,
+  "total": 38,
+  "matched": 31,
+  "changed": 31,
+  "errors": 7,
+  "duplicates": 12,
+  "items": [
+    {
+      "url": "https://luneva-psy.ru/blog/kompulsiya-navyazchivye-deystviya-ili-povedenie-vse-my-znaem-chto-nashe-povedenie-formiruetsya-v-detstve",
+      "slug": "kompulsiya-navyazchivye-deystviya-ili-povedenie-vse-my-znaem-chto-nashe-povedenie-formiruetsya-v-detstve",
+      "matched": false,
+      "changedFields": [],
+      "warnings": [],
+      "duplicate": true,
+      "error": "Article not found by URL slug or slug"
+    },
+    {
+      "url": "https://luneva-psy.ru/blog/kompulsivnoe-pereedanie-priznaki-i-pomosch",
+      "slug": "kompulsivnoe-pereedanie-priznaki-i-pomosch",
+      "matched": true,
+      "articleId": "bf34592d-a739-4b63-8f47-7ac502df029a",
+      "changedFields": [
+        "h1",
+        "seoTitle",
+        "seoDescription",
+        "faq"
+      ],
+      "warnings": [
+        "Image not found, current image kept: /blog/kompulsivnoe-pereedanie-priznaki-i-pomosch.jpg",
+        "image_alt skipped: articles table has no imageAlt field",
+        "primaryKeyword skipped: articles table has no keyword field"
+      ],
+      "duplicate": false
+    },
+    {
+      "url": "https://luneva-psy.ru/blog/rasstro-stva-pischevogo-povedeniya-2",
+      "slug": "rasstro-stva-pischevogo-povedeniya-2",
+      "matched": false,
+      "changedFields": [],
+      "warnings": [],
+      "duplicate": true,
+      "error": "Article not found by URL slug or slug"
+    },
+    {
+      "url": "https://luneva-psy.ru/blog/travmy-vzroslyh-dete-alkogolikov",
+      "slug": "travmy-vzroslyh-dete-alkogolikov",
+      "matched": false,
+      "changedFields": [],
+      "warnings": [],
+      "duplicate": true,
+      "error": "Article not found by URL slug or slug"
+    },
+    {
+      "url": "https://luneva-psy.ru/blog/fetsheyming-i-rasstroystva-pischevogo-povedeniya",
+      "slug": "fetsheyming-i-rasstroystva-pischevogo-povedeniya",
+      "matched": true,
+      "articleId": "b635285a-60e7-414e-aa87-146f37f0837a",
+      "changedFields": [
+        "h1",
+        "seoTitle",
+        "seoDescription",
+        "faq"
+      ],
+      "warnings": [
+        "Image not found, current image kept: /blog/fetsheyming-i-rasstroystva-pischevogo-povedeniya.jpg",
+        "image_alt skipped: articles table has no imageAlt field",
+        "primaryKeyword skipped: articles table has no keyword field",
+        "Possible duplicate; canonical suggested but not applied: https://luneva-psy.ru/blog/rasstroystva-pischevogo-povedeniya-i-vliyanie-sredy"
+      ],
+      "duplicate": true
+    },
+    {
+      "url": "https://luneva-psy.ru/blog/kak-pomoch-tem-kto-sovershaet-self-harm",
+      "slug": "kak-pomoch-tem-kto-sovershaet-self-harm",
+      "matched": true,
+      "articleId": "9e816e7b-6214-4026-8def-20e2b36eeef7",
+      "changedFields": [
+        "h1",
+        "seoTitle",
+        "seoDescription",
+        "faq"
+      ],
+      "warnings": [
+        "Image not found, current image kept: /blog/kak-pomoch-tem-kto-sovershaet-self-harm.jpg",
+        "image_alt skipped: articles table has no imageAlt field",
+        "primaryKeyword skipped: articles table has no keyword field",
+        "Possible duplicate; canonical suggested but not applied: https://luneva-psy.ru/blog/kak-pomoch-cheloveku-kotoryy-sovershaet-self-harm"
+      ],
+      "duplicate": true
+    },
+    {
+      "url": "https://luneva-psy.ru/blog/kak-preodolevat-trudnosti-ne-pribegaya-k-selfharm",
+      "slug": "kak-preodolevat-trudnosti-ne-pribegaya-k-selfharm",
+      "matched": true,
+      "articleId": "c6f02ec4-311c-44ff-9273-05be0aebace9",
+      "changedFields": [
+        "h1",
+        "seoTitle",
+        "seoDescription",
+        "faq"
+      ],
+      "warnings": [
+        "Image not found, current image kept: /blog/kak-preodolevat-trudnosti-ne-pribegaya-k-selfharm.jpg",
+        "image_alt skipped: articles table has no imageAlt field",
+        "primaryKeyword skipped: articles table has no keyword field",
+        "Possible duplicate; canonical suggested but not applied: https://luneva-psy.ru/blog/kak-preodolevat-trudnosti-bez-self-harm"
+      ],
+      "duplicate": true
+    },
+    {
+      "url": "https://luneva-psy.ru/blog/self-harm",
+      "slug": "self-harm",
+      "matched": true,
+      "articleId": "9d734819-08e5-40ba-8f83-f37e8dcf189e",
+      "changedFields": [
+        "h1",
+        "seoTitle",
+        "seoDescription",
+        "faq"
+      ],
+      "warnings": [
+        "Image not found, current image kept: /blog/self-harm.jpg",
+        "image_alt skipped: articles table has no imageAlt field",
+        "primaryKeyword skipped: articles table has no keyword field",
+        "Possible duplicate; canonical suggested but not applied: https://luneva-psy.ru/blog/self-harm-chto-vazhno-znat"
+      ],
+      "duplicate": true
+    },
+    {
+      "url": "https://luneva-psy.ru/blog/mechtaem-kak-uolt-disne-2",
+      "slug": "mechtaem-kak-uolt-disne-2",
+      "matched": false,
+      "changedFields": [],
+      "warnings": [],
+      "duplicate": true,
+      "error": "Article not found by URL slug or slug"
+    },
+    {
+      "url": "https://luneva-psy.ru/blog/vystraivaem-lichnye-granicy-2",
+      "slug": "vystraivaem-lichnye-granicy-2",
+      "matched": false,
+      "changedFields": [],
+      "warnings": [],
+      "duplicate": true,
+      "error": "Article not found by URL slug or slug"
+    },
+    {
+      "url": "https://luneva-psy.ru/blog/kak-ogranichivayuschie-ubezhdeniya-meshayut-nam-dostigat-cele",
+      "slug": "kak-ogranichivayuschie-ubezhdeniya-meshayut-nam-dostigat-cele",
+      "matched": false,
+      "changedFields": [],
+      "warnings": [],
+      "duplicate": true,
+      "error": "Article not found by URL slug or slug"
+    },
+    {
+      "url": "https://luneva-psy.ru/blog/chto-nuzhno-delat-esli-vy-popali-v-krizisnuyu-situaciyu-2",
+      "slug": "chto-nuzhno-delat-esli-vy-popali-v-krizisnuyu-situaciyu-2",
+      "matched": false,
+      "changedFields": [],
+      "warnings": [],
+      "duplicate": true,
+      "error": "Article not found by URL slug or slug"
+    },
+    {
+      "url": "https://luneva-psy.ru/blog/detoks-diety-chto-deystvitelno-delaet-organizm",
+      "slug": "detoks-diety-chto-deystvitelno-delaet-organizm",
+      "matched": true,
+      "articleId": "62c5f0ab-9254-41b2-a169-64b3ecc72627",
+      "changedFields": [
+        "h1",
+        "seoTitle",
+        "seoDescription",
+        "faq"
+      ],
+      "warnings": [
+        "Image not found, current image kept: /blog/detoks-diety-chto-deystvitelno-delaet-organizm.jpg",
+        "image_alt skipped: articles table has no imageAlt field",
+        "primaryKeyword skipped: articles table has no keyword field",
+        "Possible duplicate; canonical suggested but not applied: https://luneva-psy.ru/blog/detoks-diety-i-mify-o-detoksikacii"
+      ],
+      "duplicate": true
+    },
+    {
+      "url": "https://luneva-psy.ru/blog/prover-est-li-u-tebya-rasstroystvo-pischevogo-povedeniya",
+      "slug": "prover-est-li-u-tebya-rasstroystvo-pischevogo-povedeniya",
+      "matched": true,
+      "articleId": "00085195-5b61-454b-b390-9353c4fe7845",
+      "changedFields": [
+        "h1",
+        "seoTitle",
+        "seoDescription",
+        "faq"
+      ],
+      "warnings": [
+        "Image not found, current image kept: /blog/prover-est-li-u-tebya-rasstroystvo-pischevogo-povedeniya.jpg",
+        "image_alt skipped: articles table has no imageAlt field",
+        "primaryKeyword skipped: articles table has no keyword field"
+      ],
+      "duplicate": false
+    },
+    {
+      "url": "https://luneva-psy.ru/blog/kompulsii-navyazchivye-deystviya-i-detskiy-opyt",
+      "slug": "kompulsii-navyazchivye-deystviya-i-detskiy-opyt",
+      "matched": true,
+      "articleId": "27fde591-6a4d-4f9a-941a-3c673a122663",
+      "changedFields": [
+        "h1",
+        "seoTitle",
+        "seoDescription",
+        "faq"
+      ],
+      "warnings": [
+        "Image not found, current image kept: /blog/kompulsii-navyazchivye-deystviya-i-detskiy-opyt.jpg",
+        "image_alt skipped: articles table has no imageAlt field",
+        "primaryKeyword skipped: articles table has no keyword field"
+      ],
+      "duplicate": false
+    },
+    {
+      "url": "https://luneva-psy.ru/blog/pereedanie-prichiny-i-priznaki",
+      "slug": "pereedanie-prichiny-i-priznaki",
+      "matched": true,
+      "articleId": "565fb24f-f7e5-4d13-8041-824ad9c0c0f4",
+      "changedFields": [
+        "h1",
+        "seoTitle",
+        "seoDescription",
+        "faq"
+      ],
+      "warnings": [
+        "Image not found, current image kept: /blog/pereedanie-prichiny-i-priznaki.jpg",
+        "image_alt skipped: articles table has no imageAlt field",
+        "primaryKeyword skipped: articles table has no keyword field"
+      ],
+      "duplicate": false
+    },
+    {
+      "url": "https://luneva-psy.ru/blog/rasstro-stva-pischevogo-povedeniya",
+      "slug": "rasstro-stva-pischevogo-povedeniya",
+      "matched": true,
+      "articleId": "c40f1a02-4431-470f-a3e3-142d3bb3c016",
+      "changedFields": [
+        "h1",
+        "seoTitle",
+        "seoDescription",
+        "faq"
+      ],
+      "warnings": [
+        "Image not found, current image kept: /blog/rasstro-stva-pischevogo-povedeniya.jpg",
+        "image_alt skipped: articles table has no imageAlt field",
+        "primaryKeyword skipped: articles table has no keyword field"
+      ],
+      "duplicate": false
+    },
+    {
+      "url": "https://luneva-psy.ru/blog/travmy-vzroslyh-detey-alkogolikov",
+      "slug": "travmy-vzroslyh-detey-alkogolikov",
+      "matched": true,
+      "articleId": "28d95a0b-d272-48c7-ac9f-404721fb4e93",
+      "changedFields": [
+        "h1",
+        "seoTitle",
+        "seoDescription",
+        "faq"
+      ],
+      "warnings": [
+        "Image not found, current image kept: /blog/travmy-vzroslyh-detey-alkogolikov.jpg",
+        "image_alt skipped: articles table has no imageAlt field",
+        "primaryKeyword skipped: articles table has no keyword field"
+      ],
+      "duplicate": false
+    },
+    {
+      "url": "https://luneva-psy.ru/blog/rasstroystva-pischevogo-povedeniya-i-vliyanie-sredy",
+      "slug": "rasstroystva-pischevogo-povedeniya-i-vliyanie-sredy",
+      "matched": true,
+      "articleId": "9f10fbe2-f670-43e9-bd77-2de297163298",
+      "changedFields": [
+        "h1",
+        "seoTitle",
+        "seoDescription",
+        "faq"
+      ],
+      "warnings": [
+        "Image not found, current image kept: /blog/rasstroystva-pischevogo-povedeniya-i-vliyanie-sredy.jpg",
+        "image_alt skipped: articles table has no imageAlt field",
+        "primaryKeyword skipped: articles table has no keyword field"
+      ],
+      "duplicate": false
+    },
+    {
+      "url": "https://luneva-psy.ru/blog/kak-pomoch-cheloveku-kotoryy-sovershaet-self-harm",
+      "slug": "kak-pomoch-cheloveku-kotoryy-sovershaet-self-harm",
+      "matched": true,
+      "articleId": "c3cc0562-8c7f-4b8c-8b3d-fe01eef2eb98",
+      "changedFields": [
+        "h1",
+        "seoTitle",
+        "seoDescription",
+        "faq"
+      ],
+      "warnings": [
+        "Image not found, current image kept: /blog/kak-pomoch-cheloveku-kotoryy-sovershaet-self-harm.jpg",
+        "image_alt skipped: articles table has no imageAlt field",
+        "primaryKeyword skipped: articles table has no keyword field"
+      ],
+      "duplicate": false
+    },
+    {
+      "url": "https://luneva-psy.ru/blog/mify-o-self-harm",
+      "slug": "mify-o-self-harm",
+      "matched": true,
+      "articleId": "044e71a7-6d7f-413c-826d-a8e00a4484eb",
+      "changedFields": [
+        "h1",
+        "seoTitle",
+        "seoDescription",
+        "faq"
+      ],
+      "warnings": [
+        "Image not found, current image kept: /blog/mify-o-self-harm.jpg",
+        "image_alt skipped: articles table has no imageAlt field",
+        "primaryKeyword skipped: articles table has no keyword field"
+      ],
+      "duplicate": false
+    },
+    {
+      "url": "https://luneva-psy.ru/blog/kak-preodolevat-trudnosti-bez-self-harm",
+      "slug": "kak-preodolevat-trudnosti-bez-self-harm",
+      "matched": true,
+      "articleId": "bf38499d-e120-4f6b-b381-01304034aff1",
+      "changedFields": [
+        "h1",
+        "seoTitle",
+        "seoDescription",
+        "faq"
+      ],
+      "warnings": [
+        "Image not found, current image kept: /blog/kak-preodolevat-trudnosti-bez-self-harm.jpg",
+        "image_alt skipped: articles table has no imageAlt field",
+        "primaryKeyword skipped: articles table has no keyword field"
+      ],
+      "duplicate": false
+    },
+    {
+      "url": "https://luneva-psy.ru/blog/kak-perestat-sovershat-self-harm",
+      "slug": "kak-perestat-sovershat-self-harm",
+      "matched": true,
+      "articleId": "54e14037-9606-491b-b3bb-0e9fb625781e",
+      "changedFields": [
+        "h1",
+        "seoTitle",
+        "seoDescription",
+        "faq"
+      ],
+      "warnings": [
+        "Image not found, current image kept: /blog/kak-perestat-sovershat-self-harm.jpg",
+        "image_alt skipped: articles table has no imageAlt field",
+        "primaryKeyword skipped: articles table has no keyword field"
+      ],
+      "duplicate": false
+    },
+    {
+      "url": "https://luneva-psy.ru/blog/posledstviya-self-harm",
+      "slug": "posledstviya-self-harm",
+      "matched": true,
+      "articleId": "0c228334-c21f-455c-90a9-7bdddad1e307",
+      "changedFields": [
+        "h1",
+        "seoTitle",
+        "seoDescription",
+        "faq"
+      ],
+      "warnings": [
+        "Image not found, current image kept: /blog/posledstviya-self-harm.jpg",
+        "image_alt skipped: articles table has no imageAlt field",
+        "primaryKeyword skipped: articles table has no keyword field"
+      ],
+      "duplicate": false
+    },
+    {
+      "url": "https://luneva-psy.ru/blog/self-harm-chto-vazhno-znat",
+      "slug": "self-harm-chto-vazhno-znat",
+      "matched": true,
+      "articleId": "c5e2b41d-20bd-497d-b652-8550b95fd712",
+      "changedFields": [
+        "h1",
+        "seoTitle",
+        "seoDescription",
+        "faq"
+      ],
+      "warnings": [
+        "Image not found, current image kept: /blog/self-harm-chto-vazhno-znat.jpg",
+        "image_alt skipped: articles table has no imageAlt field",
+        "primaryKeyword skipped: articles table has no keyword field"
+      ],
+      "duplicate": false
+    },
+    {
+      "url": "https://luneva-psy.ru/blog/kak-konstruktivno-kritikovat-podrostka",
+      "slug": "kak-konstruktivno-kritikovat-podrostka",
+      "matched": true,
+      "articleId": "7c2f7d0a-f962-46b5-924a-6f5094498bae",
+      "changedFields": [
+        "h1",
+        "seoTitle",
+        "seoDescription",
+        "faq"
+      ],
+      "warnings": [
+        "Image not found, current image kept: /blog/kak-konstruktivno-kritikovat-podrostka.jpg",
+        "image_alt skipped: articles table has no imageAlt field",
+        "primaryKeyword skipped: articles table has no keyword field"
+      ],
+      "duplicate": false
+    },
+    {
+      "url": "https://luneva-psy.ru/blog/perepady-nastroeniya-u-podrostka-normalno-li-eto",
+      "slug": "perepady-nastroeniya-u-podrostka-normalno-li-eto",
+      "matched": true,
+      "articleId": "871bf699-1f48-4772-86be-a23ed49b76f4",
+      "changedFields": [
+        "h1",
+        "seoTitle",
+        "seoDescription",
+        "faq"
+      ],
+      "warnings": [
+        "Image not found, current image kept: /blog/perepady-nastroeniya-u-podrostka-normalno-li-eto.jpg",
+        "image_alt skipped: articles table has no imageAlt field",
+        "primaryKeyword skipped: articles table has no keyword field"
+      ],
+      "duplicate": false
+    },
+    {
+      "url": "https://luneva-psy.ru/blog/psihoterapiya-ozhidanie-realnost",
+      "slug": "psihoterapiya-ozhidanie-realnost",
+      "matched": true,
+      "articleId": "2ce25ebd-287e-49e1-968a-537060d5928c",
+      "changedFields": [
+        "h1",
+        "seoTitle",
+        "seoDescription",
+        "faq"
+      ],
+      "warnings": [
+        "Image not found, current image kept: /blog/psihoterapiya-ozhidanie-realnost.jpg",
+        "image_alt skipped: articles table has no imageAlt field",
+        "primaryKeyword skipped: articles table has no keyword field"
+      ],
+      "duplicate": false
+    },
+    {
+      "url": "https://luneva-psy.ru/blog/mechtaem-kak-uolt-disne",
+      "slug": "mechtaem-kak-uolt-disne",
+      "matched": true,
+      "articleId": "c2b34e32-186b-4bcc-8ec7-be575e6b27e4",
+      "changedFields": [
+        "h1",
+        "seoTitle",
+        "seoDescription",
+        "faq"
+      ],
+      "warnings": [
+        "Image not found, current image kept: /blog/mechtaem-kak-uolt-disne.jpg",
+        "image_alt skipped: articles table has no imageAlt field",
+        "primaryKeyword skipped: articles table has no keyword field"
+      ],
+      "duplicate": false
+    },
+    {
+      "url": "https://luneva-psy.ru/blog/kak-geshtalt-terapiya-pomogaet-zhit-zdes-i-seychas",
+      "slug": "kak-geshtalt-terapiya-pomogaet-zhit-zdes-i-seychas",
+      "matched": true,
+      "articleId": "a5ea764c-9ab8-4464-8dc4-e80052624e24",
+      "changedFields": [
+        "h1",
+        "seoTitle",
+        "seoDescription",
+        "faq"
+      ],
+      "warnings": [
+        "Image not found, current image kept: /blog/kak-geshtalt-terapiya-pomogaet-zhit-zdes-i-seychas.jpg",
+        "image_alt skipped: articles table has no imageAlt field",
+        "primaryKeyword skipped: articles table has no keyword field"
+      ],
+      "duplicate": false
+    },
+    {
+      "url": "https://luneva-psy.ru/blog/vystraivaem-lichnye-granicy",
+      "slug": "vystraivaem-lichnye-granicy",
+      "matched": true,
+      "articleId": "69ca6982-b281-4eb3-bd6e-c7d655fd516d",
+      "changedFields": [
+        "h1",
+        "seoTitle",
+        "seoDescription",
+        "faq"
+      ],
+      "warnings": [
+        "Image not found, current image kept: /blog/vystraivaem-lichnye-granicy.jpg",
+        "image_alt skipped: articles table has no imageAlt field",
+        "primaryKeyword skipped: articles table has no keyword field"
+      ],
+      "duplicate": false
+    },
+    {
+      "url": "https://luneva-psy.ru/blog/uprazhnenie-osvobozhdenie-ot-negativa",
+      "slug": "uprazhnenie-osvobozhdenie-ot-negativa",
+      "matched": true,
+      "articleId": "6a92fa96-3960-457e-b4e4-2ac40feaba23",
+      "changedFields": [
+        "h1",
+        "seoTitle",
+        "seoDescription",
+        "faq"
+      ],
+      "warnings": [
+        "Image not found, current image kept: /blog/uprazhnenie-osvobozhdenie-ot-negativa.jpg",
+        "image_alt skipped: articles table has no imageAlt field",
+        "primaryKeyword skipped: articles table has no keyword field"
+      ],
+      "duplicate": false
+    },
+    {
+      "url": "https://luneva-psy.ru/blog/5-strahov-obrascheniya-k-psihologu",
+      "slug": "5-strahov-obrascheniya-k-psihologu",
+      "matched": true,
+      "articleId": "e72296d3-214d-4bc9-8816-3e8b70e6ff93",
+      "changedFields": [
+        "h1",
+        "seoTitle",
+        "seoDescription",
+        "faq"
+      ],
+      "warnings": [
+        "Image not found, current image kept: /blog/5-strahov-obrascheniya-k-psihologu.jpg",
+        "image_alt skipped: articles table has no imageAlt field",
+        "primaryKeyword skipped: articles table has no keyword field"
+      ],
+      "duplicate": false
+    },
+    {
+      "url": "https://luneva-psy.ru/blog/kak-ogranichivayuschie-ubezhdeniya-meshayut-nam-dostigat-celey",
+      "slug": "kak-ogranichivayuschie-ubezhdeniya-meshayut-nam-dostigat-celey",
+      "matched": true,
+      "articleId": "322eacde-0b3a-4a15-baf5-7aaaf7efd426",
+      "changedFields": [
+        "h1",
+        "seoTitle",
+        "seoDescription",
+        "faq"
+      ],
+      "warnings": [
+        "Image not found, current image kept: /blog/kak-ogranichivayuschie-ubezhdeniya-meshayut-nam-dostigat-celey.jpg",
+        "image_alt skipped: articles table has no imageAlt field",
+        "primaryKeyword skipped: articles table has no keyword field"
+      ],
+      "duplicate": false
+    },
+    {
+      "url": "https://luneva-psy.ru/blog/chto-nuzhno-delat-esli-vy-popali-v-krizisnuyu-situaciyu",
+      "slug": "chto-nuzhno-delat-esli-vy-popali-v-krizisnuyu-situaciyu",
+      "matched": true,
+      "articleId": "a75e62c7-9f72-4fe4-af4f-8eeb12494518",
+      "changedFields": [
+        "h1",
+        "seoTitle",
+        "seoDescription",
+        "faq"
+      ],
+      "warnings": [
+        "Image not found, current image kept: /blog/chto-nuzhno-delat-esli-vy-popali-v-krizisnuyu-situaciyu.jpg",
+        "image_alt skipped: articles table has no imageAlt field",
+        "primaryKeyword skipped: articles table has no keyword field"
+      ],
+      "duplicate": false
+    },
+    {
+      "url": "https://luneva-psy.ru/blog/kak-ne-vyrastit-abyuzera",
+      "slug": "kak-ne-vyrastit-abyuzera",
+      "matched": true,
+      "articleId": "3a348c88-387a-4805-9808-839601a81c17",
+      "changedFields": [
+        "h1",
+        "seoTitle",
+        "seoDescription",
+        "faq"
+      ],
+      "warnings": [
+        "Image not found, current image kept: /blog/kak-ne-vyrastit-abyuzera.jpg",
+        "image_alt skipped: articles table has no imageAlt field",
+        "primaryKeyword skipped: articles table has no keyword field"
+      ],
+      "duplicate": false
+    },
+    {
+      "url": "https://luneva-psy.ru/blog/kak-perezhit-karantin-i-covid-19",
+      "slug": "kak-perezhit-karantin-i-covid-19",
+      "matched": true,
+      "articleId": "8ba2554d-920e-4d78-ba91-50370a23bec1",
+      "changedFields": [
+        "h1",
+        "seoTitle",
+        "seoDescription",
+        "faq"
+      ],
+      "warnings": [
+        "Image not found, current image kept: /blog/kak-perezhit-karantin-i-covid-19.jpg",
+        "image_alt skipped: articles table has no imageAlt field",
+        "primaryKeyword skipped: articles table has no keyword field"
+      ],
+      "duplicate": false
+    },
+    {
+      "url": "https://luneva-psy.ru/blog/detoks-diety-i-mify-o-detoksikacii",
+      "slug": "detoks-diety-i-mify-o-detoksikacii",
+      "matched": true,
+      "articleId": "acf732da-3be2-4b9d-b499-4bcb42115ec1",
+      "changedFields": [
+        "h1",
+        "seoTitle",
+        "seoDescription",
+        "faq"
+      ],
+      "warnings": [
+        "Image not found, current image kept: /blog/detoks-diety-i-mify-o-detoksikacii.jpg",
+        "image_alt skipped: articles table has no imageAlt field",
+        "primaryKeyword skipped: articles table has no keyword field"
+      ],
+      "duplicate": false
+    }
+  ]
+}
