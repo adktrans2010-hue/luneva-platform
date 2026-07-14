@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import Logo from "@/components/Logo";
+import { SITE_CONTACTS } from "@/src/lib/site-contacts";
 
 export default function Footer() {
   return (
@@ -43,7 +44,7 @@ export default function Footer() {
                 Записаться на консультацию
               </Link>
 
-              <a href="mailto:hello@luneva-psy.ru">hello@luneva-psy.ru</a>
+              <a href={`mailto:${SITE_CONTACTS.email}`}>{SITE_CONTACTS.email}</a>
 
               <div className="mt-4 flex gap-4">
                 <span className="rounded-full border border-[#ead7d1] px-4 py-2">

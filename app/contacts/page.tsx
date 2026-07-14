@@ -1,6 +1,7 @@
 import AppointmentForm from "@/components/AppointmentForm";
 import PageStructuredData from "@/components/seo/page-structured-data";
 import { getSeoPage, seoToMetadata } from "@/src/lib/seo";
+import { SITE_CONTACTS } from "@/src/lib/site-contacts";
 
 export async function generateMetadata() {
   return seoToMetadata(await getSeoPage("/contacts"), "/contacts");
@@ -9,20 +10,20 @@ export async function generateMetadata() {
 const contactCards = [
   {
     title: "WhatsApp",
-    text: "Пишите в WhatsApp: +7 (926) 036-06-93.",
-    href: "https://wa.me/79260360693",
+    text: `Пишите в WhatsApp: ${SITE_CONTACTS.whatsapp}.`,
+    href: SITE_CONTACTS.whatsappHref,
     label: "Написать в WhatsApp",
   },
   {
     title: "Телефон",
-    text: "+7 (926) 036-06-96. На звонки не отвечаю, лучше написать в WhatsApp.",
-    href: "https://wa.me/79260360696",
+    text: `${SITE_CONTACTS.phone}. На звонки не отвечаю, лучше написать в WhatsApp.`,
+    href: SITE_CONTACTS.phoneHref,
     label: "Написать на номер",
   },
   {
     title: "E-mail",
-    text: "Для писем и организационных вопросов: lunevapsy@yandex.ru.",
-    href: "mailto:lunevapsy@yandex.ru",
+    text: `Для писем и организационных вопросов: ${SITE_CONTACTS.publicEmail}.`,
+    href: `mailto:${SITE_CONTACTS.publicEmail}`,
     label: "Написать письмо",
   },
 ];
@@ -95,7 +96,7 @@ export default function ContactsPage() {
 
           <div className="mt-8 flex flex-wrap gap-4">
             <a
-              href="https://wa.me/79260360693"
+              href={SITE_CONTACTS.whatsappHref}
               target="_blank"
               rel="noreferrer"
               className="rounded-2xl border border-[#332725] px-6 py-3 text-[#332725] transition hover:bg-[#fff8f6]"

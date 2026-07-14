@@ -1,4 +1,6 @@
 import Link from "next/link";
+
+import { SITE_CONTACTS } from "@/src/lib/site-contacts";
 import type { ReactNode } from "react";
 
 type LegalPageProps = {
@@ -131,8 +133,8 @@ export default function LegalPage({ title, updatedAt, content }: LegalPageProps)
             <p className="mt-4 leading-7 text-[#5f5552]">
               Если у вас возникли вопросы по работе сайта или обработке персональных данных, напишите нам:
             </p>
-            <a href="mailto:hello@luneva-psy.ru" className="mt-4 inline-flex text-lg text-[#9f665a] underline underline-offset-4">
-              hello@luneva-psy.ru
+            <a href={`mailto:${SITE_CONTACTS.email}`} className="mt-4 inline-flex text-lg text-[#9f665a] underline underline-offset-4">
+              {SITE_CONTACTS.email}
             </a>
           </aside>
         </article>

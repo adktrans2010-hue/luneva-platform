@@ -13,7 +13,7 @@ export default function ReviewForm() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">(
     "idle"
   );
-  const [legalAccepted, setLegalAccepted] = useState(true);
+  const [legalAccepted, setLegalAccepted] = useState(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -44,7 +44,7 @@ export default function ReviewForm() {
     setText("");
     setWebsite("");
     setFormStartedAt(Date.now());
-    setLegalAccepted(true);
+    setLegalAccepted(false);
     setStatus("success");
   }
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { and, eq } from "drizzle-orm";
+import { and, eq, ne, sql } from "drizzle-orm";
 
 import { db } from "@/src/db";
 import {
@@ -102,6 +102,26 @@ export async function POST(request: NextRequest) {
   const contact = user.phone || user.telegram || user.email;
 
   const createdAppointment = await db.transaction(async (tx) => {
+    const lockKey = `${consultationFormat}:${scheduledAt.toISOString()}`;
+
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${lockKey}))`);
+
+    const [busyAppointment] = await tx
+      .select({ id: appointmentRequests.id })
+      .from(appointmentRequests)
+      .where(
+        and(
+          eq(appointmentRequests.scheduledAt, scheduledAt),
+          eq(appointmentRequests.consultationFormat, consultationFormat),
+          ne(appointmentRequests.status, "cancelled")
+        )
+      )
+      .limit(1);
+
+    if (busyAppointment) {
+      throw new Error("Это время уже занято. Выберите другое свободное окно.");
+    }
+
     let selectedPackageId: string | null = null;
 
     if (paymentMethod === "package") {

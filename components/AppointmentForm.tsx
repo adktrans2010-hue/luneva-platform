@@ -39,7 +39,7 @@ export default function AppointmentForm() {
   const [sent, setSent] = useState(false);
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [legalAccepted, setLegalAccepted] = useState(true);
+  const [legalAccepted, setLegalAccepted] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -124,7 +124,7 @@ export default function AppointmentForm() {
     setPaymentUrl(data.paymentUrl ?? null);
     setSent(true);
     setSending(false);
-    setLegalAccepted(true);
+    setLegalAccepted(false);
 
     const slotsResponse = await fetch(
       `/api/appointments/availability?date=${appointmentDate}&format=${consultationFormat}`

@@ -7,6 +7,7 @@ import {
   checkPublicFormSpam,
   getSpamErrorMessage,
 } from "@/src/lib/spam-protection";
+import { notifyOwnerNewReview } from "@/src/lib/telegram";
 
 export async function GET() {
   const data = await db
@@ -65,6 +66,8 @@ export async function POST(request: Request) {
       published: false,
     })
     .returning();
+
+  await notifyOwnerNewReview({ name, age, text });
 
   return NextResponse.json(createdReview, { status: 201 });
 }

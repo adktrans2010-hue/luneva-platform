@@ -25,6 +25,16 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: "/luneva-psy-biography/:path*",
+        destination: "/about",
+        permanent: true,
+      },
+      {
+        source: "/psychological-help/:path*",
+        destination: "/help",
+        permanent: true,
+      },
+      {
         source: "/useful-articles/:path*",
         destination: "/blog",
         permanent: true,
@@ -42,6 +52,7 @@ const nextConfig: NextConfig = {
         "/admin/:path*",
         "/api/:path*",
         "/account/:path*",
+        "/profile",
         "/login",
         "/register",
         "/forgot-password",

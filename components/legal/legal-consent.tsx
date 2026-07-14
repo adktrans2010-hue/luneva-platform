@@ -30,7 +30,7 @@ export default function LegalConsent({
           type="checkbox"
           name="legalConsent"
           required
-          defaultChecked={checked === undefined ? true : undefined}
+          defaultChecked={checked === undefined ? false : undefined}
           className="mt-1 h-4 w-4 shrink-0 accent-[#c98778]"
           {...controlledProps}
         />

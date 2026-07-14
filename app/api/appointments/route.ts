@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
+import { and, eq, ne, sql } from "drizzle-orm";
 
 import { db } from "@/src/db";
 import { appointmentHistory, appointmentRequests } from "@/src/db/schema";
@@ -113,23 +113,57 @@ export async function POST(request: Request) {
       ?.replace(`${USER_COOKIE_NAME}=`, "")
   );
 
-  const [createdRequest] = await db
-    .insert(appointmentRequests)
-    .values({
-      userId,
-      name,
-      contact,
-      contactMethod: "contact",
-      consultationFormat,
-      preferredTime: `${appointmentDate} ${appointmentTime}`,
-      message,
-      scheduledAt,
-      status: "scheduled",
-      paymentMethod,
-      paymentStatus: paymentMethod === "online" ? "waiting" : "not_required",
-      notificationStatus: "not_sent",
-    })
-    .returning();
+  const createdRequest = await db.transaction(async (tx) => {
+    const lockKey = `${consultationFormat}:${scheduledAt.toISOString()}`;
+
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${lockKey}))`);
+
+    const [busyAppointment] = await tx
+      .select({ id: appointmentRequests.id })
+      .from(appointmentRequests)
+      .where(
+        and(
+          eq(appointmentRequests.scheduledAt, scheduledAt),
+          eq(appointmentRequests.consultationFormat, consultationFormat),
+          ne(appointmentRequests.status, "cancelled")
+        )
+      )
+      .limit(1);
+
+    if (busyAppointment) {
+      throw new Error("Это время уже занято. Выберите другое свободное окно.");
+    }
+
+    const [appointment] = await tx
+      .insert(appointmentRequests)
+      .values({
+        userId,
+        name,
+        contact,
+        contactMethod: "contact",
+        consultationFormat,
+        preferredTime: `${appointmentDate} ${appointmentTime}`,
+        message,
+        scheduledAt,
+        status: "scheduled",
+        paymentMethod,
+        paymentStatus: paymentMethod === "online" ? "waiting" : "not_required",
+        notificationStatus: "not_sent",
+      })
+      .returning();
+
+    return appointment;
+  }).catch((error: unknown) => {
+    if (error instanceof Error) {
+      return { error: error.message };
+    }
+
+    return { error: "Не удалось создать запись." };
+  });
+
+  if ("error" in createdRequest) {
+    return NextResponse.json({ error: createdRequest.error }, { status: 409 });
+  }
 
   let paymentUrl: string | null = null;
 

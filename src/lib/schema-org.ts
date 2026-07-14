@@ -1,4 +1,5 @@
 import { absoluteUrl } from "@/src/lib/seo";
+import { SITE_CONTACTS } from "@/src/lib/site-contacts";
 
 export type BreadcrumbItem = {
   name: string;
@@ -33,8 +34,8 @@ export function createGlobalSchema() {
         url: absoluteUrl("/about"),
         image: absoluteUrl("/sasha-about-page.jpg"),
         jobTitle: "Психолог",
-        email: "mailto:lunevapsy@yandex.ru",
-        telephone: "+7-926-036-06-93",
+        email: `mailto:${SITE_CONTACTS.publicEmail}`,
+        telephone: SITE_CONTACTS.whatsapp,
         hasOccupation: {
           "@type": "Occupation",
           name: "Психолог",

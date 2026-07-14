@@ -1,3 +1,6 @@
+import { isEmailConfigured, sendMail } from "@/src/lib/email";
+import { getOwnerNotificationEmail } from "@/src/lib/site-contacts";
+
 type TelegramMessage = {
   text: string;
   chatId?: string | null;
@@ -54,6 +57,52 @@ function formatDateTime(value: Date | null) {
   }).format(value);
 }
 
+function stripTelegramHtml(value: string) {
+  return value.replace(/<[^>]*>/g, "");
+}
+
+async function sendOwnerEmailNotification(subject: string, text: string) {
+  if (!isEmailConfigured()) {
+    return {
+      ok: false,
+      reason: "Email не настроен: добавьте SMTP_HOST, SMTP_USER и SMTP_PASSWORD.",
+    };
+  }
+
+  try {
+    await sendMail({
+      to: getOwnerNotificationEmail(),
+      subject,
+      text: stripTelegramHtml(text),
+    });
+
+    return { ok: true, reason: null };
+  } catch (error) {
+    return {
+      ok: false,
+      reason:
+        error instanceof Error
+          ? error.message
+          : "Не удалось отправить email-уведомление.",
+    };
+  }
+}
+
+function combineNotificationResults(
+  telegramResult: Awaited<ReturnType<typeof sendTelegramMessage>>,
+  emailResult: Awaited<ReturnType<typeof sendOwnerEmailNotification>>
+) {
+  const reasons = [
+    telegramResult.ok ? null : `Telegram: ${telegramResult.reason}`,
+    emailResult.ok ? null : `Email: ${emailResult.reason}`,
+  ].filter(Boolean);
+
+  return {
+    ok: telegramResult.ok || emailResult.ok,
+    reason: reasons.length > 0 ? reasons.join(" | ") : null,
+  };
+}
+
 export function isTelegramConfigured() {
   return Boolean(process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_OWNER_CHAT_ID);
 }
@@ -101,8 +150,7 @@ export async function sendTelegramMessage({ text, chatId }: TelegramMessage) {
 }
 
 export async function notifyOwnerNewAppointment(appointment: AppointmentLike) {
-  return sendTelegramMessage({
-    text: [
+  const text = [
       "<b>Новая запись</b>",
       `Клиент: ${escapeHtml(appointment.name)}`,
       `Контакт: ${escapeHtml(appointment.contact)}`,
@@ -111,8 +159,14 @@ export async function notifyOwnerNewAppointment(appointment: AppointmentLike) {
       appointment.message ? `Запрос: ${escapeHtml(appointment.message)}` : "",
     ]
       .filter(Boolean)
-      .join("\n"),
-  });
+      .join("\n");
+
+  const [telegramResult, emailResult] = await Promise.all([
+    sendTelegramMessage({ text }),
+    sendOwnerEmailNotification("Новая запись на консультацию", text),
+  ]);
+
+  return combineNotificationResults(telegramResult, emailResult);
 }
 
 export async function notifyOwnerAppointmentChanged({
@@ -124,20 +178,24 @@ export async function notifyOwnerAppointmentChanged({
   status?: string;
   dateChanged?: boolean;
 }) {
-  return sendTelegramMessage({
-    text: [
+  const text = [
       dateChanged ? "<b>Изменена дата записи</b>" : "<b>Изменен статус записи</b>",
       `Клиент: ${escapeHtml(appointment.name)}`,
       `Контакт: ${escapeHtml(appointment.contact)}`,
       `Статус: ${status ? statusLabels[status] ?? status : "без изменения"}`,
       `Дата: ${formatDateTime(appointment.scheduledAt)}`,
-    ].join("\n"),
-  });
+    ].join("\n");
+
+  const [telegramResult, emailResult] = await Promise.all([
+    sendTelegramMessage({ text }),
+    sendOwnerEmailNotification("Изменение записи на консультацию", text),
+  ]);
+
+  return combineNotificationResults(telegramResult, emailResult);
 }
 
 export async function notifyOwnerPayment(appointment: AppointmentLike) {
-  return sendTelegramMessage({
-    text: [
+  const text = [
       "<b>Оплата по записи</b>",
       `Клиент: ${escapeHtml(appointment.name)}`,
       `Контакт: ${escapeHtml(appointment.contact)}`,
@@ -150,6 +208,40 @@ export async function notifyOwnerPayment(appointment: AppointmentLike) {
       appointment.paymentLink ? `Ссылка: ${escapeHtml(appointment.paymentLink)}` : "",
     ]
       .filter(Boolean)
-      .join("\n"),
-  });
+      .join("\n");
+
+  const [telegramResult, emailResult] = await Promise.all([
+    sendTelegramMessage({ text }),
+    sendOwnerEmailNotification("Оплата по записи", text),
+  ]);
+
+  return combineNotificationResults(telegramResult, emailResult);
+}
+
+export async function notifyOwnerNewReview({
+  name,
+  age,
+  text,
+}: {
+  name: string;
+  age: string | null;
+  text: string;
+}) {
+  const message = [
+    "<b>Новый отзыв на Luneva Psy</b>",
+    `Имя: ${escapeHtml(name)}`,
+    age ? `Возраст: ${escapeHtml(age)}` : "",
+    "Статус: ожидает модерации",
+    "",
+    escapeHtml(text),
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  const [telegramResult, emailResult] = await Promise.all([
+    sendTelegramMessage({ text: message }),
+    sendOwnerEmailNotification("Новый отзыв на Luneva Psy", message),
+  ]);
+
+  return combineNotificationResults(telegramResult, emailResult);
 }

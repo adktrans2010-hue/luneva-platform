@@ -27,6 +27,11 @@ const publicAdminPaths = new Set([
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  if (pathname === "/" && request.nextUrl.searchParams.get("page_id") === "812") {
+    const redirectUrl = new URL("/blog", request.url);
+    return NextResponse.redirect(redirectUrl, 301);
+  }
+
   if (
     pathname.startsWith("/api") &&
     pathname !== "/api/yookassa/webhook" &&
@@ -91,5 +96,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/:path*", "/account/:path*", "/account"],
+  matcher: ["/", "/admin/:path*", "/api/:path*", "/account/:path*", "/account"],
 };
