@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import {
   ADMIN_COOKIE_NAME,
-  isValidAdminSession,
+  authorizeAdminSession,
 } from "@/src/lib/admin-auth";
 import {
   getUserIdFromSession,
@@ -38,13 +38,14 @@ export async function proxy(request: NextRequest) {
   }
 
   const token = request.cookies.get(ADMIN_COOKIE_NAME)?.value;
+  const authorization = await authorizeAdminSession(token, ["admin"]);
 
-  if (await isValidAdminSession(token)) {
+  if (authorization.authorized) {
     return NextResponse.next();
   }
 
   if (pathname.startsWith("/api/admin")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const loginUrl = new URL("/admin/login", request.url);

@@ -64,7 +64,11 @@ export async function POST(request: NextRequest) {
 
   response.cookies.set({
     name: ADMIN_COOKIE_NAME,
-    value: await createAdminSessionToken(sessionPasswordHash),
+    value: await createAdminSessionToken({
+      email: settings.email,
+      passwordHash: sessionPasswordHash,
+      role: "admin",
+    }),
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",

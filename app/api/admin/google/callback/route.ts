@@ -80,7 +80,11 @@ export async function GET(request: NextRequest) {
     const response = NextResponse.redirect(publicUrl(request, nextPath));
     response.cookies.set({
       name: ADMIN_COOKIE_NAME,
-      value: await createAdminSessionToken(settings.passwordHash),
+      value: await createAdminSessionToken({
+        email: allowedEmail,
+        passwordHash: settings.passwordHash,
+        role: "admin",
+      }),
       httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
