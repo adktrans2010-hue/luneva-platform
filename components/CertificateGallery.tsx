@@ -36,6 +36,8 @@ export default function CertificateGallery({
                 alt={certificate.title || `Сертификат ${index + 1}`}
                 width={260}
                 height={360}
+                loading="lazy"
+                sizes="(min-width: 1024px) 260px, (min-width: 640px) 40vw, 80vw"
                 className="max-h-full object-contain transition group-hover:scale-105"
               />
             </div>
@@ -64,6 +66,8 @@ export default function CertificateGallery({
               src={getCertificateImageSrc(selected)}
               alt={selected.title}
               fill
+              loading="lazy"
+              sizes="(max-width: 1024px) 100vw, 1024px"
               className="object-contain"
             />
           </div>

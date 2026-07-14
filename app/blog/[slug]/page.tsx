@@ -209,6 +209,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               alt={article.h1 || article.title}
               width={1200}
               height={700}
+              loading="lazy"
+              sizes="(max-width: 896px) 100vw, 896px"
               className="h-auto w-full object-cover"
             />
           </div>

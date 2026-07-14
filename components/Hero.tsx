@@ -3,6 +3,10 @@ import Link from "next/link";
 
 import Container from "@/components/Container";
 
+const heroImageSrc = "/sasha-hero.jpg";
+const heroImageSizes =
+  "(min-width: 1280px) 794px, (min-width: 768px) 62vw, 100vw";
+
 function BranchIcon() {
   return (
     <svg
@@ -42,20 +46,21 @@ export default function Hero() {
     <section className="bg-[#fff8f6] py-8 md:py-10">
       <Container>
         <div className="relative min-h-[720px] overflow-hidden rounded-[32px] border border-[#f0ddd6] bg-[#fbf5f2] shadow-[0_18px_70px_rgba(94,55,45,0.05)] md:h-[720px] md:min-h-0">
-          <div className="absolute inset-y-0 right-0 hidden w-[62%] md:block">
+          <div className="absolute inset-x-0 bottom-0 h-[390px] md:inset-y-0 md:right-0 md:left-auto md:h-auto md:w-[62%]">
             <Image
-              src="/sasha-hero.jpg"
+              src={heroImageSrc}
               alt="Лунева Александра Александровна"
               fill
-              priority
-              sizes="(min-width: 1280px) 794px, 62vw"
-              className="object-cover object-[36%_50%]"
+              preload
+              sizes={heroImageSizes}
+              className="object-cover object-[69%_50%] md:object-[36%_50%]"
             />
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#fbf5f2] to-transparent md:hidden" />
           </div>
 
           <div className="pointer-events-none absolute inset-y-0 left-0 right-[20%] hidden bg-[linear-gradient(90deg,#fbf5f2_0%,#fbf5f2_39%,rgba(251,245,242,0.96)_49%,rgba(251,245,242,0.72)_61%,rgba(251,245,242,0.34)_75%,rgba(251,245,242,0.08)_91%,rgba(251,245,242,0)_100%)] md:block" />
 
-          <div className="relative z-10 flex min-h-[720px] w-full flex-col md:h-full md:min-h-0 md:w-[46%]">
+          <div className="relative z-10 flex min-h-[720px] w-full flex-col pb-[390px] md:h-full md:min-h-0 md:w-[46%] md:pb-0">
             <div className="flex flex-1 flex-col justify-center px-8 py-12 sm:px-12 md:px-16 lg:px-[72px]">
               <p className="mb-8 text-[13px] uppercase tracking-[0.42em] text-[#cf7f78]">
                 ПСИХОЛОГ · ГЕШТАЛЬТ-ТЕРАПЕВТ
@@ -103,17 +108,6 @@ export default function Hero() {
               </div>
             </div>
 
-            <div className="relative h-[390px] overflow-hidden md:hidden">
-              <Image
-                src="/sasha-hero.jpg"
-                alt="Лунева Александра Александровна"
-                fill
-                priority
-                sizes="100vw"
-                className="object-cover object-[69%_50%]"
-              />
-              <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#fbf5f2] to-transparent" />
-            </div>
           </div>
         </div>
       </Container>
