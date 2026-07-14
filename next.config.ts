@@ -75,7 +75,7 @@ const nextConfig: NextConfig = {
   images: {
     localPatterns: [
       {
-        pathname: "/certificates/**",
+        pathname: "/**",
       },
     ],
   },
