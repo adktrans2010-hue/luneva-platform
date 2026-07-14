@@ -18,7 +18,7 @@ export default function Footer() {
             </p>
           </div>
 
-          <div>
+          <div className="hidden md:block">
             <p className="mb-5 text-sm uppercase tracking-[0.25em] text-[#c98778]">
               Навигация
             </p>
@@ -29,7 +29,13 @@ export default function Footer() {
               <Link href="/help">Психологическая помощь</Link>
               <Link href="/reviews">Отзывы</Link>
               <Link href="/blog">Полезные статьи</Link>
-              <Link href="/videos">Полезные видео</Link>
+              <span
+                aria-disabled="true"
+                title="Раздел временно недоступен"
+                className="cursor-not-allowed text-[#b8aeab]"
+              >
+                Полезные видео
+              </span>
               <Link href="/faq">Частые вопросы</Link>
             </div>
           </div>
