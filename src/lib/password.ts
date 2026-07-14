@@ -1,19 +1,23 @@
-import { pbkdf2Sync, randomBytes, timingSafeEqual } from "node:crypto";
+import { pbkdf2Sync, timingSafeEqual } from "node:crypto";
+import { compareSync, hashSync } from "bcryptjs";
 
-const iterations = 120000;
 const keyLength = 64;
 const digest = "sha512";
+const bcryptRounds = 12;
 
 export function hashPassword(password: string) {
-  const salt = randomBytes(16).toString("hex");
-  const hash = pbkdf2Sync(password, salt, iterations, keyLength, digest).toString(
-    "hex"
-  );
-
-  return `pbkdf2:${iterations}:${salt}:${hash}`;
+  return hashSync(password, bcryptRounds);
 }
 
 export function verifyPassword(password: string, storedHash: string) {
+  if (storedHash.startsWith("$2a$") || storedHash.startsWith("$2b$")) {
+    try {
+      return compareSync(password, storedHash);
+    } catch {
+      return false;
+    }
+  }
+
   const [method, iterationsText, salt, hash] = storedHash.split(":");
 
   if (method !== "pbkdf2" || !iterationsText || !salt || !hash) {
@@ -34,4 +38,8 @@ export function verifyPassword(password: string, storedHash: string) {
   }
 
   return timingSafeEqual(storedBuffer, nextHash);
+}
+
+export function needsPasswordRehash(storedHash: string) {
+  return !storedHash.startsWith("$2b$12$");
 }

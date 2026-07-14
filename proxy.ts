@@ -13,6 +13,8 @@ const publicAdminPaths = new Set([
   "/admin/login",
   "/api/admin/login",
   "/api/admin/logout",
+  "/api/admin/google/start",
+  "/api/admin/google/callback",
 ]);
 
 export async function proxy(request: NextRequest) {

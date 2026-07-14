@@ -6,8 +6,12 @@ import {
   createAdminSessionToken,
   isAdminAuthConfigured,
 } from "@/src/lib/admin-auth";
-import { getAdminSettings } from "@/src/lib/admin-settings";
-import { verifyPassword } from "@/src/lib/password";
+import { getAdminSettings, updateAdminSettings } from "@/src/lib/admin-settings";
+import {
+  hashPassword,
+  needsPasswordRehash,
+  verifyPassword,
+} from "@/src/lib/password";
 import { publicUrl } from "@/src/lib/public-url";
 import { verifyTotpCode } from "@/src/lib/totp";
 
@@ -48,13 +52,19 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  let sessionPasswordHash = settings.passwordHash;
+  if (needsPasswordRehash(settings.passwordHash)) {
+    sessionPasswordHash = hashPassword(password);
+    await updateAdminSettings({ passwordHash: sessionPasswordHash });
+  }
+
   const response = NextResponse.redirect(publicUrl(request, redirectTo), {
     status: 303,
   });
 
   response.cookies.set({
     name: ADMIN_COOKIE_NAME,
-    value: await createAdminSessionToken(settings.passwordHash),
+    value: await createAdminSessionToken(sessionPasswordHash),
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",

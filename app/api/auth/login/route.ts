@@ -3,7 +3,11 @@ import { eq } from "drizzle-orm";
 
 import { db } from "@/src/db";
 import { users } from "@/src/db/schema";
-import { verifyPassword } from "@/src/lib/password";
+import {
+  hashPassword,
+  needsPasswordRehash,
+  verifyPassword,
+} from "@/src/lib/password";
 import { publicUrl } from "@/src/lib/public-url";
 import {
   createUserSessionToken,
@@ -34,6 +38,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.redirect(publicUrl(request, "/login?error=login"), {
       status: 303,
     });
+  }
+
+  if (needsPasswordRehash(user.passwordHash)) {
+    await db
+      .update(users)
+      .set({ passwordHash: hashPassword(password), updatedAt: new Date() })
+      .where(eq(users.id, user.id));
   }
 
   const response = NextResponse.redirect(publicUrl(request, redirectTo), {
