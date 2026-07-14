@@ -16,12 +16,12 @@ export default function AdminPricingPage() {
           </p>
 
           <h1 className="font-serif text-6xl text-[#332725]">
-            Стоимость консультаций
+            Услуги и стоимость
           </h1>
 
           <p className="mt-6 max-w-3xl text-lg leading-8 text-[#5f5552]">
-            Редактируйте виды консультаций, цены, формат работы и
-            длительность.
+            Добавляйте услуги и редактируйте их описание, цены, формат работы
+            и длительность.
           </p>
         </div>
       </section>

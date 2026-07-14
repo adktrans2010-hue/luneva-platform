@@ -136,7 +136,7 @@ export default function AdminPricing() {
       <div className="mx-auto max-w-7xl">
         <div className="rounded-[2rem] border border-[#ead7d1] bg-white p-8 shadow-sm">
           <h2 className="font-serif text-4xl text-[#332725]">
-            Новая карточка стоимости
+            Новая услуга
           </h2>
 
           <PricingFields
@@ -157,12 +157,12 @@ export default function AdminPricing() {
             disabled={saving}
             className="mt-6 rounded-2xl bg-[#332725] px-6 py-3 text-white disabled:opacity-60"
           >
-            {saving ? "Сохраняю..." : "Добавить стоимость"}
+            {saving ? "Сохраняю..." : "Добавить услугу"}
           </button>
         </div>
 
         <h2 className="mt-14 font-serif text-4xl text-[#332725]">
-          Управление стоимостью
+          Управление услугами
         </h2>
 
         <div className="mt-8 grid gap-6">

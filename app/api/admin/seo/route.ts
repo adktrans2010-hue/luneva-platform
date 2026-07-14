@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { asc } from "drizzle-orm";
 
 import { db } from "@/src/db";
@@ -66,6 +67,8 @@ export async function POST(request: Request) {
   }
 
   const [createdPage] = await db.insert(seoPages).values(item).returning();
+  revalidatePath(item.path);
+  revalidatePath("/sitemap.xml");
 
   return NextResponse.json(createdPage, { status: 201 });
 }

@@ -30,6 +30,7 @@ export default function Footer() {
               <Link href="/reviews">Отзывы</Link>
               <Link href="/blog">Полезные статьи</Link>
               <Link href="/videos">Полезные видео</Link>
+              <Link href="/faq">Частые вопросы</Link>
             </div>
           </div>
 

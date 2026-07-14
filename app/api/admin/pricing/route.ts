@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { asc } from "drizzle-orm";
 
 import { db } from "@/src/db";
@@ -40,6 +41,7 @@ export async function POST(request: Request) {
   }
 
   const [createdItem] = await db.insert(pricingItems).values(item).returning();
+  revalidatePath("/");
 
   return NextResponse.json(createdItem, { status: 201 });
 }

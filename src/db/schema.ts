@@ -100,6 +100,33 @@ export const certificates = pgTable("certificates", {
     .notNull(),
 });
 
+export const faqItems = pgTable("faq_items", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  question: text("question").notNull(),
+  answer: text("answer").notNull(),
+  category: text("category"),
+  published: boolean("published").default(true).notNull(),
+  sortOrder: integer("sort_order").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const sitePages = pgTable(
+  "site_pages",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    path: text("path").notNull(),
+    eyebrow: text("eyebrow"),
+    title: text("title").notNull(),
+    intro: text("intro").notNull(),
+    content: text("content").notNull(),
+    published: boolean("published").default(false).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [uniqueIndex("site_pages_path_unique").on(table.path)]
+);
+
 export const users = pgTable(
   "users",
   {

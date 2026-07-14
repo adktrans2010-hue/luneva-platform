@@ -15,7 +15,7 @@ export default function AdminSeoPage() {
             Luneva Admin
           </p>
 
-          <h1 className="font-serif text-6xl text-[#332725]">SEO</h1>
+          <h1 className="font-serif text-6xl text-[#332725]">Редактор SEO</h1>
 
           <p className="mt-6 max-w-3xl text-lg leading-8 text-[#5f5552]">
             Настраивайте адреса страниц, SEO-заголовки, описания, карту сайта и

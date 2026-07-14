@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 
 import { db } from "@/src/db";
@@ -51,6 +52,11 @@ function validateSeo(item: ReturnType<typeof readSeoBody>) {
 
 export async function PATCH(request: Request, { params }: SeoParams) {
   const { id } = await params;
+  const [previousPage] = await db
+    .select({ path: seoPages.path })
+    .from(seoPages)
+    .where(eq(seoPages.id, id))
+    .limit(1);
   const body = (await request.json()) as Record<string, unknown>;
   const item = readSeoBody(body);
   const error = validateSeo(item);
@@ -67,14 +73,21 @@ export async function PATCH(request: Request, { params }: SeoParams) {
     })
     .where(eq(seoPages.id, id))
     .returning();
+  if (previousPage) revalidatePath(previousPage.path);
+  revalidatePath(item.path);
+  revalidatePath("/sitemap.xml");
 
   return NextResponse.json(updatedPage);
 }
 
 export async function DELETE(_request: Request, { params }: SeoParams) {
   const { id } = await params;
-
-  await db.delete(seoPages).where(eq(seoPages.id, id));
+  const [deletedPage] = await db
+    .delete(seoPages)
+    .where(eq(seoPages.id, id))
+    .returning({ path: seoPages.path });
+  if (deletedPage) revalidatePath(deletedPage.path);
+  revalidatePath("/sitemap.xml");
 
   return NextResponse.json({ success: true });
 }
