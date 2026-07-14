@@ -10,13 +10,6 @@ export async function generateMetadata() {
   return seoToMetadata(await getSeoPage("/reviews"), "/reviews");
 }
 
-function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("ru-RU", {
-    month: "long",
-    year: "numeric",
-  }).format(date);
-}
-
 const topics = [
   "Все",
   "Подростки",
@@ -172,9 +165,7 @@ export default async function ReviewsPage() {
 
                 <div className="mt-6 h-px w-7 bg-[#c98778]" />
 
-                <p className="mt-5 text-sm text-[#5f5552]">
-                  {formatDate(review.createdAt)}
-                </p>
+                <p className="mt-5 text-sm text-[#5f5552]">Архивный отзыв</p>
               </article>
             ))}
           </div>
