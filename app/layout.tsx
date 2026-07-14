@@ -7,6 +7,7 @@ import CookieBanner from "@/components/CookieBanner";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import JsonLd from "@/components/seo/json-ld";
+import ScrollToTop from "@/components/ScrollToTop";
 import { defaultSocialImage } from "@/src/lib/seo";
 import { createGlobalSchema } from "@/src/lib/schema-org";
 import "./globals.css";
@@ -59,6 +60,8 @@ export default function RootLayout({
         <main>{children}</main>
 
         <Footer />
+
+        <ScrollToTop />
 
         <CookieBanner />
       </body>

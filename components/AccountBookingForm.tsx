@@ -43,7 +43,7 @@ export default function AccountBookingForm({ packages }: AccountBookingFormProps
   const [sent, setSent] = useState(false);
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [legalAccepted, setLegalAccepted] = useState(false);
+  const [legalAccepted, setLegalAccepted] = useState(true);
 
   const availablePackages = packages.filter(
     (item) =>
@@ -127,7 +127,7 @@ export default function AccountBookingForm({ packages }: AccountBookingFormProps
     setAppointmentTime("");
     setPaymentUrl(data.paymentUrl ?? null);
     setSending(false);
-    setLegalAccepted(false);
+    setLegalAccepted(true);
 
     const slotsResponse = await fetch(
       `/api/appointments/availability?date=${appointmentDate}&format=${consultationFormat}`
