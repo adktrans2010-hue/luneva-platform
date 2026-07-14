@@ -9,6 +9,12 @@ type CertificateGalleryProps = {
   certificates: Certificate[];
 };
 
+function getCertificateImageSrc(certificate: Certificate) {
+  const separator = certificate.image.includes("?") ? "&" : "?";
+
+  return `${certificate.image}${separator}v=2-${encodeURIComponent(certificate.id)}`;
+}
+
 export default function CertificateGallery({
   certificates,
 }: CertificateGalleryProps) {
@@ -26,7 +32,7 @@ export default function CertificateGallery({
           >
             <div className="flex h-72 items-center justify-center">
               <Image
-                src={certificate.image}
+                src={getCertificateImageSrc(certificate)}
                 alt={certificate.title || `Сертификат ${index + 1}`}
                 width={260}
                 height={360}
@@ -55,7 +61,7 @@ export default function CertificateGallery({
 
           <div className="relative h-[85vh] w-full max-w-5xl">
             <Image
-              src={selected.image}
+              src={getCertificateImageSrc(selected)}
               alt={selected.title}
               fill
               className="object-contain"

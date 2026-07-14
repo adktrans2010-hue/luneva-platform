@@ -1,13 +1,40 @@
+import { randomUUID } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
-import { extname, join } from "node:path";
+import { basename, join, resolve } from "node:path";
 
 const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
+const extensionsByType: Record<string, string> = {
+  "image/jpeg": ".jpg",
+  "image/png": ".png",
+  "image/webp": ".webp",
+};
+const contentTypesByExtension: Record<string, string> = {
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
+  ".webp": "image/webp",
+};
 
-function sanitizeFilePart(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+export function getCertificateUploadDir() {
+  const configuredDir = process.env.CERTIFICATE_UPLOAD_DIR?.trim();
+
+  return configuredDir
+    ? resolve(configuredDir)
+    : join(process.cwd(), "storage", "certificate-uploads");
+}
+
+export function getCertificateUploadPath(fileName: string) {
+  if (!fileName || basename(fileName) !== fileName) {
+    return null;
+  }
+
+  return join(getCertificateUploadDir(), fileName);
+}
+
+export function getCertificateContentType(fileName: string) {
+  const extension = fileName.slice(fileName.lastIndexOf(".")).toLowerCase();
+
+  return contentTypesByExtension[extension] ?? "application/octet-stream";
 }
 
 export async function saveCertificateFile(file: File) {
@@ -15,9 +42,9 @@ export async function saveCertificateFile(file: File) {
     throw new Error("Поддерживаются только JPG, PNG и WEBP.");
   }
 
-  const extension = extname(file.name).toLowerCase() || ".jpg";
-  const fileName = `${Date.now()}-${sanitizeFilePart(file.name)}${extension}`;
-  const uploadDir = join(process.cwd(), "public", "certificates", "uploads");
+  const extension = extensionsByType[file.type];
+  const fileName = `${Date.now()}-${randomUUID()}${extension}`;
+  const uploadDir = getCertificateUploadDir();
   const uploadPath = join(uploadDir, fileName);
 
   await mkdir(uploadDir, { recursive: true });
