@@ -6,7 +6,9 @@ import AnalyticsTracker from "@/components/AnalyticsTracker";
 import CookieBanner from "@/components/CookieBanner";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
+import JsonLd from "@/components/seo/json-ld";
 import { defaultSocialImage } from "@/src/lib/seo";
+import { createGlobalSchema } from "@/src/lib/schema-org";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -44,6 +46,8 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <AnalyticsTracker />
         </Suspense>
+
+        <JsonLd data={createGlobalSchema()} />
 
         <Header />
 

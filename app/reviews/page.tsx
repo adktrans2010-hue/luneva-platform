@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import PageStructuredData from "@/components/seo/page-structured-data";
 import ReviewForm from "@/components/ReviewForm";
 import { getPublishedReviews } from "@/src/lib/reviews";
 import { getSeoPage, seoToMetadata } from "@/src/lib/seo";
@@ -32,6 +33,7 @@ export default async function ReviewsPage() {
 
   return (
     <main className="bg-[#fffaf8]">
+      <PageStructuredData path="/reviews" title="Отзывы клиентов" breadcrumbs={[{ name: "Главная", path: "/" }, { name: "Отзывы", path: "/reviews" }]} />
       <section className="relative overflow-hidden border-b border-[#ead7d1] bg-[#fffaf8] px-6 py-24">
         <div className="absolute inset-y-0 right-0 hidden w-[52%] overflow-hidden bg-[#f4ebe6] lg:block">
           <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,250,248,0.9),rgba(255,250,248,0.22)_42%,rgba(255,250,248,0))]" />

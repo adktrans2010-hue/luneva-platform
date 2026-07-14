@@ -1,5 +1,6 @@
 import { getSeoPage, seoToMetadata } from "@/src/lib/seo";
 import ConsultationCta from "@/components/sections/ConsultationCta";
+import PageStructuredData from "@/components/seo/page-structured-data";
 
 export async function generateMetadata() {
   return seoToMetadata(await getSeoPage("/help"), "/help");
@@ -35,6 +36,7 @@ const helpItems = [
 export default function HelpPage() {
   return (
     <section className="luneva-fade bg-[#fff8f6] px-6 py-24">
+      <PageStructuredData path="/help" title="С чем я могу помочь" breadcrumbs={[{ name: "Главная", path: "/" }, { name: "С чем я могу помочь", path: "/help" }]} />
       <div className="mx-auto max-w-7xl">
         <p className="mb-4 text-sm uppercase tracking-[0.25em] text-[#c98778]">
           Психологическая помощь

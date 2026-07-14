@@ -1,4 +1,6 @@
 import { getPublishedFaqItems } from "@/src/lib/faq";
+import PageStructuredData from "@/components/seo/page-structured-data";
+import JsonLd from "@/components/seo/json-ld";
 import { defaultSocialImage, getSeoPage, seoToMetadata } from "@/src/lib/seo";
 
 export async function generateMetadata() {
@@ -42,7 +44,8 @@ export default async function FaqPage() {
 
   return (
     <section className="bg-[#fff8f6] px-6 py-24">
-      {items.length > 0 && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replaceAll("<", "\\u003c") }} />}
+      <PageStructuredData path="/faq" title="Частые вопросы" breadcrumbs={[{ name: "Главная", path: "/" }, { name: "Частые вопросы", path: "/faq" }]} />
+      {items.length > 0 && <JsonLd data={jsonLd} />}
       <div className="mx-auto max-w-5xl">
         <p className="mb-4 text-sm uppercase tracking-[0.25em] text-[#c98778]">Полезная информация</p>
         <h1 className="font-serif text-6xl leading-tight text-[#332725]">Частые вопросы</h1>

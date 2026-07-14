@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 
+import PageStructuredData from "@/components/seo/page-structured-data";
 import { defaultSocialImage, getSeoPage, seoToMetadata } from "@/src/lib/seo";
 import { getPublishedSitePage } from "@/src/lib/site-pages";
 
@@ -44,13 +45,23 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function ManagedSitePage({ params }: Props) {
   const { slug } = await params;
-  const page = await getPublishedSitePage(toPath(slug));
+  const currentPath = toPath(slug);
+  const page = await getPublishedSitePage(currentPath);
   if (!page) notFound();
 
   const blocks = page.content.split(/\n\s*\n/u).map((block) => block.trim()).filter(Boolean);
 
   return (
     <section className="bg-[#fff8f6] px-6 py-24">
+      <PageStructuredData
+        path={currentPath}
+        title={page.title}
+        description={page.intro}
+        breadcrumbs={[
+          { name: "Главная", path: "/" },
+          { name: page.title, path: currentPath },
+        ]}
+      />
       <div className="mx-auto max-w-5xl">
         {page.eyebrow && <p className="mb-4 text-sm uppercase tracking-[0.25em] text-[#c98778]">{page.eyebrow}</p>}
         <h1 className="font-serif text-6xl leading-tight text-[#332725]">{page.title}</h1>

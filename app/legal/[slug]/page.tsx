@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import LegalPage from "@/components/legal/legal-page";
+import PageStructuredData from "@/components/seo/page-structured-data";
 import { defaultSocialImage } from "@/src/lib/seo";
 
 const legalDocuments = {
@@ -84,5 +85,23 @@ export default async function LegalDocumentPage({ params }: LegalPageProps) {
   const document = legalDocuments[slug];
   const content = await readLegalDocument(slug);
 
-  return <LegalPage title={document.title} updatedAt={document.updatedAt} content={content} />;
+  return (
+    <>
+      <PageStructuredData
+        path={`/legal/${slug}`}
+        title={document.title}
+        description={document.description}
+        breadcrumbs={[
+          { name: "Главная", path: "/" },
+          { name: "Правовая информация", path: "/legal/terms" },
+          { name: document.title, path: `/legal/${slug}` },
+        ]}
+      />
+      <LegalPage
+        title={document.title}
+        updatedAt={document.updatedAt}
+        content={content}
+      />
+    </>
+  );
 }

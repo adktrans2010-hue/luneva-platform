@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import PageStructuredData from "@/components/seo/page-structured-data";
 import { getSeoPage, seoToMetadata } from "@/src/lib/seo";
 
 const requestTopics = [
@@ -77,6 +78,7 @@ function SoftList({ items }: { items: string[] }) {
 export default function AboutPage() {
   return (
     <section className="bg-[#fff8f6] px-6 py-24">
+      <PageStructuredData path="/about" title="О психологе Александре Луневой" breadcrumbs={[{ name: "Главная", path: "/" }, { name: "Обо мне", path: "/about" }]} />
       <div className="mx-auto max-w-7xl">
         <div className="grid gap-16 lg:grid-cols-[1.08fr_0.92fr] lg:items-center">
           <div className="relative">

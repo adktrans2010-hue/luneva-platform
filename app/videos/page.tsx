@@ -1,6 +1,8 @@
 import { getPublishedVideos } from "@/src/lib/videos";
 import { getSeoPage, seoToMetadata } from "@/src/lib/seo";
 import TrackedVideoLink from "@/components/TrackedVideoLink";
+import JsonLd from "@/components/seo/json-ld";
+import PageStructuredData from "@/components/seo/page-structured-data";
 
 const typeLabels: Record<string, string> = {
   short: "Короткое видео",
@@ -37,12 +39,8 @@ export default async function VideosPage() {
 
   return (
     <section className="luneva-fade bg-[#fff8f6] px-6 py-24">
-      {videos.length > 0 && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(videosJsonLd) }}
-        />
-      )}
+      <PageStructuredData path="/videos" title="Полезные видео" breadcrumbs={[{ name: "Главная", path: "/" }, { name: "Видео", path: "/videos" }]} />
+      {videos.length > 0 && <JsonLd data={videosJsonLd} />}
 
       <div className="mx-auto max-w-7xl">
         <p className="mb-4 text-sm uppercase tracking-[0.25em] text-[#c98778]">

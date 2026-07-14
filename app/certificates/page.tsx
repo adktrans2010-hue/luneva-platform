@@ -1,4 +1,6 @@
 import CertificateGallery from "@/components/CertificateGallery";
+import JsonLd from "@/components/seo/json-ld";
+import PageStructuredData from "@/components/seo/page-structured-data";
 import { getPublishedCertificates } from "@/src/lib/certificates";
 import { getSeoPage, seoToMetadata } from "@/src/lib/seo";
 
@@ -25,21 +27,15 @@ export default async function CertificatesPage() {
           certificate.description ||
           certificate.title,
         keywords: certificate.seoKeywords || undefined,
-        contentUrl: certificate.image,
+        contentUrl: new URL(certificate.image, "https://luneva-psy.ru").toString(),
       },
     })),
   };
 
   return (
     <section className="bg-[#fff8f6] px-6 py-24">
-      {certificates.length > 0 && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(certificatesJsonLd),
-          }}
-        />
-      )}
+      <PageStructuredData path="/certificates" title="Дипломы и сертификаты" breadcrumbs={[{ name: "Главная", path: "/" }, { name: "Дипломы и сертификаты", path: "/certificates" }]} />
+      {certificates.length > 0 && <JsonLd data={certificatesJsonLd} />}
 
       <div className="mx-auto max-w-7xl">
         <p className="mb-4 text-sm uppercase tracking-[0.25em] text-[#c98778]">

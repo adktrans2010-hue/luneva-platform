@@ -9,7 +9,9 @@ import {
   type Article,
 } from "@/src/lib/articles";
 import ConsultationCta from "@/components/sections/ConsultationCta";
+import JsonLd from "@/components/seo/json-ld";
 import { defaultSocialImage, siteUrl } from "@/src/lib/seo";
+import { createBreadcrumbSchema } from "@/src/lib/schema-org";
 
 export const dynamic = "force-dynamic";
 
@@ -77,12 +79,10 @@ function buildArticleJsonLd(article: Article, faqItems: FaqItem[]) {
     datePublished: article.createdAt,
     dateModified: article.updatedAt,
     author: {
-      "@type": "Person",
-      name: "Александра Лунева",
+      "@id": `${siteUrl}/#person`,
     },
     publisher: {
-      "@type": "Organization",
-      name: "Luneva Psy",
+      "@id": `${siteUrl}/#person`,
     },
   };
 
@@ -106,6 +106,15 @@ function buildArticleJsonLd(article: Article, faqItems: FaqItem[]) {
       })),
     });
   }
+
+  jsonLd.push({
+    "@context": "https://schema.org",
+    ...createBreadcrumbSchema([
+      { name: "Главная", path: "/" },
+      { name: "Блог", path: "/blog" },
+      { name: article.h1 || article.title, path: `/blog/${article.slug}` },
+    ]),
+  });
 
   return jsonLd;
 }
@@ -174,10 +183,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
   return (
     <article className="bg-[#fff8f6] px-6 py-20">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      <JsonLd data={jsonLd} />
 
       <div className="mx-auto max-w-4xl">
         <Link href="/blog" className="text-[#c98778]">
