@@ -11,7 +11,7 @@ import SeoJsonLd from "@/components/SeoJsonLd";
 import { getSeoPage, seoToMetadata } from "@/src/lib/seo";
 
 export async function generateMetadata() {
-  return seoToMetadata(await getSeoPage("/"));
+  return seoToMetadata(await getSeoPage("/"), "/");
 }
 
 export default async function Home() {

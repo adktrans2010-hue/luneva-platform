@@ -38,11 +38,18 @@ export function absoluteUrl(path: string) {
   return new URL(normalizePath(path), siteUrl).toString();
 }
 
-export function seoToMetadata(page?: SeoPage): Metadata {
+export function seoToMetadata(page?: SeoPage, fallbackPath = "/"): Metadata {
   if (!page) {
     return {
       title: "Luneva Psy",
       description: "Психолог Александра Лунева. Консультации онлайн и очно.",
+      alternates: {
+        canonical: absoluteUrl(fallbackPath),
+      },
+      robots: {
+        index: true,
+        follow: true,
+      },
     };
   }
 

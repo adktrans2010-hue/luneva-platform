@@ -2,7 +2,7 @@ import AppointmentForm from "@/components/AppointmentForm";
 import { getSeoPage, seoToMetadata } from "@/src/lib/seo";
 
 export async function generateMetadata() {
-  return seoToMetadata(await getSeoPage("/contacts"));
+  return seoToMetadata(await getSeoPage("/contacts"), "/contacts");
 }
 
 const contactCards = [

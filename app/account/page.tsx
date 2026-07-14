@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { asc, desc, eq } from "drizzle-orm";
@@ -10,6 +11,10 @@ import AccountBookingForm from "@/components/AccountBookingForm";
 import LegalConsent from "@/components/legal/legal-consent";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false, nocache: true },
+};
 
 type AccountPageProps = {
   searchParams: Promise<{

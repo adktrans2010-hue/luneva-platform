@@ -18,8 +18,13 @@ export async function generateMetadata({ params }: Props) {
   ]);
   if (!page) return {};
   return seo
-    ? seoToMetadata(seo)
-    : { title: `${page.title} | Luneva Psy`, description: page.intro };
+    ? seoToMetadata(seo, path)
+    : {
+        title: `${page.title} | Luneva Psy`,
+        description: page.intro,
+        alternates: { canonical: `https://luneva-psy.ru${path}` },
+        robots: { index: true, follow: true },
+      };
 }
 
 export default async function ManagedSitePage({ params }: Props) {

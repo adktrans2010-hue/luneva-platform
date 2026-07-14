@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { desc } from "drizzle-orm";
 
 import { db } from "@/src/db";
@@ -47,6 +48,8 @@ export async function POST(request: Request) {
       slug: await createUniqueSlug(article.title),
     })
     .returning();
+
+  revalidatePath("/sitemap.xml");
 
   return NextResponse.json(createdArticle, { status: 201 });
 }

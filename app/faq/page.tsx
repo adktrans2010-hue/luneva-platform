@@ -4,10 +4,12 @@ import { getSeoPage, seoToMetadata } from "@/src/lib/seo";
 export async function generateMetadata() {
   const seo = await getSeoPage("/faq");
   return seo
-    ? seoToMetadata(seo)
+    ? seoToMetadata(seo, "/faq")
     : {
         title: "Частые вопросы | Luneva Psy",
         description: "Ответы на частые вопросы о консультациях психолога Александры Луневой.",
+        alternates: { canonical: "https://luneva-psy.ru/faq" },
+        robots: { index: true, follow: true },
       };
 }
 

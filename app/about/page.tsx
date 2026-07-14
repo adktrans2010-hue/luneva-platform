@@ -30,7 +30,7 @@ const trustStatements = [
 ];
 
 export async function generateMetadata() {
-  return seoToMetadata(await getSeoPage("/about"));
+  return seoToMetadata(await getSeoPage("/about"), "/about");
 }
 
 function TextBlock({

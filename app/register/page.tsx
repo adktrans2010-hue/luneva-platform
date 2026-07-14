@@ -1,6 +1,11 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 
 import LegalConsent from "@/components/legal/legal-consent";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false, nocache: true },
+};
 
 type RegisterPageProps = {
   searchParams: Promise<{

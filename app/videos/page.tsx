@@ -10,7 +10,7 @@ const typeLabels: Record<string, string> = {
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata() {
-  return seoToMetadata(await getSeoPage("/videos"));
+  return seoToMetadata(await getSeoPage("/videos"), "/videos");
 }
 
 export default async function VideosPage() {

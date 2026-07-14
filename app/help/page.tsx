@@ -2,7 +2,7 @@ import { getSeoPage, seoToMetadata } from "@/src/lib/seo";
 import ConsultationCta from "@/components/sections/ConsultationCta";
 
 export async function generateMetadata() {
-  return seoToMetadata(await getSeoPage("/help"));
+  return seoToMetadata(await getSeoPage("/help"), "/help");
 }
 
 const helpItems = [

@@ -22,8 +22,37 @@ const contentSecurityPolicy = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  async redirects() {
+    return [
+      {
+        source: "/useful-articles/:path*",
+        destination: "/blog",
+        permanent: true,
+      },
+      {
+        source: "/contact-us/:path*",
+        destination: "/contacts",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
+      ...[
+        "/admin/:path*",
+        "/api/:path*",
+        "/account/:path*",
+        "/login",
+        "/register",
+        "/forgot-password",
+        "/reset-password",
+        "/verify",
+      ].map((source) => ({
+        source,
+        headers: [
+          { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+        ],
+      })),
       {
         source: "/(.*)",
         headers: [

@@ -6,7 +6,7 @@ import { getPublishedReviews } from "@/src/lib/reviews";
 import { getSeoPage, seoToMetadata } from "@/src/lib/seo";
 
 export async function generateMetadata() {
-  return seoToMetadata(await getSeoPage("/reviews"));
+  return seoToMetadata(await getSeoPage("/reviews"), "/reviews");
 }
 
 function formatDate(date: Date) {
