@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 
 import { Suspense } from "react";
 
@@ -33,6 +33,11 @@ export const metadata: Metadata = {
     description: "Психолог Александра Лунева. Консультации онлайн и очно.",
     images: [defaultSocialImage.url],
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#fff8f6",
+  colorScheme: "light",
 };
 
 export default function RootLayout({
