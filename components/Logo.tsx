@@ -21,6 +21,11 @@ export default function Logo({ variant = "header" }: LogoProps) {
         width={1774}
         height={887}
         preload={!isFooter}
+        sizes={
+          isFooter
+            ? "(max-width: 639px) 281px, 365px"
+            : "(max-width: 359px) 243px, (max-width: 639px) 273px, 330px"
+        }
         className="absolute top-1/2 left-1/2 h-auto w-full max-w-none -translate-x-1/2 -translate-y-1/2"
       />
     </span>
