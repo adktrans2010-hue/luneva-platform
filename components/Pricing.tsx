@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import MobileCarousel from "@/components/MobileCarousel";
 import { getPublishedPricingItems } from "@/src/lib/pricing";
 
 function formatPrice(value: number) {
@@ -24,7 +25,11 @@ export default async function Pricing() {
           Форматы консультаций
         </h2>
 
-        <div className="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+        <MobileCarousel
+          label="Форматы консультаций"
+          className="mt-12"
+          desktopGridClassName="md:grid-cols-2 md:gap-6 xl:grid-cols-4"
+        >
           {items.map((item) => (
             <article
               key={item.id}
@@ -60,7 +65,7 @@ export default async function Pricing() {
               </Link>
             </article>
           ))}
-        </div>
+        </MobileCarousel>
       </div>
     </section>
   );

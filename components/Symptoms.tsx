@@ -1,3 +1,5 @@
+import MobileCarousel from "@/components/MobileCarousel";
+
 const symptoms = [
   "Нарушения приема пищи и расстройства пищевого поведения.",
   "Сложности в отношениях с партнером, детьми, родителями",
@@ -28,7 +30,11 @@ export default function Symptoms() {
         </p>
 
 
-        <div className="mt-14 grid gap-6 md:grid-cols-3">
+        <MobileCarousel
+          label="Когда стоит обратиться"
+          className="mt-14"
+          desktopGridClassName="md:grid-cols-3 md:gap-6"
+        >
           {symptoms.map((item) => (
             <div
               key={item}
@@ -52,7 +58,7 @@ export default function Symptoms() {
               </p>
             </div>
           ))}
-        </div>
+        </MobileCarousel>
 
       </div>
     </section>

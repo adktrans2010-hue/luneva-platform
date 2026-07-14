@@ -1,4 +1,5 @@
 import Image from "next/image";
+import MobileCarousel from "@/components/MobileCarousel";
 import { getPublishedReviews } from "@/src/lib/reviews";
 
 type ReviewsProps = {
@@ -32,7 +33,11 @@ export default async function Reviews({ limit }: ReviewsProps) {
           Истории людей, которые обратились за поддержкой
         </h2>
 
-        <div className="mt-20 grid gap-10 md:grid-cols-2 lg:grid-cols-3">
+        <MobileCarousel
+          label="Отзывы"
+          className="mt-8 pt-12 md:mt-20 md:pt-0"
+          desktopGridClassName="md:grid-cols-2 md:gap-10 lg:grid-cols-3"
+        >
           {visibleReviews.map((review) => (
             <div
               key={review.id}
@@ -65,7 +70,7 @@ export default async function Reviews({ limit }: ReviewsProps) {
               </p>
             </div>
           ))}
-        </div>
+        </MobileCarousel>
       </div>
     </section>
   );
