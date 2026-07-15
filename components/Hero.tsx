@@ -66,7 +66,7 @@ export default function Hero() {
                 ПСИХОЛОГ · ГЕШТАЛЬТ-ТЕРАПЕВТ
               </p>
 
-              <h1 className="font-serif text-[43px] font-normal leading-[1.12] text-[#332725] sm:text-[61px] lg:text-[66px]">
+              <h1 className="font-serif text-[32px] font-normal leading-[1.12] text-[#332725] min-[360px]:text-[36px] min-[400px]:text-[39px] sm:text-[61px] lg:text-[66px]">
                 Лунева
                 <br />
                 Александра
