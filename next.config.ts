@@ -22,27 +22,28 @@ const contentSecurityPolicy = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  skipTrailingSlashRedirect: true,
   async redirects() {
     return [
       {
         source: "/luneva-psy-biography/:path*",
         destination: "/about",
-        permanent: true,
+        statusCode: 301,
       },
       {
         source: "/psychological-help/:path*",
         destination: "/help",
-        permanent: true,
+        statusCode: 301,
       },
       {
         source: "/useful-articles/:path*",
         destination: "/blog",
-        permanent: true,
+        statusCode: 301,
       },
       {
         source: "/contact-us/:path*",
         destination: "/contacts",
-        permanent: true,
+        statusCode: 301,
       },
     ];
   },
