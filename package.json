@@ -10,6 +10,7 @@
     "type-check": "tsc --noEmit",
     "import:articles": "tsx scripts/import-articles-from-markdown.ts",
     "import:article-seo": "tsx scripts/import-article-seo.ts",
+    "cleanup:blog": "tsx scripts/cleanup-blog-quality.ts",
     "admin:ensure": "tsx scripts/ensure-admin-settings.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",

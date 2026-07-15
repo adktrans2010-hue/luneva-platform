@@ -77,8 +77,8 @@ export default async function ReviewsPage() {
             <div className="flex items-center gap-5">
               <span className="text-4xl text-[#c9a59b]">♧</span>
               <div>
-                <div className="font-serif text-3xl text-[#332725]">150+</div>
-                <div className="text-[#5f5552]">консультаций</div>
+                <div className="font-serif text-3xl text-[#332725]">2500+</div>
+                <div className="text-[#5f5552]">часов консультаций</div>
               </div>
             </div>
 

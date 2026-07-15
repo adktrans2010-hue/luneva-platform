@@ -1,8 +1,8 @@
 export const SITE_CONTACTS = {
-  email: "hello@luneva-psy.ru",
-  publicEmail: "lunevapsy@yandex.ru",
-  phone: "+7 (926) 036-06-96",
-  phoneHref: "https://wa.me/79260360696",
+  email: "info@luneva-psy.ru",
+  publicEmail: "info@luneva-psy.ru",
+  phone: "+7 (926) 036-06-93",
+  phoneHref: "https://wa.me/79260360693",
   whatsapp: "+7 (926) 036-06-93",
   whatsappHref: "https://wa.me/79260360693",
   domain: "https://luneva-psy.ru",

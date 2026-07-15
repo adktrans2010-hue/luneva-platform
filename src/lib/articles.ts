@@ -1,7 +1,8 @@
-import { and, desc, eq, ne } from "drizzle-orm";
+import { and, desc, eq, ne, notInArray } from "drizzle-orm";
 
 import { db } from "@/src/db";
 import { articles } from "@/src/db/schema";
+import { ARCHIVED_ARTICLE_SLUGS } from "@/src/lib/article-archive";
 
 export type Article = typeof articles.$inferSelect;
 
@@ -88,7 +89,12 @@ export async function getPublishedArticles() {
   return db
     .select()
     .from(articles)
-    .where(eq(articles.published, true))
+    .where(
+      and(
+        eq(articles.published, true),
+        notInArray(articles.slug, ARCHIVED_ARTICLE_SLUGS)
+      )
+    )
     .orderBy(desc(articles.createdAt));
 }
 
@@ -113,9 +119,14 @@ export async function getRelatedPublishedArticles(article: Article, limit = 3) {
         ? and(
             eq(articles.published, true),
             eq(articles.category, category),
-            ne(articles.id, article.id)
+            ne(articles.id, article.id),
+            notInArray(articles.slug, ARCHIVED_ARTICLE_SLUGS)
           )
-        : and(eq(articles.published, true), ne(articles.id, article.id))
+        : and(
+            eq(articles.published, true),
+            ne(articles.id, article.id),
+            notInArray(articles.slug, ARCHIVED_ARTICLE_SLUGS)
+          )
     )
     .orderBy(desc(articles.createdAt))
     .limit(limit);

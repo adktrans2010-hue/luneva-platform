@@ -16,6 +16,14 @@ import {
   hasValidRequestSource,
   isUnsafeRequest,
 } from "@/src/lib/admin-security";
+import { getArticleRedirect } from "@/src/lib/article-archive";
+
+const legacyRedirects: Record<string, string> = {
+  "/contact-us": "/contacts",
+  "/useful-articles": "/blog",
+  "/luneva-psy-biography": "/about",
+  "/psychological-help": "/help",
+};
 
 const publicAdminPaths = new Set([
   "/admin/login",
@@ -30,6 +38,25 @@ export async function proxy(request: NextRequest) {
   if (pathname === "/" && request.nextUrl.searchParams.get("page_id") === "812") {
     const redirectUrl = new URL("/blog", request.url);
     return NextResponse.redirect(redirectUrl, 301);
+  }
+
+  const normalizedPathname =
+    pathname.length > 1 && pathname.endsWith("/")
+      ? pathname.slice(0, -1)
+      : pathname;
+  const legacyTarget = legacyRedirects[normalizedPathname];
+
+  if (legacyTarget) {
+    return NextResponse.redirect(new URL(legacyTarget, request.url), 301);
+  }
+
+  if (pathname.startsWith("/blog/")) {
+    const slug = decodeURIComponent(pathname.replace(/^\/blog\//, "").replace(/\/$/, ""));
+    const targetSlug = getArticleRedirect(slug);
+
+    if (targetSlug) {
+      return NextResponse.redirect(new URL(`/blog/${targetSlug}`, request.url), 301);
+    }
   }
 
   if (
@@ -56,6 +83,10 @@ export async function proxy(request: NextRequest) {
     loginUrl.searchParams.set("next", pathname);
 
     return NextResponse.redirect(loginUrl);
+  }
+
+  if (!pathname.startsWith("/admin") && !pathname.startsWith("/api/admin")) {
+    return NextResponse.next();
   }
 
   if (publicAdminPaths.has(pathname)) {
@@ -96,5 +127,16 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/admin/:path*", "/api/:path*", "/account/:path*", "/account"],
+  matcher: [
+    "/",
+    "/admin/:path*",
+    "/api/:path*",
+    "/account/:path*",
+    "/account",
+    "/blog/:path*",
+    "/contact-us/:path*",
+    "/useful-articles/:path*",
+    "/luneva-psy-biography/:path*",
+    "/psychological-help/:path*",
+  ],
 };
