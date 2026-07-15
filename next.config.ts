@@ -4,12 +4,15 @@ import { fileURLToPath } from "node:url";
 
 const projectRoot = dirname(fileURLToPath(import.meta.url));
 const isDev = process.env.NODE_ENV === "development";
+const staticAssetOrigin = "https://egotifubasem.begetcdn.cloud";
+const staticAssetPrefix = `${staticAssetOrigin}/luneva-v1`;
+const staticSource = isDev ? "" : ` ${staticAssetOrigin}`;
 const contentSecurityPolicy = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
-  "font-src 'self' data:",
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}${staticSource}`,
+  `style-src 'self' 'unsafe-inline'${staticSource}`,
+  `img-src 'self' data: blob:${staticSource}`,
+  `font-src 'self' data:${staticSource}`,
   "connect-src 'self'",
   "frame-src 'self' https://yandex.ru",
   "media-src 'self'",
@@ -21,6 +24,7 @@ const contentSecurityPolicy = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  assetPrefix: isDev ? undefined : staticAssetPrefix,
   poweredByHeader: false,
   skipTrailingSlashRedirect: true,
   async redirects() {
