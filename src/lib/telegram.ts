@@ -222,15 +222,18 @@ export async function notifyOwnerNewReview({
   name,
   age,
   text,
+  rating,
 }: {
   name: string;
   age: string | null;
   text: string;
+  rating: number;
 }) {
   const message = [
     "<b>Новый отзыв на Luneva Psy</b>",
     `Имя: ${escapeHtml(name)}`,
     age ? `Возраст: ${escapeHtml(age)}` : "",
+    `Оценка: ${rating} из 5`,
     "Статус: ожидает модерации",
     "",
     escapeHtml(text),

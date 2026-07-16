@@ -10,6 +10,16 @@ export async function PATCH(
 ) {
   const { id } = await params;
   const body = await request.json();
+  const rating = Number(body.rating);
+  const createdAt = new Date(body.createdAt);
+
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+    return NextResponse.json({ error: "Некорректная оценка" }, { status: 400 });
+  }
+
+  if (Number.isNaN(createdAt.getTime())) {
+    return NextResponse.json({ error: "Некорректная дата" }, { status: 400 });
+  }
 
   const [updatedReview] = await db
     .update(reviews)
@@ -18,7 +28,10 @@ export async function PATCH(
       age: body.age,
       text: body.text,
       image: body.image,
+      rating,
+      categoryId: body.categoryId || null,
       published: body.published,
+      createdAt,
     })
     .where(eq(reviews.id, id))
     .returning();

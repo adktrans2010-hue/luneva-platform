@@ -44,14 +44,22 @@ export async function POST(request: Request) {
     );
   }
 
-  const name = String(body.name || "").trim();
+  const name = String(body.name || "").trim() || "Клиент";
   const age = body.age ? String(body.age).trim() : null;
   const text = String(body.text || "").trim();
   const image = body.image ? String(body.image).trim() : null;
+  const rating = Number(body.rating);
 
-  if (!name || !text) {
+  if (!text) {
     return NextResponse.json(
-      { error: "Имя и текст отзыва обязательны" },
+      { error: "Текст отзыва обязателен" },
+      { status: 400 }
+    );
+  }
+
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+    return NextResponse.json(
+      { error: "Выберите оценку от 1 до 5" },
       { status: 400 }
     );
   }
@@ -63,11 +71,12 @@ export async function POST(request: Request) {
       age,
       text,
       image,
+      rating,
       published: false,
     })
     .returning();
 
-  await notifyOwnerNewReview({ name, age, text });
+  await notifyOwnerNewReview({ name, age, text, rating });
 
   return NextResponse.json(createdReview, { status: 201 });
 }

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import MobileCarousel from "@/components/MobileCarousel";
+import StarRating from "@/components/StarRating";
 import { getPublishedReviews } from "@/src/lib/reviews";
 
 type ReviewsProps = {
@@ -59,7 +60,9 @@ export default async function Reviews({ limit }: ReviewsProps) {
                 {review.age ? `${review.name}, ${review.age}` : review.name}
               </h3>
 
-              <div className="mt-4 text-[#c98778]">★★★★★</div>
+              <div className="mt-4">
+                <StarRating value={review.rating} size="sm" />
+              </div>
 
               <p className="mt-8 font-serif text-lg italic leading-8 text-[#332725]">
                 {review.text}

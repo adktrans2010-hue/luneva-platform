@@ -9,6 +9,19 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 
+export const reviewCategories = pgTable(
+  "review_categories",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    name: text("name").notNull(),
+    active: boolean("active").default(true).notNull(),
+    sortOrder: integer("sort_order").default(0).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [uniqueIndex("review_categories_name_unique").on(table.name)]
+);
+
 export const reviews = pgTable("reviews", {
   id: uuid("id").defaultRandom().primaryKey(),
 
@@ -19,6 +32,14 @@ export const reviews = pgTable("reviews", {
   text: text("text").notNull(),
 
   image: text("image"),
+
+  rating: integer("rating")
+    .default(5)
+    .notNull(),
+
+  categoryId: uuid("category_id").references(() => reviewCategories.id, {
+    onDelete: "set null",
+  }),
 
   published: boolean("published")
     .default(true)

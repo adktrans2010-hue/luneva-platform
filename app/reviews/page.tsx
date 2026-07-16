@@ -1,35 +1,26 @@
-import Image from "next/image";
 import Link from "next/link";
 
 import PageStructuredData from "@/components/seo/page-structured-data";
 import ReviewForm from "@/components/ReviewForm";
-import { getPublishedReviews } from "@/src/lib/reviews";
+import ReviewsCatalog from "@/components/ReviewsCatalog";
+import {
+  getActiveReviewCategories,
+  getPublishedReviews,
+} from "@/src/lib/reviews";
 import { getSeoPage, seoToMetadata } from "@/src/lib/seo";
 
 export async function generateMetadata() {
   return seoToMetadata(await getSeoPage("/reviews"), "/reviews");
 }
 
-function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("ru-RU", {
-    month: "long",
-    year: "numeric",
-  }).format(date);
-}
-
-const topics = [
-  "Все",
-  "Подростки",
-  "Тревога",
-  "РПП",
-  "Отношения",
-  "Самооценка",
-  "Кризисы",
-  "Границы",
-];
-
 export default async function ReviewsPage() {
-  const reviews = await getPublishedReviews();
+  const [reviews, categories] = await Promise.all([
+    getPublishedReviews(),
+    getActiveReviewCategories(),
+  ]);
+  const averageRating = reviews.length
+    ? reviews.reduce((total, review) => total + review.rating, 0) / reviews.length
+    : 0;
 
   return (
     <main className="bg-[#fffaf8]">
@@ -85,7 +76,9 @@ export default async function ReviewsPage() {
             <div className="flex items-center gap-5">
               <span className="text-4xl text-[#c9a59b]">☆</span>
               <div>
-                <div className="font-serif text-3xl text-[#332725]">5.0</div>
+                <div className="font-serif text-3xl text-[#332725]">
+                  {averageRating.toFixed(1)}
+                </div>
                 <div className="text-[#5f5552]">средняя оценка</div>
               </div>
             </div>
@@ -100,90 +93,17 @@ export default async function ReviewsPage() {
             </div>
           </div>
 
-          <div className="mt-9 flex flex-wrap gap-4">
-            {topics.map((topic) => (
-              <button
-                key={topic}
-                type="button"
-                className={
-                  topic === "Все"
-                    ? "rounded-full bg-[#332725] px-8 py-3 text-white shadow-sm"
-                    : "rounded-full border border-[#ead7d1] bg-white px-8 py-3 text-[#332725] transition hover:border-[#c98778]"
-                }
-              >
-                {topic}
-              </button>
-            ))}
-          </div>
-
           <div className="mt-6">
             <ReviewForm />
           </div>
 
-          <div className="mt-7 columns-1 gap-5 md:columns-2 lg:columns-3">
-            {reviews.map((review, index) => (
-              <article
-                key={review.id}
-                className="mb-5 break-inside-avoid rounded-[1.4rem] border border-[#ead7d1] bg-white/78 p-7 shadow-sm"
-              >
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-[#ead7d1] bg-[#fff8f6] text-xl text-[#c29a90]">
-                      {review.image ? (
-                        <Image
-                          src={review.image}
-                          alt={review.name}
-                          width={44}
-                          height={44}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : index % 2 === 0 ? (
-                        <span aria-label="Женщина">♀</span>
-                      ) : (
-                        <span aria-label="Мужчина">♂</span>
-                      )}
-                    </div>
-
-                    <div>
-                      <div className="text-sm text-[#332725]">
-                        {review.name || "Клиент"}
-                      </div>
-                      {review.age && (
-                        <div className="text-xs text-[#8a7a76]">{review.age}</div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div
-                    aria-label="Оценка 5 из 5"
-                    className="text-lg tracking-[0.12em] text-[#c29a90]"
-                  >
-                    ★★★★★
-                  </div>
-                </div>
-
-                <div className="mt-5 font-serif text-4xl leading-none text-[#c29a90]">
-                  “
-                </div>
-
-                <p className="mt-3 font-serif text-2xl leading-snug text-[#332725]">
-                  {review.text}
-                </p>
-
-                <div className="mt-6 h-px w-7 bg-[#c98778]" />
-
-                <p className="mt-5 text-sm text-[#5f5552]">
-                  {formatDate(review.createdAt)}
-                </p>
-              </article>
-            ))}
-          </div>
-
-          {reviews.length === 0 && (
-            <div className="mt-8 rounded-[1.4rem] border border-[#ead7d1] bg-white p-8 text-[#5f5552]">
-              Отзывы появятся здесь после публикации в админке.
-            </div>
-          )}
+          <ReviewsCatalog
+            reviews={reviews.map((review) => ({
+              ...review,
+              createdAt: review.createdAt.toISOString(),
+            }))}
+            categories={categories.map(({ id, name }) => ({ id, name }))}
+          />
         </div>
       </section>
 

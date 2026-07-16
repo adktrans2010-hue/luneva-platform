@@ -3,11 +3,13 @@
 import { useState } from "react";
 
 import LegalConsent from "@/components/legal/legal-consent";
+import StarRating from "@/components/StarRating";
 
 export default function ReviewForm() {
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
   const [text, setText] = useState("");
+  const [rating, setRating] = useState(0);
   const [website, setWebsite] = useState("");
   const [formStartedAt, setFormStartedAt] = useState(() => Date.now());
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">(
@@ -28,6 +30,7 @@ export default function ReviewForm() {
         name,
         age,
         text,
+        rating,
         website,
         formStartedAt,
         legalConsent: legalAccepted,
@@ -42,6 +45,7 @@ export default function ReviewForm() {
     setName("");
     setAge("");
     setText("");
+    setRating(0);
     setWebsite("");
     setFormStartedAt(Date.now());
     setLegalAccepted(false);
@@ -113,16 +117,17 @@ export default function ReviewForm() {
           />
 
           <div className="mt-4 grid items-center gap-5 md:grid-cols-[1fr_auto]">
-            <div className="flex items-center gap-4 text-[#8a7a76]">
-              <span>Оценка</span>
-              <span className="text-3xl tracking-[0.2em] text-[#c9a59b]">
-                ☆ ☆ ☆ ☆ ☆
-              </span>
+            <div className="text-[#8a7a76]">
+              <div className="mb-1 text-sm">Ваша оценка</div>
+              <StarRating value={rating} onChange={setRating} size="lg" />
+              {rating === 0 && (
+                <div className="mt-1 text-sm">Выберите количество звёзд</div>
+              )}
             </div>
 
             <button
               type="submit"
-              disabled={status === "loading" || !legalAccepted}
+              disabled={status === "loading" || !legalAccepted || rating === 0}
               className="rounded-xl bg-[#332725] px-10 py-4 text-white shadow-lg disabled:opacity-60"
             >
               {status === "loading" ? "Отправляем..." : "Отправить отзыв"}
