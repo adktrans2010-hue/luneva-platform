@@ -1,14 +1,13 @@
 import Link from "next/link";
 
 import MobileCarousel from "@/components/MobileCarousel";
-import { getPublishedPricingItems } from "@/src/lib/pricing";
-
-function formatPrice(value: number) {
-  return new Intl.NumberFormat("ru-RU").format(value);
-}
+import {
+  formatKopeks,
+  getPublicConsultationProducts,
+} from "@/src/lib/consultation-products";
 
 export default async function Pricing() {
-  const items = await getPublishedPricingItems();
+  const items = await getPublicConsultationProducts();
 
   if (items.length === 0) {
     return null;
@@ -36,23 +35,37 @@ export default async function Pricing() {
               className="group flex min-h-[420px] flex-col justify-between rounded-[2rem] border border-[#ead7d1] bg-white px-8 py-10 text-center shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
             >
               <div>
+                {item.badge && (
+                  <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-[#c98778]">
+                    {item.badge}
+                  </p>
+                )}
+
                 <h3 className="text-base font-semibold uppercase tracking-[0.12em] text-[#332725]">
-                  {item.title}
+                  {item.name}
                 </h3>
 
                 <div className="mx-auto mt-6 h-[2px] w-20 bg-[#c98778]" />
 
                 <p className="mt-7 text-lg leading-8 text-[#5f5552]">
-                  {item.description}, стоимость{" "}
+                  {item.shortDescription ||
+                    `${item.sessionsCount} консультаций, ${item.durationMinutes} минут`}
+                  , стоимость{" "}
                   <span className="font-semibold text-[#332725]">
-                    {formatPrice(item.price)}
+                    {formatKopeks(item.priceKopeks)}
                   </span>{" "}
                   руб.
                 </p>
 
-                {item.oldPrice && (
+                {item.oldPriceKopeks && (
                   <p className="mt-3 text-sm font-semibold text-[#8a7a76] line-through">
-                    {formatPrice(item.oldPrice)} руб
+                    {formatKopeks(item.oldPriceKopeks)} руб.
+                  </p>
+                )}
+
+                {item.savingsKopeks && (
+                  <p className="mt-3 text-sm font-semibold text-[#c98778]">
+                    Экономия {formatKopeks(item.savingsKopeks)} руб.
                   </p>
                 )}
               </div>
@@ -61,7 +74,7 @@ export default async function Pricing() {
                 href="/contacts#booking"
                 className="mt-8 inline-flex min-w-44 justify-center rounded-2xl bg-[#332725] px-8 py-4 font-semibold text-white shadow-lg transition group-hover:bg-[#4a3935]"
               >
-                {item.buttonText}
+                Записаться
               </Link>
             </article>
           ))}

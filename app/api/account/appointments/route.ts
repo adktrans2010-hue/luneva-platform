@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { and, eq, ne, sql } from "drizzle-orm";
+import { and, eq, isNull, ne, sql } from "drizzle-orm";
 
 import { db } from "@/src/db";
 import {
@@ -17,9 +17,36 @@ import {
   USER_COOKIE_NAME,
 } from "@/src/lib/user-session";
 import { notifyOwnerNewAppointment } from "@/src/lib/telegram";
-import { createYooKassaPayment, isYooKassaConfigured } from "@/src/lib/yookassa";
+import { createClientNotification } from "@/src/lib/client-notifications";
+import {
+  getConsultationPlaceLabel,
+  normalizeConsultationLocation,
+} from "@/src/lib/consultation-locations";
+import { createOrReuseAppointmentPayment } from "@/src/lib/appointment-payments";
+import { isYooKassaConfigured } from "@/src/lib/yookassa";
+import { hasPaymentCustomerContact } from "@/src/lib/payment-contact";
+import { sanitizeAttributionPayload } from "@/src/lib/attribution";
 
 const paymentMethods = new Set(["package", "online", "after_confirmation"]);
+
+function safeAppointmentError(error: unknown) {
+  if (error instanceof Error) {
+    const expectedMessages = [
+      "Это время уже занято",
+      "Выберите другое свободное окно",
+      "Выберите активный пакет",
+      "В выбранном пакете больше нет",
+    ];
+
+    if (expectedMessages.some((message) => error.message.includes(message))) {
+      return error.message;
+    }
+
+    console.error("account_appointment_create_failed", error);
+  }
+
+  return "Не удалось создать запись. Пожалуйста, попробуйте ещё раз или напишите Александре напрямую.";
+}
 
 export async function POST(request: NextRequest) {
   const userId = await getUserIdFromSession(
@@ -33,7 +60,13 @@ export async function POST(request: NextRequest) {
   const [user] = await db
     .select()
     .from(users)
-    .where(eq(users.id, userId))
+    .where(
+      and(
+        eq(users.id, userId),
+        eq(users.isBlocked, false),
+        isNull(users.deletedAt)
+      )
+    )
     .limit(1);
 
   if (!user) {
@@ -50,14 +83,22 @@ export async function POST(request: NextRequest) {
   }
 
   const consultationFormat = String(body.consultationFormat ?? "online").trim();
+  const consultationLocation = normalizeConsultationLocation(
+    consultationFormat,
+    body.consultationLocation
+  );
   const appointmentDate = String(body.appointmentDate ?? "").trim();
   const appointmentTime = String(body.appointmentTime ?? "").trim();
   const paymentMethod = String(body.paymentMethod ?? "online").trim();
   const packageId = String(body.packageId ?? "").trim() || null;
   const message =
     String(body.message ?? "").trim() || "Запись из личного кабинета.";
+  const attribution = sanitizeAttributionPayload(body.attribution);
 
-  if (!["online", "office"].includes(consultationFormat)) {
+  if (
+    !["online", "office"].includes(consultationFormat) ||
+    !consultationLocation
+  ) {
     return NextResponse.json(
       { error: "Выберите формат консультации." },
       { status: 400 }
@@ -80,7 +121,8 @@ export async function POST(request: NextRequest) {
 
   const availableSlots = await getAvailableAppointmentSlots(
     appointmentDate,
-    consultationFormat
+    consultationFormat,
+    consultationLocation
   );
 
   if (!availableSlots.includes(appointmentTime)) {
@@ -101,8 +143,18 @@ export async function POST(request: NextRequest) {
 
   const contact = user.phone || user.telegram || user.email;
 
+  if (paymentMethod === "online" && !hasPaymentCustomerContact(contact)) {
+    return NextResponse.json(
+      {
+        error:
+          "Для онлайн-оплаты добавьте в профиль email или номер телефона. Эти данные нужны для чека.",
+      },
+      { status: 400 }
+    );
+  }
+
   const createdAppointment = await db.transaction(async (tx) => {
-    const lockKey = `${consultationFormat}:${scheduledAt.toISOString()}`;
+    const lockKey = `${consultationFormat}:${consultationLocation}:${scheduledAt.toISOString()}`;
 
     await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${lockKey}))`);
 
@@ -113,6 +165,10 @@ export async function POST(request: NextRequest) {
         and(
           eq(appointmentRequests.scheduledAt, scheduledAt),
           eq(appointmentRequests.consultationFormat, consultationFormat),
+          eq(
+            appointmentRequests.consultationLocation,
+            consultationLocation
+          ),
           ne(appointmentRequests.status, "cancelled")
         )
       )
@@ -136,8 +192,7 @@ export async function POST(request: NextRequest) {
           and(
             eq(userConsultationPackages.id, packageId),
             eq(userConsultationPackages.userId, userId),
-            eq(userConsultationPackages.status, "active"),
-            eq(userConsultationPackages.consultationFormat, consultationFormat)
+            eq(userConsultationPackages.status, "active")
           )
         )
         .limit(1);
@@ -151,6 +206,7 @@ export async function POST(request: NextRequest) {
       await tx
         .update(userConsultationPackages)
         .set({
+          usedSessions: activePackage.usedSessions + 1,
           remainingSessions: activePackage.remainingSessions - 1,
           status:
             activePackage.remainingSessions - 1 > 0 ? "active" : "used",
@@ -168,6 +224,7 @@ export async function POST(request: NextRequest) {
         contact,
         contactMethod: user.preferredContact,
         consultationFormat,
+        consultationLocation,
         preferredTime: `${appointmentDate} ${appointmentTime}`,
         message,
         scheduledAt,
@@ -178,6 +235,7 @@ export async function POST(request: NextRequest) {
           paymentMethod === "package"
             ? "Списана 1 консультация из оплаченного пакета."
             : null,
+        attribution,
         notificationStatus: "not_sent",
       })
       .returning();
@@ -193,41 +251,31 @@ export async function POST(request: NextRequest) {
 
     return appointment;
   }).catch((error: unknown) => {
-    if (error instanceof Error) {
-      return { error: error.message };
-    }
-
-    return { error: "Не удалось создать запись." };
+    return { error: safeAppointmentError(error) };
   });
 
   if ("error" in createdAppointment) {
     return NextResponse.json({ error: createdAppointment.error }, { status: 400 });
   }
 
+  let appointmentForNotification = createdAppointment;
   let paymentUrl: string | null = null;
 
   if (paymentMethod === "online" && isYooKassaConfigured()) {
     try {
-      const payment = await createYooKassaPayment({
-        appointmentId: createdAppointment.id,
-        name: user.name,
-        contact,
-        scheduledAt,
+      const payment = await createOrReuseAppointmentPayment({
+        appointment: createdAppointment,
+        source: "account_booking",
       });
 
       paymentUrl = payment.paymentUrl;
-
-      await db
-        .update(appointmentRequests)
-        .set({
-          yookassaPaymentId: payment.id,
-          paymentAmount: payment.amountRub,
-          paymentStatus: payment.status,
-          paymentLink: payment.paymentUrl,
-          notificationStatus: payment.paymentUrl ? "sent" : "not_sent",
-          updatedAt: new Date(),
-        })
-        .where(eq(appointmentRequests.id, createdAppointment.id));
+      appointmentForNotification = {
+        ...createdAppointment,
+        yookassaPaymentId: payment.providerPaymentId,
+        paymentAmount: payment.amountRub,
+        paymentStatus: payment.status,
+        paymentLink: payment.paymentUrl,
+      };
     } catch (paymentError) {
       await db.insert(appointmentHistory).values({
         appointmentId: createdAppointment.id,
@@ -241,7 +289,7 @@ export async function POST(request: NextRequest) {
   }
 
   const telegramResult = await notifyOwnerNewAppointment({
-    ...createdAppointment,
+    ...appointmentForNotification,
     message,
   });
 
@@ -251,6 +299,19 @@ export async function POST(request: NextRequest) {
     details: telegramResult.ok
       ? "Владельцу отправлено уведомление о новой записи из кабинета."
       : telegramResult.reason,
+  });
+
+  await createClientNotification({
+    userId,
+    appointmentId: createdAppointment.id,
+    kind: "booking",
+    title: "Запись создана",
+    message: `Консультация запланирована на ${scheduledAt.toLocaleString(
+      "ru-RU"
+    )}. Формат: ${getConsultationPlaceLabel(
+      consultationFormat,
+      consultationLocation
+    )}.`,
   });
 
   return NextResponse.json(

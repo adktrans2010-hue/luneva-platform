@@ -27,12 +27,18 @@ function normalizeEmail(value: string) {
   return value.trim().toLowerCase();
 }
 
+function safeAccountRedirect(value: string) {
+  return value === "/account" || value.startsWith("/account/")
+    ? value
+    : "/account";
+}
+
 export async function POST(request: NextRequest) {
   const formData = await request.formData();
   const email = normalizeEmail(String(formData.get("email") ?? ""));
   const password = String(formData.get("password") ?? "");
   const nextPath = String(formData.get("next") ?? "/account");
-  const redirectTo = nextPath.startsWith("/") ? nextPath : "/account";
+  const redirectTo = safeAccountRedirect(nextPath);
   const ip = getRequestClientIp(request.headers);
   const rateIdentifier = `${ip}|${email}`;
   const rate = await consumeRateLimit({
@@ -60,6 +66,13 @@ export async function POST(request: NextRequest) {
   if (!user || !verifyPassword(password, user.passwordHash)) {
     await recordLoginAudit({ actorType: "user", email, success: false, reason: "invalid_credentials", headers: request.headers });
     return NextResponse.redirect(publicUrl(request, "/login?error=login"), {
+      status: 303,
+    });
+  }
+
+  if (user.isBlocked || user.deletedAt) {
+    await recordLoginAudit({ actorType: "user", email, success: false, reason: "blocked", headers: request.headers });
+    return NextResponse.redirect(publicUrl(request, "/login?error=blocked"), {
       status: 303,
     });
   }

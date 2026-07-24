@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/src/db";
 import { users } from "@/src/db/schema";
@@ -18,7 +18,17 @@ export async function getCurrentUser() {
     return null;
   }
 
-  const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  const [user] = await db
+    .select()
+    .from(users)
+    .where(
+      and(
+        eq(users.id, userId),
+        eq(users.isBlocked, false),
+        isNull(users.deletedAt)
+      )
+    )
+    .limit(1);
 
   return user ?? null;
 }

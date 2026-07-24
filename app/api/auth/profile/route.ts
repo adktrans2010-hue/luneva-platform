@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/src/db";
 import { users } from "@/src/db/schema";
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  await db
+  const [updatedUser] = await db
     .update(users)
     .set({
       name,
@@ -55,7 +55,20 @@ export async function POST(request: NextRequest) {
       preferredContact,
       updatedAt: new Date(),
     })
-    .where(eq(users.id, userId));
+    .where(
+      and(
+        eq(users.id, userId),
+        eq(users.isBlocked, false),
+        isNull(users.deletedAt)
+      )
+    )
+    .returning({ id: users.id });
+
+  if (!updatedUser) {
+    return NextResponse.redirect(new URL("/login?error=blocked", request.url), {
+      status: 303,
+    });
+  }
 
   return NextResponse.redirect(new URL("/account?profile=updated#profile", request.url), {
     status: 303,

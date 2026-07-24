@@ -19,6 +19,7 @@ type Appointment = {
   contact: string;
   contactMethod: string;
   consultationFormat: "online" | "office";
+  consultationLocation: "online" | "moscow" | "vidnoye";
   preferredTime: string | null;
   message: string;
   scheduledAt: string | null;
@@ -28,7 +29,12 @@ type Appointment = {
   paymentStatus:
     | "waiting"
     | "invoice_sent"
+    | "waiting_for_capture"
     | "paid"
+    | "partially_refunded"
+    | "refund_pending"
+    | "refund_failed"
+    | "manual_review"
     | "cancelled"
     | "refunded"
     | "not_required";
@@ -40,6 +46,31 @@ type Appointment = {
   createdAt: string;
   updatedAt: string;
   history: AppointmentHistoryEntry[];
+  paymentSummary: {
+    id: string;
+    providerPaymentId: string | null;
+    status: string;
+    providerStatus: string | null;
+    amountKopeks: number;
+    paidAmountKopeks: number;
+    refundedAmountKopeks: number;
+    activeRefundAmountKopeks: number;
+    refundableAmountKopeks: number;
+    capturedAt: string | null;
+    canceledAt: string | null;
+    fullyRefundedAt: string | null;
+    latestRefund: {
+      id: string;
+      providerRefundId: string | null;
+      amountKopeks: number;
+      type: string;
+      status: string;
+      reason: string | null;
+      requestedBy: string;
+      createdAt: string;
+      processedAt: string | null;
+    } | null;
+  } | null;
 };
 
 type AvailabilitySlot = {
@@ -47,6 +78,7 @@ type AvailabilitySlot = {
   date: string;
   time: string;
   consultationFormat: "online" | "office";
+  consultationLocation: "online" | "moscow" | "vidnoye";
   enabled: boolean;
   createdAt: string;
 };
@@ -76,6 +108,17 @@ const consultationFormats = [
   { value: "office", label: "Очно в кабинете" },
 ];
 
+const locationLabels: Record<string, string> = {
+  online: "Онлайн",
+  moscow: "Москва",
+  vidnoye: "Видное",
+};
+
+const officeLocations = [
+  { value: "moscow", label: "Москва" },
+  { value: "vidnoye", label: "Видное" },
+];
+
 const paymentMethodLabels: Record<string, string> = {
   online: "ЮKassa",
   after_confirmation: "После подтверждения",
@@ -85,7 +128,12 @@ const paymentMethodLabels: Record<string, string> = {
 const paymentStatusLabels: Record<string, string> = {
   waiting: "Ожидает оплаты",
   invoice_sent: "Ссылка отправлена",
+  waiting_for_capture: "Ожидает подтверждения",
   paid: "Оплачено",
+  partially_refunded: "Частичный возврат",
+  refund_pending: "Возврат в обработке",
+  refund_failed: "Ошибка возврата",
+  manual_review: "Требует проверки",
   cancelled: "Отменено",
   refunded: "Возврат",
   not_required: "Без онлайн-оплаты",
@@ -131,6 +179,10 @@ function formatDateTime(value: string | null) {
   }).format(new Date(value));
 }
 
+function formatRubFromKopeks(value: number) {
+  return `${(value / 100).toLocaleString("ru-RU")} руб.`;
+}
+
 export default function AdminAppointments() {
   const today = useMemo(() => toDateInputValue(new Date()), []);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -140,6 +192,9 @@ export default function AdminAppointments() {
   const [scheduleFormat, setScheduleFormat] = useState<"online" | "office">(
     "online"
   );
+  const [scheduleLocation, setScheduleLocation] = useState<
+    "online" | "moscow" | "vidnoye"
+  >("online");
   const [view, setView] = useState<"calendar" | "list" | "journal">("calendar");
   const [statusFilter, setStatusFilter] = useState<AppointmentStatus | "all">(
     "all"
@@ -151,7 +206,7 @@ export default function AdminAppointments() {
     const [appointmentsResponse, slotsResponse] = await Promise.all([
       adminFetch("/api/admin/appointments"),
       adminFetch(
-        `/api/admin/availability?date=${selectedDate}&format=${scheduleFormat}`
+        `/api/admin/availability?date=${selectedDate}&format=${scheduleFormat}&location=${scheduleLocation}`
       ),
     ]);
 
@@ -173,6 +228,7 @@ export default function AdminAppointments() {
         date: selectedDate,
         time: newSlotTime,
         format: scheduleFormat,
+        location: scheduleLocation,
       }),
     });
 
@@ -203,6 +259,7 @@ export default function AdminAppointments() {
       body: JSON.stringify({
         status: nextAppointment.status,
         scheduledAt: nextAppointment.scheduledAt,
+        consultationLocation: nextAppointment.consultationLocation,
         notes: nextAppointment.notes,
         paymentStatus: nextAppointment.paymentStatus,
         paymentLink: nextAppointment.paymentLink,
@@ -245,13 +302,117 @@ export default function AdminAppointments() {
     await loadAppointments();
   }
 
+  async function createRefund(
+    appointment: Appointment,
+    type: "full" | "partial"
+  ) {
+    const payment = appointment.paymentSummary;
+    if (!payment) return;
+
+    const reason = window.prompt("Укажите причину возврата");
+    if (!reason?.trim()) return;
+
+    let amountKopeks: number | undefined;
+    let confirmText: string | undefined;
+
+    if (type === "full") {
+      const confirmed = window.prompt(
+        `Вы собираетесь вернуть клиенту ${formatRubFromKopeks(
+          payment.refundableAmountKopeks
+        )}.\nЗапись: ${appointment.name}.\nДействие нельзя отменить.\nВведите ВОЗВРАТ для подтверждения.`
+      );
+      if (confirmed !== "ВОЗВРАТ") return;
+      confirmText = confirmed;
+    } else {
+      const amountRub = window.prompt(
+        `Доступно к возврату: ${formatRubFromKopeks(
+          payment.refundableAmountKopeks
+        )}.\nВведите сумму частичного возврата в рублях.`
+      );
+      if (!amountRub) return;
+      amountKopeks = Math.round(Number(amountRub.replace(",", ".")) * 100);
+    }
+
+    setError(null);
+    const response = await adminFetch(
+      `/api/admin/payments/${payment.id}/refund`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type,
+          amountKopeks,
+          reason,
+          confirmText,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const data = (await response.json()) as { error?: string };
+      setError(data.error ?? "Не удалось оформить возврат.");
+      return;
+    }
+
+    await loadAppointments();
+  }
+
+  async function cancelPaymentAuthorization(appointment: Appointment) {
+    const payment = appointment.paymentSummary;
+    if (!payment) return;
+
+    const confirmed = window.confirm(
+      "Отменить авторизацию платежа в ЮKassa? Это действие доступно только для waiting_for_capture."
+    );
+    if (!confirmed) return;
+
+    const response = await adminFetch(
+      `/api/admin/payments/${payment.id}/cancel`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason: "Отмена из админки" }),
+      }
+    );
+
+    if (!response.ok) {
+      const data = (await response.json()) as { error?: string };
+      setError(data.error ?? "Не удалось отменить платеж.");
+      return;
+    }
+
+    await loadAppointments();
+  }
+
+  async function sendClientMessage(appointment: Appointment, message: string) {
+    setError(null);
+
+    const response = await adminFetch(
+      `/api/admin/appointments/${appointment.id}/message`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message }),
+      }
+    );
+
+    if (!response.ok) {
+      const data = (await response.json()) as { error?: string };
+      setError(data.error ?? "Не удалось отправить сообщение клиенту.");
+      return false;
+    }
+
+    await loadAppointments();
+    return true;
+  }
+
   useEffect(() => {
     const controller = new AbortController();
 
     void Promise.all([
       adminFetch("/api/admin/appointments", { signal: controller.signal }),
       adminFetch(
-        `/api/admin/availability?date=${selectedDate}&format=${scheduleFormat}`,
+        `/api/admin/availability?date=${selectedDate}&format=${scheduleFormat}&location=${scheduleLocation}`,
         {
           signal: controller.signal,
         }
@@ -275,14 +436,15 @@ export default function AdminAppointments() {
       });
 
     return () => controller.abort();
-  }, [selectedDate, scheduleFormat]);
+  }, [selectedDate, scheduleFormat, scheduleLocation]);
 
   const selectedDateAppointments = appointments.filter((appointment) => {
     if (!appointment.scheduledAt) return false;
 
     return (
       toDateInputValue(new Date(appointment.scheduledAt)) === selectedDate &&
-      appointment.consultationFormat === scheduleFormat
+      appointment.consultationFormat === scheduleFormat &&
+      appointment.consultationLocation === scheduleLocation
     );
   });
 
@@ -380,7 +542,12 @@ export default function AdminAppointments() {
                 <button
                   key={format.value}
                   onClick={() =>
-                    setScheduleFormat(format.value as "online" | "office")
+                    {
+                      setScheduleFormat(format.value as "online" | "office");
+                      setScheduleLocation(
+                        format.value === "office" ? "moscow" : "online"
+                      );
+                    }
                   }
                   className={
                     scheduleFormat === format.value
@@ -392,6 +559,27 @@ export default function AdminAppointments() {
                 </button>
               ))}
             </div>
+            {scheduleFormat === "office" && (
+              <div className="mt-4 flex flex-wrap gap-3">
+                {officeLocations.map((location) => (
+                  <button
+                    key={location.value}
+                    onClick={() =>
+                      setScheduleLocation(
+                        location.value as "moscow" | "vidnoye"
+                      )
+                    }
+                    className={
+                      scheduleLocation === location.value
+                        ? "rounded-xl bg-[#c98778] px-4 py-2 text-white"
+                        : "rounded-xl border border-[#c98778] px-4 py-2 text-[#8a5f55]"
+                    }
+                  >
+                    {location.label}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="mt-8 grid gap-4 md:grid-cols-[1fr_180px_auto]">
@@ -426,7 +614,7 @@ export default function AdminAppointments() {
                   onClick={() => deleteSlot(slot.id)}
                   className="rounded-xl border border-[#c98778] px-4 py-2 text-[#332725]"
                 >
-                  {slot.time} · {formatLabels[slot.consultationFormat]} · удалить
+                  {slot.time} · {locationLabels[slot.consultationLocation]} · удалить
                 </button>
               ))
             ) : (
@@ -465,7 +653,7 @@ export default function AdminAppointments() {
                       <div className="mt-1 text-[#5f5552]">
                         {appointment
                           ? `${appointment.name} · ${
-                              formatLabels[appointment.consultationFormat]
+                              locationLabels[appointment.consultationLocation]
                             }`
                           : `${formatLabels[scheduleFormat]} · свободно`}
                       </div>
@@ -481,6 +669,9 @@ export default function AdminAppointments() {
               onUpdate={updateAppointment}
               onDelete={deleteAppointment}
               onCreatePayment={createPayment}
+              onCreateRefund={createRefund}
+              onCancelPaymentAuthorization={cancelPaymentAuthorization}
+              onSendClientMessage={sendClientMessage}
             />
           </div>
         )}
@@ -500,6 +691,9 @@ export default function AdminAppointments() {
                 onUpdate={updateAppointment}
                 onDelete={deleteAppointment}
                 onCreatePayment={createPayment}
+                onCreateRefund={createRefund}
+                onCancelPaymentAuthorization={cancelPaymentAuthorization}
+                onSendClientMessage={sendClientMessage}
               />
             </div>
           </div>
@@ -555,12 +749,21 @@ function AppointmentList({
   onUpdate,
   onDelete,
   onCreatePayment,
+  onCreateRefund,
+  onCancelPaymentAuthorization,
+  onSendClientMessage,
 }: {
   appointments: Appointment[];
   emptyText: string;
   onUpdate: (appointment: Appointment, patch: Partial<Appointment>) => void;
   onDelete: (id: string) => void;
   onCreatePayment: (appointment: Appointment) => void;
+  onCreateRefund: (appointment: Appointment, type: "full" | "partial") => void;
+  onCancelPaymentAuthorization: (appointment: Appointment) => void;
+  onSendClientMessage: (
+    appointment: Appointment,
+    message: string
+  ) => Promise<boolean>;
 }) {
   if (appointments.length === 0) {
     return (
@@ -595,6 +798,9 @@ function AppointmentList({
 
               <p className="mt-2 text-[#5f5552]">
                 Формат: {formatLabels[appointment.consultationFormat]}
+                {appointment.consultationFormat === "office"
+                  ? ` · ${locationLabels[appointment.consultationLocation]}`
+                  : ""}
               </p>
 
               <p className="mt-2 text-[#8a7a76]">
@@ -661,6 +867,22 @@ function AppointmentList({
                 <option value="cancelled">Отменена</option>
               </select>
 
+              {appointment.consultationFormat === "office" && (
+                <select
+                  value={appointment.consultationLocation}
+                  onChange={(event) =>
+                    onUpdate(appointment, {
+                      consultationLocation: event.target
+                        .value as Appointment["consultationLocation"],
+                    })
+                  }
+                  className="rounded-xl border border-[#ead7d1] px-4 py-2"
+                >
+                  <option value="moscow">Москва</option>
+                  <option value="vidnoye">Видное</option>
+                </select>
+              )}
+
               <select
                 value={appointment.paymentStatus}
                 onChange={(event) =>
@@ -672,7 +894,12 @@ function AppointmentList({
               >
                 <option value="waiting">Ожидает оплаты</option>
                 <option value="invoice_sent">Ссылка отправлена</option>
+                <option value="waiting_for_capture">Ожидает подтверждения</option>
                 <option value="paid">Оплачено</option>
+                <option value="partially_refunded">Частичный возврат</option>
+                <option value="refund_pending">Возврат в обработке</option>
+                <option value="refund_failed">Ошибка возврата</option>
+                <option value="manual_review">Требует проверки</option>
                 <option value="cancelled">Отменено</option>
                 <option value="refunded">Возврат</option>
                 <option value="not_required">Без онлайн-оплаты</option>
@@ -722,12 +949,67 @@ function AppointmentList({
                 placeholder="Заметка по оплате"
               />
 
+              <ClientMessageComposer
+                appointment={appointment}
+                onSend={onSendClientMessage}
+              />
+
               <button
                 onClick={() => onCreatePayment(appointment)}
                 className="rounded-xl border border-[#c98778] px-4 py-2 text-[#c98778]"
               >
                 Создать ссылку ЮKassa
               </button>
+
+              {appointment.paymentSummary && (
+                <div className="rounded-xl border border-[#ead7d1] bg-[#fff8f6] p-3 text-sm text-[#5f5552]">
+                  <p className="font-medium text-[#332725]">Финансы ЮKassa</p>
+                  <p>Оплачено: {formatRubFromKopeks(appointment.paymentSummary.paidAmountKopeks)}</p>
+                  <p>Возвращено: {formatRubFromKopeks(appointment.paymentSummary.refundedAmountKopeks)}</p>
+                  <p>Доступно: {formatRubFromKopeks(appointment.paymentSummary.refundableAmountKopeks)}</p>
+                  <p>Статус: {paymentStatusLabels[appointment.paymentSummary.status] ?? appointment.paymentSummary.status}</p>
+                  {appointment.paymentSummary.providerPaymentId && (
+                    <p>ID платежа: {appointment.paymentSummary.providerPaymentId}</p>
+                  )}
+                  {appointment.paymentSummary.latestRefund && (
+                    <p>
+                      Последний возврат:{" "}
+                      {formatRubFromKopeks(
+                        appointment.paymentSummary.latestRefund.amountKopeks
+                      )} · {appointment.paymentSummary.latestRefund.status}
+                    </p>
+                  )}
+                  <div className="mt-3 grid gap-2">
+                    {["paid", "partially_refunded"].includes(
+                      appointment.paymentSummary.status
+                    ) &&
+                      appointment.paymentSummary.refundableAmountKopeks > 0 && (
+                        <>
+                          <button
+                            onClick={() => onCreateRefund(appointment, "full")}
+                            className="rounded-lg bg-[#332725] px-3 py-2 text-white"
+                          >
+                            Вернуть всю сумму
+                          </button>
+                          <button
+                            onClick={() => onCreateRefund(appointment, "partial")}
+                            className="rounded-lg border border-[#c98778] px-3 py-2 text-[#c98778]"
+                          >
+                            Вернуть часть суммы
+                          </button>
+                        </>
+                      )}
+                    {appointment.paymentSummary.status === "waiting_for_capture" && (
+                      <button
+                        onClick={() => onCancelPaymentAuthorization(appointment)}
+                        className="rounded-lg border border-[#b94a48] px-3 py-2 text-[#b94a48]"
+                      >
+                        Отменить авторизацию
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
 
               <button
                 onClick={() =>
@@ -764,6 +1046,56 @@ function AppointmentList({
           )}
         </article>
       ))}
+    </div>
+  );
+}
+
+function ClientMessageComposer({
+  appointment,
+  onSend,
+}: {
+  appointment: Appointment;
+  onSend: (appointment: Appointment, message: string) => Promise<boolean>;
+}) {
+  const [message, setMessage] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  async function submit() {
+    const text = message.trim();
+    if (!text || sending) return;
+
+    setSending(true);
+    setSent(false);
+    const success = await onSend(appointment, text);
+    setSending(false);
+
+    if (success) {
+      setMessage("");
+      setSent(true);
+    }
+  }
+
+  return (
+    <div className="rounded-xl border border-[#ead7d1] bg-[#fff8f6] p-3">
+      <textarea
+        value={message}
+        onChange={(event) => {
+          setMessage(event.target.value);
+          setSent(false);
+        }}
+        rows={3}
+        className="w-full rounded-lg border border-[#ead7d1] bg-white px-3 py-2"
+        placeholder="Сообщение клиенту в личный кабинет"
+      />
+      <button
+        type="button"
+        onClick={submit}
+        disabled={!message.trim() || sending}
+        className="mt-2 w-full rounded-lg bg-[#c98778] px-4 py-2 text-white disabled:opacity-50"
+      >
+        {sending ? "Отправляю..." : sent ? "Сообщение отправлено" : "Отправить клиенту"}
+      </button>
     </div>
   );
 }

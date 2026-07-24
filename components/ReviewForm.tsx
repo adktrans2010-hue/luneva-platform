@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import LegalConsent from "@/components/legal/legal-consent";
 import StarRating from "@/components/StarRating";
+import { trackGoal } from "@/src/lib/client-analytics";
 
 export default function ReviewForm() {
   const [name, setName] = useState("");
@@ -50,6 +51,7 @@ export default function ReviewForm() {
     setFormStartedAt(Date.now());
     setLegalAccepted(false);
     setStatus("success");
+    trackGoal("review_submit");
   }
 
   return (

@@ -3,8 +3,9 @@ import { eq } from "drizzle-orm";
 
 import { db } from "@/src/db";
 import { appointmentHistory, appointmentRequests } from "@/src/db/schema";
+import { requireAdminApiSession } from "@/src/lib/admin-api";
 import { notifyOwnerPayment } from "@/src/lib/telegram";
-import { createYooKassaPayment } from "@/src/lib/yookassa";
+import { createOrReuseAppointmentPayment } from "@/src/lib/appointment-payments";
 
 type AppointmentPaymentParams = {
   params: Promise<{
@@ -12,7 +13,10 @@ type AppointmentPaymentParams = {
   }>;
 };
 
-export async function POST(_request: Request, { params }: AppointmentPaymentParams) {
+export async function POST(request: Request, { params }: AppointmentPaymentParams) {
+  const admin = await requireAdminApiSession(request);
+  if (!admin.authorized) return admin.response;
+
   const { id } = await params;
 
   const [appointment] = await db
@@ -26,26 +30,16 @@ export async function POST(_request: Request, { params }: AppointmentPaymentPara
   }
 
   try {
-    const payment = await createYooKassaPayment({
-      appointmentId: appointment.id,
-      name: appointment.name,
-      contact: appointment.contact,
-      scheduledAt: appointment.scheduledAt,
+    const payment = await createOrReuseAppointmentPayment({
+      appointment,
+      source: "admin",
     });
 
     const [updatedAppointment] = await db
-      .update(appointmentRequests)
-      .set({
-        paymentMethod: "online",
-        yookassaPaymentId: payment.id,
-        paymentAmount: payment.amountRub,
-        paymentStatus: payment.status,
-        paymentLink: payment.paymentUrl,
-        notificationStatus: payment.paymentUrl ? "sent" : "not_sent",
-        updatedAt: new Date(),
-      })
+      .select()
+      .from(appointmentRequests)
       .where(eq(appointmentRequests.id, id))
-      .returning();
+      .limit(1);
 
     await db.insert(appointmentHistory).values({
       appointmentId: id,

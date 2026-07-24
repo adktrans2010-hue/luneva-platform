@@ -59,8 +59,8 @@ const allNavigationItems: NavigationItem[] = [
         title: "С чем можно обратиться",
         links: [
           { label: "Тревога и панические состояния", href: "/help/anxiety" },
-          { label: "Травма и ПТСР", href: "/help/trauma-ptsd" },
-          { label: "Расстройства пищевого поведения", href: "/help/eating-disorders" },
+          { label: "Травма и ПТСР", href: "/help/grief-crisis" },
+          { label: "Расстройства пищевого поведения", href: "/rpp" },
           { label: "Отношения и семья", href: "/help/relationships" },
           { label: "Самооценка и потеря опоры", href: "/help/self-esteem" },
           { label: "Утрата и жизненные кризисы", href: "/help/grief-crisis" },

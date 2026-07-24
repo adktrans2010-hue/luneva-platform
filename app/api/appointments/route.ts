@@ -1,22 +1,70 @@
 import { NextResponse } from "next/server";
-import { and, eq, ne, sql } from "drizzle-orm";
+import { and, eq, inArray, ne, sql } from "drizzle-orm";
 
 import { db } from "@/src/db";
-import { appointmentHistory, appointmentRequests } from "@/src/db/schema";
+import { appointmentHistory, appointmentRequests, users } from "@/src/db/schema";
 import {
   createSlotDate,
   getAvailableAppointmentSlots,
 } from "@/src/lib/appointment-slots";
-import { notifyOwnerNewAppointment } from "@/src/lib/telegram";
+import { createOrReuseAppointmentPayment } from "@/src/lib/appointment-payments";
 import {
-  getUserIdFromSession,
-  USER_COOKIE_NAME,
-} from "@/src/lib/user-session";
+  findPurchasableProduct,
+  normalizeConsultationFormat,
+} from "@/src/lib/consultation-products";
+import { normalizeConsultationLocation } from "@/src/lib/consultation-locations";
 import {
   checkPublicFormSpam,
   getSpamErrorMessage,
 } from "@/src/lib/spam-protection";
-import { createYooKassaPayment, isYooKassaConfigured } from "@/src/lib/yookassa";
+import { sanitizeAttributionPayload } from "@/src/lib/attribution";
+import {
+  getUserIdFromSession,
+  USER_COOKIE_NAME,
+} from "@/src/lib/user-session";
+import { isYooKassaConfigured } from "@/src/lib/yookassa";
+
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function readSessionCookie(request: Request) {
+  return request.headers
+    .get("cookie")
+    ?.split(";")
+    .map((item) => item.trim())
+    .find((item) => item.startsWith(`${USER_COOKIE_NAME}=`))
+    ?.replace(`${USER_COOKIE_NAME}=`, "");
+}
+
+function normalizeEmail(value: unknown) {
+  return String(value ?? "").trim().toLowerCase();
+}
+
+function normalizeName(value: unknown) {
+  return String(value ?? "").trim().replace(/\s+/g, " ");
+}
+
+function getHoldMinutes() {
+  const value = Number(process.env.PAYMENT_SLOT_HOLD_MINUTES ?? 15);
+  return Number.isFinite(value) && value >= 5 && value <= 30 ? value : 15;
+}
+
+function safeAppointmentError(error: unknown) {
+  if (error instanceof Error) {
+    const expectedMessages = [
+      "Это время уже занято",
+      "Выберите другой вариант",
+      "Выберите корректную дату",
+    ];
+
+    if (expectedMessages.some((message) => error.message.includes(message))) {
+      return error.message;
+    }
+
+    console.error("appointment_create_failed", error);
+  }
+
+  return "Не удалось создать запись. Пожалуйста, попробуйте ещё раз или напишите Александре напрямую.";
+}
 
 export async function POST(request: Request) {
   let body: Record<string, unknown>;
@@ -30,14 +78,19 @@ export async function POST(request: Request) {
     );
   }
 
-  const name = String(body.name ?? "").trim();
-  const contact = String(body.contact ?? "").trim();
-  const consultationFormat = String(body.consultationFormat ?? "online").trim();
+  const email = normalizeEmail(body.email ?? body.contact);
+  const name = normalizeName(body.name);
+  const consultationFormat = normalizeConsultationFormat(
+    body.preferredFormat ?? body.consultationFormat
+  );
+  const consultationLocation = normalizeConsultationLocation(
+    consultationFormat,
+    body.consultationLocation
+  );
   const appointmentDate = String(body.appointmentDate ?? "").trim();
   const appointmentTime = String(body.appointmentTime ?? "").trim();
-  const paymentMethod = String(body.paymentMethod ?? "online").trim();
-  const message = String(body.message ?? "").trim();
   const legalConsent = body.legalConsent === true;
+  const attribution = sanitizeAttributionPayload(body.attribution);
 
   if (!legalConsent) {
     return NextResponse.json(
@@ -62,35 +115,61 @@ export async function POST(request: Request) {
     );
   }
 
-  if (!name || !contact || !appointmentDate || !appointmentTime || !message) {
+  if (!email || email.length > 320 || !emailPattern.test(email)) {
     return NextResponse.json(
-      { error: "Заполните имя, контакт, дату, время и запрос." },
+      { error: "Укажите корректный email для чека и подтверждения записи." },
       { status: 400 }
     );
   }
 
-  if (!["online", "office"].includes(consultationFormat)) {
+  if (!name || name.length < 2 || name.length > 120) {
     return NextResponse.json(
-      { error: "Выберите формат консультации." },
+      { error: "Укажите имя для записи и оплаты." },
       { status: 400 }
     );
   }
 
-  if (!["online", "after_confirmation"].includes(paymentMethod)) {
+  if (!appointmentDate || !appointmentTime || !consultationLocation) {
     return NextResponse.json(
-      { error: "Выберите способ оплаты." },
+      { error: "Выберите услугу, формат, дату и свободное время." },
+      { status: 400 }
+    );
+  }
+
+  if (!isYooKassaConfigured()) {
+    return NextResponse.json(
+      { error: "Онлайн-оплата временно недоступна. Попробуйте позже." },
+      { status: 503 }
+    );
+  }
+
+  let product;
+
+  try {
+    product = await findPurchasableProduct({
+      productId: String(body.productId ?? "").trim() || null,
+      productCode: String(body.productCode ?? "").trim() || null,
+      publicPurchase: true,
+    });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error ? error.message : "Выберите услугу для записи.",
+      },
       { status: 400 }
     );
   }
 
   const availableSlots = await getAvailableAppointmentSlots(
     appointmentDate,
-    consultationFormat
+    consultationFormat,
+    consultationLocation
   );
 
   if (!availableSlots.includes(appointmentTime)) {
     return NextResponse.json(
-      { error: "Это время уже занято. Выберите другое свободное окно." },
+      { error: "Это время уже занято. Выберите другой вариант." },
       { status: 409 }
     );
   }
@@ -104,123 +183,136 @@ export async function POST(request: Request) {
     );
   }
 
-  const userId = await getUserIdFromSession(
-    request.headers
-      .get("cookie")
-      ?.split(";")
-      .map((item) => item.trim())
-      .find((item) => item.startsWith(`${USER_COOKIE_NAME}=`))
-      ?.replace(`${USER_COOKIE_NAME}=`, "")
-  );
+  const sessionUserId = await getUserIdFromSession(readSessionCookie(request));
+  const [existingUser] = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.email, email))
+    .limit(1);
+  const userId = sessionUserId ?? existingUser?.id ?? null;
+  const holdExpiresAt = new Date(Date.now() + getHoldMinutes() * 60 * 1000);
 
-  const createdRequest = await db.transaction(async (tx) => {
-    const lockKey = `${consultationFormat}:${scheduledAt.toISOString()}`;
+  const createdRequest = await db
+    .transaction(async (tx) => {
+      const compatibleFormats =
+        consultationFormat === "in_person"
+          ? ["in_person", "office"]
+          : [consultationFormat];
+      const lockKey = `${consultationFormat}:${consultationLocation}:${scheduledAt.toISOString()}`;
 
-    await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${lockKey}))`);
+      await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${lockKey}))`);
 
-    const [busyAppointment] = await tx
-      .select({ id: appointmentRequests.id })
-      .from(appointmentRequests)
-      .where(
-        and(
-          eq(appointmentRequests.scheduledAt, scheduledAt),
-          eq(appointmentRequests.consultationFormat, consultationFormat),
-          ne(appointmentRequests.status, "cancelled")
+      const [busyAppointment] = await tx
+        .select({
+          id: appointmentRequests.id,
+          status: appointmentRequests.status,
+          holdExpiresAt: appointmentRequests.holdExpiresAt,
+        })
+        .from(appointmentRequests)
+        .where(
+          and(
+            eq(appointmentRequests.scheduledAt, scheduledAt),
+            inArray(appointmentRequests.consultationFormat, compatibleFormats),
+            eq(appointmentRequests.consultationLocation, consultationLocation),
+            ne(appointmentRequests.status, "cancelled"),
+            ne(appointmentRequests.status, "expired")
+          )
         )
-      )
-      .limit(1);
+        .limit(1);
 
-    if (busyAppointment) {
-      throw new Error("Это время уже занято. Выберите другое свободное окно.");
-    }
+      if (
+        busyAppointment &&
+        !(
+          busyAppointment.status === "awaiting_payment" &&
+          busyAppointment.holdExpiresAt &&
+          busyAppointment.holdExpiresAt <= new Date()
+        )
+      ) {
+        throw new Error("Это время уже занято. Выберите другой вариант.");
+      }
 
-    const [appointment] = await tx
-      .insert(appointmentRequests)
-      .values({
-        userId,
-        name,
-        contact,
-        contactMethod: "contact",
-        consultationFormat,
-        preferredTime: `${appointmentDate} ${appointmentTime}`,
-        message,
-        scheduledAt,
-        status: "scheduled",
-        paymentMethod,
-        paymentStatus: paymentMethod === "online" ? "waiting" : "not_required",
-        notificationStatus: "not_sent",
-      })
-      .returning();
+      const [appointment] = await tx
+        .insert(appointmentRequests)
+        .values({
+          userId,
+          productId: product.id,
+          name,
+          contact: email,
+          normalizedEmail: email,
+          contactMethod: "email",
+          consultationFormat,
+          consultationLocation,
+          preferredTime: `${appointmentDate} ${appointmentTime}`,
+          message: "Запись через форму сайта.",
+          scheduledAt,
+          status: "awaiting_payment",
+          holdExpiresAt,
+          paymentMethod: "online",
+          paymentStatus: "waiting",
+          paymentAmount: product.priceKopeks / 100,
+          paymentNote: `${product.name}: ${product.sessionsCount} консультаций`,
+          attribution,
+          notificationStatus: "not_sent",
+        })
+        .returning();
 
-    return appointment;
-  }).catch((error: unknown) => {
-    if (error instanceof Error) {
-      return { error: error.message };
-    }
-
-    return { error: "Не удалось создать запись." };
-  });
+      return appointment;
+    })
+    .catch((error: unknown) => ({
+      error: safeAppointmentError(error),
+    }));
 
   if ("error" in createdRequest) {
     return NextResponse.json({ error: createdRequest.error }, { status: 409 });
   }
 
-  let paymentUrl: string | null = null;
+  try {
+    const payment = await createOrReuseAppointmentPayment({
+      appointment: createdRequest,
+      product,
+      preferredFormat: consultationFormat,
+      source: "public_booking",
+    });
 
-  if (paymentMethod === "online" && isYooKassaConfigured()) {
-    try {
-      const payment = await createYooKassaPayment({
+    await db.insert(appointmentHistory).values({
+      appointmentId: createdRequest.id,
+      action: "Онлайн-запись",
+      details: `Слот зарезервирован до ${holdExpiresAt.toLocaleString(
+        "ru-RU"
+      )}. Подтверждение произойдет только после payment.succeeded.`,
+    });
+
+    return NextResponse.json(
+      {
         appointmentId: createdRequest.id,
-        name,
-        contact,
-        scheduledAt,
-      });
+        paymentUrl: payment.paymentUrl,
+        paymentId: payment.localPaymentId,
+        holdExpiresAt,
+      },
+      { status: 201 }
+    );
+  } catch (paymentError) {
+    await db
+      .update(appointmentRequests)
+      .set({
+        status: "expired",
+        paymentStatus: "failed",
+        updatedAt: new Date(),
+      })
+      .where(eq(appointmentRequests.id, createdRequest.id));
 
-      paymentUrl = payment.paymentUrl;
+    await db.insert(appointmentHistory).values({
+      appointmentId: createdRequest.id,
+      action: "Оплата",
+      details:
+        paymentError instanceof Error
+          ? paymentError.message
+          : "Не удалось создать платеж YooKassa.",
+    });
 
-      await db
-        .update(appointmentRequests)
-        .set({
-          yookassaPaymentId: payment.id,
-          paymentAmount: payment.amountRub,
-          paymentStatus: payment.status,
-          paymentLink: payment.paymentUrl,
-          notificationStatus: payment.paymentUrl ? "sent" : "not_sent",
-          updatedAt: new Date(),
-        })
-        .where(eq(appointmentRequests.id, createdRequest.id));
-    } catch (paymentError) {
-      await db.insert(appointmentHistory).values({
-        appointmentId: createdRequest.id,
-        action: "Оплата",
-        details:
-          paymentError instanceof Error
-            ? paymentError.message
-            : "Не удалось создать платеж ЮKassa.",
-      });
-    }
+    return NextResponse.json(
+      { error: "Не удалось создать оплату. Попробуйте выбрать время еще раз." },
+      { status: 500 }
+    );
   }
-
-  await db.insert(appointmentHistory).values({
-    appointmentId: createdRequest.id,
-    action: "Онлайн-запись",
-    details: `Клиент выбрал ${scheduledAt.toLocaleString("ru-RU")}. Оплата: ${
-      paymentMethod === "online" ? "онлайн" : "после подтверждения"
-    }`,
-  });
-
-  const telegramResult = await notifyOwnerNewAppointment({
-    ...createdRequest,
-    message,
-  });
-
-  await db.insert(appointmentHistory).values({
-    appointmentId: createdRequest.id,
-    action: "Telegram",
-    details: telegramResult.ok
-      ? "Владельцу отправлено уведомление о новой записи."
-      : telegramResult.reason,
-  });
-
-  return NextResponse.json({ ...createdRequest, paymentUrl }, { status: 201 });
 }

@@ -1,27 +1,33 @@
 import Image from "next/image";
 import MobileCarousel from "@/components/MobileCarousel";
 import StarRating from "@/components/StarRating";
+import { formatReviewDate } from "@/src/lib/format-review-date";
 import { getPublishedReviews } from "@/src/lib/reviews";
 
 type ReviewsProps = {
   limit?: number;
 };
 
-function getRandomItems<T>(items: T[], limit: number) {
-  return [...items].sort(() => Math.random() - 0.5).slice(0, limit);
+function stableReviewScore(id: string) {
+  let hash = 0;
+
+  for (const char of id) {
+    hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  }
+
+  return hash;
 }
 
-function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("ru-RU", {
-    month: "long",
-    year: "numeric",
-  }).format(date);
+function getFeaturedItems<T extends { id: string }>(items: T[], limit: number) {
+  return [...items]
+    .sort((first, second) => stableReviewScore(first.id) - stableReviewScore(second.id))
+    .slice(0, limit);
 }
 
 export default async function Reviews({ limit }: ReviewsProps) {
   const reviews = await getPublishedReviews();
 
-  const visibleReviews = limit ? getRandomItems(reviews, limit) : reviews;
+  const visibleReviews = limit ? getFeaturedItems(reviews, limit) : reviews;
 
   return (
     <section className="luneva-fade bg-[#fff8f6] px-6 py-24">
@@ -36,16 +42,16 @@ export default async function Reviews({ limit }: ReviewsProps) {
 
         <MobileCarousel
           label="Отзывы"
-          className="mt-8 pt-12 md:mt-20 md:pt-0"
+          className="mt-8 md:mt-20"
           desktopGridClassName="md:grid-cols-2 md:gap-10 lg:grid-cols-3"
         >
           {visibleReviews.map((review) => (
             <div
               key={review.id}
-              className="luneva-card relative rounded-[2rem] border border-[#ead7d1] bg-white px-8 pb-8 pt-20 text-center shadow-sm"
+              className="luneva-card relative rounded-[2rem] border border-[#ead7d1] bg-white px-8 pt-32 pb-8 text-center shadow-sm md:pt-20"
             >
               {review.image && (
-                <div className="absolute left-1/2 top-0 h-24 w-24 -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-full bg-white p-2 shadow-lg">
+                <div className="absolute top-5 left-1/2 h-20 w-20 -translate-x-1/2 overflow-hidden rounded-full bg-white p-2 shadow-lg md:top-0 md:h-24 md:w-24 md:-translate-y-1/2">
                   <Image
                     src={review.image}
                     alt={review.name}
@@ -69,7 +75,7 @@ export default async function Reviews({ limit }: ReviewsProps) {
               </p>
 
               <p className="mt-8 text-sm text-[#8a7a76]">
-                {formatDate(review.createdAt)}
+                {formatReviewDate(review.createdAt)}
               </p>
             </div>
           ))}

@@ -1,11 +1,17 @@
 export const SITE_CONTACTS = {
+  ownerFullName: "Лунева Александра Александровна",
+  ownerStatus: "Самозанятая",
+  ownerTaxStatus: "Плательщик налога на профессиональный доход",
+  inn: "772990147598",
   email: "info@luneva-psy.ru",
   publicEmail: "info@luneva-psy.ru",
   phone: "+7 (926) 036-06-93",
+  phoneTelHref: "tel:+79260360693",
   phoneHref: "https://wa.me/79260360693",
   whatsapp: "+7 (926) 036-06-93",
   whatsappHref: "https://wa.me/79260360693",
   domain: "https://luneva-psy.ru",
+  domainLabel: "luneva-psy.ru",
 } as const;
 
 export function getOwnerNotificationEmail() {

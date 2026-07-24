@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import { getRecentLoginAudit } from "@/src/lib/login-audit";
 
 export const dynamic = "force-dynamic";
@@ -21,8 +19,7 @@ export default async function AdminLoginHistoryPage() {
   return (
     <section className="bg-[#fff8f6] px-6 py-20">
       <div className="mx-auto max-w-7xl">
-        <Link href="/admin" className="text-[#c98778]">← Назад в админку</Link>
-        <p className="mt-8 mb-4 text-sm uppercase tracking-[0.25em] text-[#c98778]">Безопасность</p>
+          <p className="mb-4 text-sm uppercase tracking-[0.25em] text-[#c98778]">Безопасность</p>
         <h1 className="font-serif text-5xl text-[#332725]">Журнал входов</h1>
         <p className="mt-6 max-w-3xl text-lg leading-8 text-[#5f5552]">Последние 100 успешных и неуспешных входов. Записи автоматически удаляются через 90 дней.</p>
 

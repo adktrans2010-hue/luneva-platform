@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useMemo, useState } from "react";
 
 import StarRating from "@/components/StarRating";
+import { formatReviewDate } from "@/src/lib/format-review-date";
 
 type ReviewItem = {
   id: string;
@@ -25,13 +26,6 @@ type ReviewsCatalogProps = {
   reviews: ReviewItem[];
   categories: ReviewCategory[];
 };
-
-function formatDate(date: string) {
-  return new Intl.DateTimeFormat("ru-RU", {
-    month: "long",
-    year: "numeric",
-  }).format(new Date(date));
-}
 
 export default function ReviewsCatalog({
   reviews,
@@ -127,7 +121,7 @@ export default function ReviewsCatalog({
             <div className="mt-6 h-px w-7 bg-[#c98778]" />
 
             <p className="mt-5 text-sm text-[#5f5552]">
-              {formatDate(review.createdAt)}
+              {formatReviewDate(review.createdAt)}
             </p>
           </article>
         ))}

@@ -47,6 +47,8 @@ const emptyDraft: ArticleDraft = {
   published: false,
 };
 
+const customTopicsStorageKey = "luneva-admin-article-topics";
+
 export default function AdminArticles() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [draft, setDraft] = useState<ArticleDraft>(emptyDraft);
@@ -56,6 +58,9 @@ export default function AdminArticles() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [customTopics, setCustomTopics] = useState<string[]>([]);
+  const [customTopicsLoaded, setCustomTopicsLoaded] = useState(false);
+  const [newTopicName, setNewTopicName] = useState("");
 
   async function loadArticles() {
     const response = await adminFetch("/api/admin/articles");
@@ -124,6 +129,32 @@ export default function AdminArticles() {
     );
   }
 
+  function normalizeTopic(topic: string) {
+    return topic.trim().replace(/\s+/g, " ");
+  }
+
+  function addCustomTopic() {
+    const topic = normalizeTopic(newTopicName);
+    if (!topic) return;
+
+    setCustomTopics((items) => {
+      const exists = items.some(
+        (item) => item.toLowerCase() === topic.toLowerCase()
+      );
+
+      return exists ? items : [...items, topic];
+    });
+    setDraft((current) => ({ ...current, category: topic }));
+    setNewTopicName("");
+  }
+
+  function removeCustomTopic(topic: string) {
+    setCustomTopics((items) => items.filter((item) => item !== topic));
+    if (selectedCategory === topic) {
+      setSelectedCategory("all");
+    }
+  }
+
   function formatDate(date: string) {
     return new Intl.DateTimeFormat("ru-RU", {
       day: "2-digit",
@@ -152,6 +183,40 @@ export default function AdminArticles() {
     return () => controller.abort();
   }, []);
 
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      try {
+        const storedTopics = window.localStorage.getItem(customTopicsStorageKey);
+        if (!storedTopics) return;
+
+        const parsedTopics = JSON.parse(storedTopics) as unknown;
+        if (!Array.isArray(parsedTopics)) return;
+
+        setCustomTopics(
+          parsedTopics
+            .filter((topic): topic is string => typeof topic === "string")
+            .map(normalizeTopic)
+            .filter((topic) => topic.length > 0)
+        );
+      } catch {
+        setCustomTopics([]);
+      } finally {
+        setCustomTopicsLoaded(true);
+      }
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!customTopicsLoaded) return;
+
+    window.localStorage.setItem(
+      customTopicsStorageKey,
+      JSON.stringify(customTopics)
+    );
+  }, [customTopics, customTopicsLoaded]);
+
   const categories = useMemo(() => {
     return Array.from(
       new Set(
@@ -169,6 +234,12 @@ export default function AdminArticles() {
         .length,
     }));
   }, [articles, categories]);
+
+  const articleTopics = useMemo(() => {
+    return Array.from(new Set([...categories, ...customTopics])).sort(
+      (first, second) => first.localeCompare(second, "ru")
+    );
+  }, [categories, customTopics]);
 
   const visibleArticles = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -204,6 +275,85 @@ export default function AdminArticles() {
             Новая статья
           </h2>
 
+          <div className="mt-6 rounded-2xl bg-[#fff8f6] p-5">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <div className="text-sm uppercase tracking-[0.18em] text-[#c98778]">
+                  Темы статей
+                </div>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-[#8a7a76]">
+                  Создайте свою тему и назначайте её статьям. Темы, которые уже
+                  используются в статьях, подтягиваются автоматически.
+                </p>
+              </div>
+
+              <div className="flex w-full gap-3 sm:w-auto">
+                <input
+                  value={newTopicName}
+                  onChange={(event) => setNewTopicName(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      addCustomTopic();
+                    }
+                  }}
+                  className="min-w-0 flex-1 rounded-2xl border border-[#ead7d1] bg-white px-4 py-3 sm:w-72"
+                  placeholder="Новая тема"
+                />
+                <button
+                  type="button"
+                  onClick={addCustomTopic}
+                  className="rounded-2xl bg-[#332725] px-5 py-3 text-sm text-white"
+                >
+                  Добавить
+                </button>
+              </div>
+            </div>
+
+            {articleTopics.length > 0 && (
+              <div className="mt-5 flex flex-wrap gap-2">
+                {articleTopics.map((topic) => {
+                  const count = articles.filter(
+                    (article) => article.category.trim() === topic
+                  ).length;
+                  const canRemove = count === 0 && customTopics.includes(topic);
+
+                  return (
+                    <span
+                      key={topic}
+                      className="inline-flex items-center gap-2 rounded-full border border-[#ead7d1] bg-white px-4 py-2 text-sm text-[#5f5552]"
+                    >
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setDraft((current) => ({
+                            ...current,
+                            category: topic,
+                          }))
+                        }
+                        className="text-left"
+                      >
+                        {topic}
+                        {count > 0 ? ` · ${count}` : ""}
+                      </button>
+
+                      {canRemove && (
+                        <button
+                          type="button"
+                          onClick={() => removeCustomTopic(topic)}
+                          className="text-[#b94a48]"
+                          aria-label={`Удалить тему ${topic}`}
+                        >
+                          ×
+                        </button>
+                      )}
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
           <div className="mt-8 grid gap-4 md:grid-cols-2">
             <input
               value={draft.title}
@@ -214,14 +364,38 @@ export default function AdminArticles() {
               placeholder="Заголовок"
             />
 
-            <input
-              value={draft.category}
-              onChange={(event) =>
-                setDraft((current) => ({ ...current, category: event.target.value }))
-              }
-              className="rounded-2xl border border-[#ead7d1] px-4 py-3"
-              placeholder="Рубрика"
-            />
+            <div className="grid gap-3 sm:grid-cols-[1fr_1fr]">
+              <select
+                value={articleTopics.includes(draft.category) ? draft.category : ""}
+                onChange={(event) =>
+                  setDraft((current) => ({
+                    ...current,
+                    category: event.target.value,
+                  }))
+                }
+                className="rounded-2xl border border-[#ead7d1] bg-white px-4 py-3"
+                aria-label="Выбрать тему статьи"
+              >
+                <option value="">Выбрать тему</option>
+                {articleTopics.map((topic) => (
+                  <option key={topic} value={topic}>
+                    {topic}
+                  </option>
+                ))}
+              </select>
+
+              <input
+                value={draft.category}
+                onChange={(event) =>
+                  setDraft((current) => ({
+                    ...current,
+                    category: event.target.value,
+                  }))
+                }
+                className="rounded-2xl border border-[#ead7d1] px-4 py-3"
+                placeholder="Или написать свою тему"
+              />
+            </div>
           </div>
 
           <textarea
@@ -347,21 +521,21 @@ export default function AdminArticles() {
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               className="mt-2 w-full rounded-2xl border border-[#ead7d1] px-4 py-3"
-              placeholder="Найти статью по названию, тексту или рубрике"
+              placeholder="Найти статью по названию, тексту или теме"
             />
           </label>
 
           <label className="block">
             <span className="text-sm uppercase tracking-[0.18em] text-[#8a7a76]">
-              Категория
+              Тема
             </span>
             <select
               value={selectedCategory}
               onChange={(event) => setSelectedCategory(event.target.value)}
               className="mt-2 w-full rounded-2xl border border-[#ead7d1] bg-white px-4 py-3"
             >
-              <option value="all">Все категории</option>
-              {categories.map((category) => (
+              <option value="all">Все темы</option>
+              {articleTopics.map((category) => (
                 <option key={category} value={category}>
                   {category}
                 </option>
@@ -477,16 +651,40 @@ export default function AdminArticles() {
                         placeholder="Заголовок"
                       />
 
-                      <input
-                        value={article.category}
-                        onChange={(event) =>
-                          updateLocalArticle(article.id, {
-                            category: event.target.value,
-                          })
-                        }
-                        className="rounded-2xl border border-[#ead7d1] px-4 py-3"
-                        placeholder="Рубрика"
-                      />
+                      <div className="grid gap-3 sm:grid-cols-[1fr_1fr]">
+                        <select
+                          value={
+                            articleTopics.includes(article.category.trim())
+                              ? article.category.trim()
+                              : ""
+                          }
+                          onChange={(event) =>
+                            updateLocalArticle(article.id, {
+                              category: event.target.value,
+                            })
+                          }
+                          className="rounded-2xl border border-[#ead7d1] bg-white px-4 py-3"
+                          aria-label="Выбрать тему статьи"
+                        >
+                          <option value="">Выбрать тему</option>
+                          {articleTopics.map((topic) => (
+                            <option key={topic} value={topic}>
+                              {topic}
+                            </option>
+                          ))}
+                        </select>
+
+                        <input
+                          value={article.category}
+                          onChange={(event) =>
+                            updateLocalArticle(article.id, {
+                              category: event.target.value,
+                            })
+                          }
+                          className="rounded-2xl border border-[#ead7d1] px-4 py-3"
+                          placeholder="Или написать свою тему"
+                        />
+                      </div>
                     </div>
 
                     <textarea

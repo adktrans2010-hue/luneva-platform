@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
 import LegalConsent from "@/components/legal/legal-consent";
+import { getAttribution, trackGoal } from "@/src/lib/client-analytics";
 
 type AccountPackage = {
   id: string;
@@ -21,6 +22,11 @@ const consultationFormats = [
   { value: "office", label: "Очно в кабинете" },
 ];
 
+const officeLocations = [
+  { value: "moscow", label: "Москва" },
+  { value: "vidnoye", label: "Видное" },
+];
+
 function toDateInputValue(date: Date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -32,6 +38,7 @@ function toDateInputValue(date: Date) {
 export default function AccountBookingForm({ packages }: AccountBookingFormProps) {
   const minDate = useMemo(() => toDateInputValue(new Date()), []);
   const [consultationFormat, setConsultationFormat] = useState("online");
+  const [consultationLocation, setConsultationLocation] = useState("online");
   const [appointmentDate, setAppointmentDate] = useState(minDate);
   const [appointmentTime, setAppointmentTime] = useState("");
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
@@ -44,6 +51,7 @@ export default function AccountBookingForm({ packages }: AccountBookingFormProps
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [legalAccepted, setLegalAccepted] = useState(false);
+  const [formOpenedTracked, setFormOpenedTracked] = useState(false);
 
   const availablePackages = packages.filter(
     (item) =>
@@ -54,7 +62,7 @@ export default function AccountBookingForm({ packages }: AccountBookingFormProps
     const controller = new AbortController();
 
     void fetch(
-      `/api/appointments/availability?date=${appointmentDate}&format=${consultationFormat}`,
+      `/api/appointments/availability?date=${appointmentDate}&format=${consultationFormat}&location=${consultationLocation}`,
       { signal: controller.signal }
     )
       .then((response) => response.json())
@@ -72,15 +80,23 @@ export default function AccountBookingForm({ packages }: AccountBookingFormProps
       });
 
     return () => controller.abort();
-  }, [appointmentDate, consultationFormat]);
+  }, [appointmentDate, consultationFormat, consultationLocation]);
 
   function changeConsultationFormat(format: string) {
     setConsultationFormat(format);
+    setConsultationLocation(format === "office" ? "moscow" : "online");
     setAppointmentTime("");
     setAvailableSlots([]);
     setLoadingSlots(true);
     setPaymentMethod("online");
     setPackageId("");
+  }
+
+  function changeConsultationLocation(location: string) {
+    setConsultationLocation(location);
+    setAppointmentTime("");
+    setAvailableSlots([]);
+    setLoadingSlots(true);
   }
 
   function changeAppointmentDate(date: string) {
@@ -90,24 +106,34 @@ export default function AccountBookingForm({ packages }: AccountBookingFormProps
     setLoadingSlots(true);
   }
 
+  function trackFormOpenOnce() {
+    if (formOpenedTracked) return;
+
+    setFormOpenedTracked(true);
+    trackGoal("booking_form_open", { source: "account" }, { once: true });
+  }
+
   async function submitAppointment(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSending(true);
     setSent(false);
     setError(null);
     setPaymentUrl(null);
+    trackGoal("booking_submit", { source: "account" });
 
     const response = await fetch("/api/account/appointments", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         consultationFormat,
+        consultationLocation,
         appointmentDate,
         appointmentTime,
         paymentMethod,
         packageId: paymentMethod === "package" ? packageId : null,
         message,
         legalConsent: legalAccepted,
+        attribution: getAttribution(),
       }),
     });
 
@@ -117,9 +143,15 @@ export default function AccountBookingForm({ packages }: AccountBookingFormProps
     };
 
     if (!response.ok) {
+      trackGoal("booking_error", { source: "account" });
       setError(data.error ?? "Не удалось создать запись.");
       setSending(false);
       return;
+    }
+
+    trackGoal("booking_success", { source: "account" }, { once: true, dedupeKey: appointmentTime });
+    if (data.paymentUrl) {
+      trackGoal("payment_created", { source: "account" }, { once: true, dedupeKey: data.paymentUrl });
     }
 
     setSent(true);
@@ -130,14 +162,14 @@ export default function AccountBookingForm({ packages }: AccountBookingFormProps
     setLegalAccepted(false);
 
     const slotsResponse = await fetch(
-      `/api/appointments/availability?date=${appointmentDate}&format=${consultationFormat}`
+      `/api/appointments/availability?date=${appointmentDate}&format=${consultationFormat}&location=${consultationLocation}`
     );
     const slotsData = (await slotsResponse.json()) as { slots: string[] };
     setAvailableSlots(slotsData.slots);
   }
 
   return (
-    <form onSubmit={submitAppointment} className="grid gap-5">
+    <form onSubmit={submitAppointment} onFocusCapture={trackFormOpenOnce} className="grid gap-5">
       <div className="rounded-2xl border border-[#ead7d1] bg-[#fff8f6] p-4">
         <p className="text-sm uppercase tracking-[0.18em] text-[#8a7a76]">
           Формат консультации
@@ -160,6 +192,33 @@ export default function AccountBookingForm({ packages }: AccountBookingFormProps
           ))}
         </div>
       </div>
+
+      {consultationFormat === "office" && (
+        <div className="rounded-2xl border border-[#ead7d1] bg-[#fff8f6] p-4">
+          <p className="text-sm uppercase tracking-[0.18em] text-[#8a7a76]">
+            Город очной консультации
+          </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            {officeLocations.map((location) => (
+              <button
+                key={location.value}
+                type="button"
+                onClick={() => changeConsultationLocation(location.value)}
+                className={
+                  consultationLocation === location.value
+                    ? "rounded-xl bg-[#332725] px-4 py-2 text-white"
+                    : "rounded-xl border border-[#332725] px-4 py-2 text-[#332725]"
+                }
+              >
+                {location.label}
+              </button>
+            ))}
+          </div>
+          <p className="mt-3 text-sm text-[#8a7a76]">
+            Точный адрес и детали встречи будут подтверждены отдельно.
+          </p>
+        </div>
+      )}
 
       <div className="grid gap-4 md:grid-cols-2">
         <input
@@ -185,7 +244,10 @@ export default function AccountBookingForm({ packages }: AccountBookingFormProps
               <button
                 key={slot}
                 type="button"
-                onClick={() => setAppointmentTime(slot)}
+                onClick={() => {
+                  setAppointmentTime(slot);
+                  trackGoal("slot_selected", { source: "account", slot });
+                }}
                 className={
                   appointmentTime === slot
                     ? "rounded-xl bg-[#332725] px-4 py-2 text-white"
@@ -293,6 +355,7 @@ export default function AccountBookingForm({ packages }: AccountBookingFormProps
           {paymentUrl && (
             <a
               href={paymentUrl}
+              onClick={() => trackGoal("payment_click", { source: "account" }, { once: true, dedupeKey: paymentUrl })}
               className="mt-3 inline-flex rounded-xl bg-[#332725] px-4 py-2 text-white"
             >
               Перейти к оплате

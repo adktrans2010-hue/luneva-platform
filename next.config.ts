@@ -4,16 +4,13 @@ import { fileURLToPath } from "node:url";
 
 const projectRoot = dirname(fileURLToPath(import.meta.url));
 const isDev = process.env.NODE_ENV === "development";
-const staticAssetOrigin = "https://egotifubasem.begetcdn.cloud";
-const staticAssetPrefix = `${staticAssetOrigin}/luneva-v1`;
-const staticSource = isDev ? "" : ` ${staticAssetOrigin}`;
 const contentSecurityPolicy = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}${staticSource}`,
-  `style-src 'self' 'unsafe-inline'${staticSource}`,
-  `img-src 'self' data: blob:${staticSource}`,
-  `font-src 'self' data:${staticSource}`,
-  "connect-src 'self'",
+  `script-src 'self' 'unsafe-inline' https://mc.yandex.ru${isDev ? " 'unsafe-eval'" : ""}`,
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: https://mc.yandex.ru",
+  "font-src 'self' data:",
+  "connect-src 'self' https://mc.yandex.ru",
   "frame-src 'self' https://yandex.ru",
   "media-src 'self'",
   "object-src 'none'",
@@ -24,7 +21,6 @@ const contentSecurityPolicy = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
-  assetPrefix: isDev ? undefined : staticAssetPrefix,
   poweredByHeader: false,
   skipTrailingSlashRedirect: true,
   async redirects() {
@@ -40,6 +36,16 @@ const nextConfig: NextConfig = {
         statusCode: 301,
       },
       {
+        source: "/help/eating-disorders",
+        destination: "/rpp",
+        statusCode: 301,
+      },
+      {
+        source: "/help/trauma-ptsd",
+        destination: "/help/grief-crisis",
+        statusCode: 301,
+      },
+      {
         source: "/useful-articles/:path*",
         destination: "/blog",
         statusCode: 301,
@@ -47,6 +53,11 @@ const nextConfig: NextConfig = {
       {
         source: "/contact-us/:path*",
         destination: "/contacts",
+        statusCode: 301,
+      },
+      {
+        source: "/about/education",
+        destination: "/certificates",
         statusCode: 301,
       },
     ];

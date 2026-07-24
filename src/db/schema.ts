@@ -7,6 +7,7 @@ import {
   integer,
   index,
   uniqueIndex,
+  jsonb,
 } from "drizzle-orm/pg-core";
 
 export const reviewCategories = pgTable(
@@ -172,6 +173,14 @@ export const users = pgTable(
 
     passwordHash: text("password_hash").notNull(),
 
+    isBlocked: boolean("is_blocked")
+      .default(false)
+      .notNull(),
+
+    blockedAt: timestamp("blocked_at"),
+
+    deletedAt: timestamp("deleted_at"),
+
     createdAt: timestamp("created_at")
       .defaultNow()
       .notNull(),
@@ -233,6 +242,107 @@ export const passwordResetCodes = pgTable(
   (table) => [uniqueIndex("password_reset_codes_email_unique").on(table.email)]
 );
 
+export const accountInvitations = pgTable(
+  "account_invitations",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+
+    email: text("email").notNull(),
+
+    tokenHash: text("token_hash").notNull(),
+
+    appointmentId: uuid("appointment_id").references(
+      () => appointmentRequests.id,
+      { onDelete: "set null" }
+    ),
+
+    paymentId: uuid("payment_id"),
+
+    userId: uuid("user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+
+    expiresAt: timestamp("expires_at").notNull(),
+
+    usedAt: timestamp("used_at"),
+
+    createdAt: timestamp("created_at")
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("account_invitations_token_hash_unique").on(table.tokenHash),
+    index("account_invitations_email_idx").on(table.email),
+  ]
+);
+
+export const consultationProducts = pgTable(
+  "consultation_products",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+
+    code: text("code").notNull(),
+
+    name: text("name").notNull(),
+
+    shortDescription: text("short_description"),
+
+    fullDescription: text("full_description"),
+
+    sessionsCount: integer("sessions_count").notNull(),
+
+    priceKopeks: integer("price_kopeks").notNull(),
+
+    currency: text("currency")
+      .default("RUB")
+      .notNull(),
+
+    durationMinutes: integer("duration_minutes").notNull(),
+
+    isActive: boolean("is_active")
+      .default(true)
+      .notNull(),
+
+    isPublic: boolean("is_public")
+      .default(true)
+      .notNull(),
+
+    sortOrder: integer("sort_order")
+      .default(0)
+      .notNull(),
+
+    badge: text("badge"),
+
+    oldPriceKopeks: integer("old_price_kopeks"),
+
+    receiptDescription: text("receipt_description"),
+
+    paymentSubject: text("payment_subject"),
+
+    paymentMode: text("payment_mode"),
+
+    vatCode: integer("vat_code"),
+
+    createdAt: timestamp("created_at")
+      .defaultNow()
+      .notNull(),
+
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .notNull(),
+
+    archivedAt: timestamp("archived_at"),
+  },
+  (table) => [
+    uniqueIndex("consultation_products_code_unique").on(table.code),
+    index("consultation_products_public_idx").on(
+      table.isActive,
+      table.isPublic,
+      table.sortOrder
+    ),
+  ]
+);
+
 export const appointmentRequests = pgTable("appointment_requests", {
   id: uuid("id").defaultRandom().primaryKey(),
 
@@ -244,13 +354,23 @@ export const appointmentRequests = pgTable("appointment_requests", {
     onDelete: "set null",
   }),
 
+  productId: uuid("product_id").references(() => consultationProducts.id, {
+    onDelete: "set null",
+  }),
+
   name: text("name").notNull(),
 
   contact: text("contact").notNull(),
 
+  normalizedEmail: text("normalized_email"),
+
   contactMethod: text("contact_method").notNull(),
 
   consultationFormat: text("consultation_format")
+    .default("online")
+    .notNull(),
+
+  consultationLocation: text("consultation_location")
     .default("online")
     .notNull(),
 
@@ -265,6 +385,10 @@ export const appointmentRequests = pgTable("appointment_requests", {
   status: text("status")
     .default("new")
     .notNull(),
+
+  holdExpiresAt: timestamp("hold_expires_at"),
+
+  confirmedAt: timestamp("confirmed_at"),
 
   paymentMethod: text("payment_method")
     .default("online")
@@ -282,6 +406,8 @@ export const appointmentRequests = pgTable("appointment_requests", {
 
   paymentNote: text("payment_note"),
 
+  attribution: jsonb("attribution"),
+
   notificationStatus: text("notification_status")
     .default("not_sent")
     .notNull(),
@@ -295,37 +421,71 @@ export const appointmentRequests = pgTable("appointment_requests", {
     .notNull(),
 });
 
-export const userConsultationPackages = pgTable("user_consultation_packages", {
-  id: uuid("id").defaultRandom().primaryKey(),
+export const userConsultationPackages = pgTable(
+  "user_consultation_packages",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
 
-  userId: uuid("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
 
-  title: text("title").notNull(),
+    title: text("title").notNull(),
 
-  consultationFormat: text("consultation_format")
-    .default("online")
-    .notNull(),
+    productId: uuid("product_id").references(() => consultationProducts.id, {
+      onDelete: "set null",
+    }),
 
-  totalSessions: integer("total_sessions").notNull(),
+    paymentId: uuid("payment_id"),
 
-  remainingSessions: integer("remaining_sessions").notNull(),
+    productCodeSnapshot: text("product_code_snapshot"),
 
-  status: text("status")
-    .default("active")
-    .notNull(),
+    productNameSnapshot: text("product_name_snapshot"),
 
-  paidAt: timestamp("paid_at"),
+    sessionsCountSnapshot: integer("sessions_count_snapshot"),
 
-  createdAt: timestamp("created_at")
-    .defaultNow()
-    .notNull(),
+    priceKopeksSnapshot: integer("price_kopeks_snapshot"),
 
-  updatedAt: timestamp("updated_at")
-    .defaultNow()
-    .notNull(),
-});
+    currencySnapshot: text("currency_snapshot"),
+
+    durationMinutesSnapshot: integer("duration_minutes_snapshot"),
+
+    receiptDescriptionSnapshot: text("receipt_description_snapshot"),
+
+    consultationFormat: text("consultation_format")
+      .default("online")
+      .notNull(),
+
+    totalSessions: integer("total_sessions").notNull(),
+
+    usedSessions: integer("used_sessions")
+      .default(0)
+      .notNull(),
+
+    remainingSessions: integer("remaining_sessions").notNull(),
+
+    status: text("status")
+      .default("active")
+      .notNull(),
+
+    paidAt: timestamp("paid_at"),
+
+    activatedAt: timestamp("activated_at"),
+
+    expiresAt: timestamp("expires_at"),
+
+    createdAt: timestamp("created_at")
+      .defaultNow()
+      .notNull(),
+
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("user_consultation_packages_payment_unique").on(table.paymentId),
+  ]
+);
 
 export const appointmentHistory = pgTable("appointment_history", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -343,6 +503,250 @@ export const appointmentHistory = pgTable("appointment_history", {
     .notNull(),
 });
 
+export const yookassaPayments = pgTable(
+  "yookassa_payments",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+
+    appointmentId: uuid("appointment_id")
+      .notNull()
+      .references(() => appointmentRequests.id, { onDelete: "cascade" }),
+
+    provider: text("provider")
+      .default("yookassa")
+      .notNull(),
+
+    providerPaymentId: text("provider_payment_id"),
+
+    idempotenceKey: text("idempotence_key").notNull(),
+
+    amountKopeks: integer("amount_kopeks").notNull(),
+
+    currency: text("currency")
+      .default("RUB")
+      .notNull(),
+
+    productId: uuid("product_id").references(() => consultationProducts.id, {
+      onDelete: "set null",
+    }),
+
+    productCodeSnapshot: text("product_code_snapshot"),
+
+    productNameSnapshot: text("product_name_snapshot"),
+
+    sessionsCountSnapshot: integer("sessions_count_snapshot"),
+
+    priceKopeksSnapshot: integer("price_kopeks_snapshot"),
+
+    currencySnapshot: text("currency_snapshot"),
+
+    durationMinutesSnapshot: integer("duration_minutes_snapshot"),
+
+    receiptDescriptionSnapshot: text("receipt_description_snapshot"),
+
+    status: text("status")
+      .default("creating")
+      .notNull(),
+
+    providerStatus: text("provider_status"),
+
+    confirmationUrl: text("confirmation_url"),
+
+    errorCode: text("error_code"),
+
+    paidAmountKopeks: integer("paid_amount_kopeks"),
+
+    refundedAmountKopeks: integer("refunded_amount_kopeks")
+      .default(0)
+      .notNull(),
+
+    capturedAt: timestamp("captured_at"),
+
+    canceledAt: timestamp("canceled_at"),
+
+    fullyRefundedAt: timestamp("fully_refunded_at"),
+
+    processedAt: timestamp("processed_at"),
+
+    notifiedAt: timestamp("notified_at"),
+
+    createdAt: timestamp("created_at")
+      .defaultNow()
+      .notNull(),
+
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("yookassa_payments_appointment_idx").on(table.appointmentId),
+    uniqueIndex("yookassa_payments_provider_payment_unique").on(
+      table.provider,
+      table.providerPaymentId
+    ),
+    uniqueIndex("yookassa_payments_idempotence_key_unique").on(
+      table.idempotenceKey
+    ),
+  ]
+);
+
+export const yookassaRefunds = pgTable(
+  "yookassa_refunds",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+
+    paymentId: uuid("payment_id")
+      .notNull()
+      .references(() => yookassaPayments.id, { onDelete: "cascade" }),
+
+    appointmentId: uuid("appointment_id")
+      .notNull()
+      .references(() => appointmentRequests.id, { onDelete: "cascade" }),
+
+    providerRefundId: text("provider_refund_id"),
+
+    idempotenceKey: text("idempotence_key").notNull(),
+
+    amountKopeks: integer("amount_kopeks").notNull(),
+
+    currency: text("currency")
+      .default("RUB")
+      .notNull(),
+
+    type: text("type").notNull(),
+
+    status: text("status")
+      .default("created")
+      .notNull(),
+
+    providerStatus: text("provider_status"),
+
+    reason: text("reason"),
+
+    requestedBy: text("requested_by")
+      .default("admin")
+      .notNull(),
+
+    requestedByAdminId: text("requested_by_admin_id"),
+
+    description: text("description"),
+
+    cancellationParty: text("cancellation_party"),
+
+    cancellationReason: text("cancellation_reason"),
+
+    receiptStatus: text("receipt_status"),
+
+    errorCode: text("error_code"),
+
+    createdAt: timestamp("created_at")
+      .defaultNow()
+      .notNull(),
+
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .notNull(),
+
+    processedAt: timestamp("processed_at"),
+
+    notifiedAt: timestamp("notified_at"),
+  },
+  (table) => [
+    index("yookassa_refunds_payment_idx").on(table.paymentId),
+    index("yookassa_refunds_appointment_idx").on(table.appointmentId),
+    uniqueIndex("yookassa_refunds_provider_refund_unique").on(
+      table.providerRefundId
+    ),
+    uniqueIndex("yookassa_refunds_idempotence_key_unique").on(
+      table.idempotenceKey
+    ),
+  ]
+);
+
+export const paymentEvents = pgTable(
+  "payment_events",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+
+    appointmentId: uuid("appointment_id").references(
+      () => appointmentRequests.id,
+      { onDelete: "set null" }
+    ),
+
+    paymentId: uuid("payment_id").references(() => yookassaPayments.id, {
+      onDelete: "set null",
+    }),
+
+    refundId: uuid("refund_id").references(() => yookassaRefunds.id, {
+      onDelete: "set null",
+    }),
+
+    eventType: text("event_type").notNull(),
+
+    oldStatus: text("old_status"),
+
+    newStatus: text("new_status"),
+
+    amountKopeks: integer("amount_kopeks"),
+
+    source: text("source")
+      .default("site")
+      .notNull(),
+
+    actorId: text("actor_id"),
+
+    requestId: text("request_id"),
+
+    metadata: jsonb("metadata"),
+
+    createdAt: timestamp("created_at")
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("payment_events_appointment_idx").on(table.appointmentId),
+    index("payment_events_payment_idx").on(table.paymentId),
+    index("payment_events_refund_idx").on(table.refundId),
+    index("payment_events_created_idx").on(table.createdAt),
+  ]
+);
+
+export const clientNotifications = pgTable(
+  "client_notifications",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+
+    appointmentId: uuid("appointment_id").references(
+      () => appointmentRequests.id,
+      { onDelete: "set null" }
+    ),
+
+    kind: text("kind")
+      .default("message")
+      .notNull(),
+
+    title: text("title").notNull(),
+
+    message: text("message").notNull(),
+
+    readAt: timestamp("read_at"),
+
+    createdAt: timestamp("created_at")
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("client_notifications_user_created_idx").on(
+      table.userId,
+      table.createdAt
+    ),
+  ]
+);
+
 export const appointmentAvailability = pgTable(
   "appointment_availability",
   {
@@ -356,6 +760,10 @@ export const appointmentAvailability = pgTable(
       .default("online")
       .notNull(),
 
+    consultationLocation: text("consultation_location")
+      .default("online")
+      .notNull(),
+
     enabled: boolean("enabled")
       .default(true)
       .notNull(),
@@ -365,10 +773,11 @@ export const appointmentAvailability = pgTable(
       .notNull(),
   },
   (table) => [
-    uniqueIndex("appointment_availability_date_time_format_unique").on(
+    uniqueIndex("appointment_availability_date_time_format_location_unique").on(
       table.date,
       table.time,
-      table.consultationFormat
+      table.consultationFormat,
+      table.consultationLocation
     ),
   ]
 );

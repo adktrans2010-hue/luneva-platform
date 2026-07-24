@@ -190,6 +190,55 @@
       "when": 1784179719959,
       "tag": "0026_sudden_thaddeus_ross",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1784196730029,
+      "tag": "0027_classy_harpoon",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1784365200000,
+      "tag": "0028_yookassa_payment_attempts",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1784386800000,
+      "tag": "0029_yookassa_refunds",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1784592000000,
+      "tag": "0030_consultation_products",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1784678400000,
+      "tag": "0031_appointment_attribution",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1784679600000,
+      "tag": "0032_user_admin_controls",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1784683200000,
+      "tag": "0033_automatic_booking_flow",
+      "breakpoints": true
     }
   ]
 }

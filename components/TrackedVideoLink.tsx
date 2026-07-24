@@ -2,23 +2,18 @@
 
 import type { ReactNode } from "react";
 
+import {
+  getAttribution,
+  getSessionId,
+  getVisitorId,
+} from "@/src/lib/client-analytics";
+
 type TrackedVideoLinkProps = {
   href: string;
   title: string;
   children: ReactNode;
   className?: string;
 };
-
-function getStoredId(key: string) {
-  const existing = window.localStorage.getItem(key);
-
-  if (existing) return existing;
-
-  const value = crypto.randomUUID();
-  window.localStorage.setItem(key, value);
-
-  return value;
-}
 
 export default function TrackedVideoLink({
   href,
@@ -37,8 +32,9 @@ export default function TrackedVideoLink({
         title,
         target: href,
         referrer: document.referrer,
-        visitorId: getStoredId("luneva_visitor_id"),
-        sessionId: getStoredId("luneva_session_id"),
+        visitorId: getVisitorId(),
+        sessionId: getSessionId(),
+        attribution: getAttribution(),
       }),
     });
   }

@@ -19,7 +19,7 @@ export default function ConsultationCta({
         <div className="relative grid overflow-hidden rounded-[28px] border border-[#f0ddd6] bg-[#fbf3ef] shadow-sm md:min-h-[330px] md:grid-cols-[54fr_46fr]">
           <div className="relative z-10 px-7 py-9 md:px-12 md:py-10 lg:px-16">
             <h2 className="max-w-[640px] font-serif text-[34px] font-normal leading-[1.15] text-[#2f2926] sm:text-[42px] lg:text-[54px]">
-              Если вам чувствуете, что
+              Если вы чувствуете, что
               <br />
               готовы поговорить о важном
             </h2>

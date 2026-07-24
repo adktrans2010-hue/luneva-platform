@@ -48,7 +48,7 @@ export default function LegalConsent({
         <Link href="/legal/terms" className={linkClass} target="_blank" rel="noreferrer">
           Пользовательским соглашением
         </Link>
-        ,{" "}
+        {", "}
         <Link href="/legal/privacy" className={linkClass} target="_blank" rel="noreferrer">
           Политикой обработки персональных данных
         </Link>{" "}
@@ -56,7 +56,7 @@ export default function LegalConsent({
         <Link href="/legal/consent" className={linkClass} target="_blank" rel="noreferrer">
           Согласие на обработку персональных данных
         </Link>
-        .
+        {"."}
       </p>
     </div>
   );

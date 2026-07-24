@@ -1,5 +1,7 @@
 import { isEmailConfigured, sendMail } from "@/src/lib/email";
-import { getOwnerNotificationEmail } from "@/src/lib/site-contacts";
+import { getAdminSettings } from "@/src/lib/admin-settings";
+import { SITE_CONTACTS, getOwnerNotificationEmail } from "@/src/lib/site-contacts";
+import { getConsultationPlaceLabel } from "@/src/lib/consultation-locations";
 
 type TelegramMessage = {
   text: string;
@@ -11,10 +13,20 @@ type AppointmentLike = {
   name: string;
   contact: string;
   consultationFormat: string;
+  consultationLocation?: string | null;
   scheduledAt: Date | null;
   message?: string | null;
+  paymentMethod?: string | null;
   paymentStatus?: string | null;
+  paymentAmount?: number | null;
   paymentLink?: string | null;
+  paymentNote?: string | null;
+};
+
+type ClientLike = {
+  name: string;
+  email: string;
+  phone?: string | null;
 };
 
 const formatLabels: Record<string, string> = {
@@ -29,9 +41,19 @@ const statusLabels: Record<string, string> = {
   cancelled: "Отменена",
 };
 
+const paymentMethodLabels: Record<string, string> = {
+  online: "Онлайн-оплата",
+  package: "Оплаченный пакет",
+  after_confirmation: "После подтверждения",
+};
+
 const paymentStatusLabels: Record<string, string> = {
   waiting: "Ожидает оплаты",
   invoice_sent: "Ссылка отправлена",
+  partially_refunded: "Частичный возврат",
+  refund_pending: "Возврат в обработке",
+  refund_failed: "Ошибка возврата",
+  manual_review: "Требует проверки",
   paid: "Оплачено",
   cancelled: "Отменено",
   refunded: "Возврат",
@@ -61,6 +83,44 @@ function stripTelegramHtml(value: string) {
   return value.replace(/<[^>]*>/g, "");
 }
 
+function formatAppointmentLines(appointment: AppointmentLike) {
+  return [
+    `Клиент: ${escapeHtml(appointment.name)}`,
+    `Контакт: ${escapeHtml(appointment.contact)}`,
+    `Формат: ${formatLabels[appointment.consultationFormat] ?? appointment.consultationFormat}`,
+    appointment.consultationFormat === "office"
+      ? `Место: ${getConsultationPlaceLabel(
+          appointment.consultationFormat,
+          appointment.consultationLocation ?? "moscow"
+        )}`
+      : "",
+    `Дата: ${formatDateTime(appointment.scheduledAt)}`,
+    appointment.paymentMethod
+      ? `Способ оплаты: ${
+          paymentMethodLabels[appointment.paymentMethod] ?? appointment.paymentMethod
+        }`
+      : "",
+    appointment.paymentStatus
+      ? `Статус оплаты: ${
+          paymentStatusLabels[appointment.paymentStatus] ?? appointment.paymentStatus
+        }`
+      : "",
+    appointment.paymentAmount ? `Сумма: ${appointment.paymentAmount} руб.` : "",
+    appointment.paymentLink ? `Ссылка оплаты: ${escapeHtml(appointment.paymentLink)}` : "",
+    appointment.paymentNote ? `Комментарий оплаты: ${escapeHtml(appointment.paymentNote)}` : "",
+    appointment.message ? `Запрос: ${escapeHtml(appointment.message)}` : "",
+  ].filter(Boolean);
+}
+
+async function getOwnerEmail() {
+  const settings = await getAdminSettings().catch(() => null);
+  return (
+    settings?.email?.trim() ||
+    getOwnerNotificationEmail() ||
+    SITE_CONTACTS.email
+  );
+}
+
 async function sendOwnerEmailNotification(subject: string, text: string) {
   if (!isEmailConfigured()) {
     return {
@@ -71,7 +131,7 @@ async function sendOwnerEmailNotification(subject: string, text: string) {
 
   try {
     await sendMail({
-      to: getOwnerNotificationEmail(),
+      to: await getOwnerEmail(),
       subject,
       text: stripTelegramHtml(text),
     });
@@ -101,6 +161,15 @@ function combineNotificationResults(
     ok: telegramResult.ok || emailResult.ok,
     reason: reasons.length > 0 ? reasons.join(" | ") : null,
   };
+}
+
+async function notifyOwner(subject: string, text: string) {
+  const [telegramResult, emailResult] = await Promise.all([
+    sendTelegramMessage({ text }),
+    sendOwnerEmailNotification(subject, text),
+  ]);
+
+  return combineNotificationResults(telegramResult, emailResult);
 }
 
 export function isTelegramConfigured() {
@@ -151,71 +220,153 @@ export async function sendTelegramMessage({ text, chatId }: TelegramMessage) {
 
 export async function notifyOwnerNewAppointment(appointment: AppointmentLike) {
   const text = [
-      "<b>Новая запись</b>",
-      `Клиент: ${escapeHtml(appointment.name)}`,
-      `Контакт: ${escapeHtml(appointment.contact)}`,
-      `Формат: ${formatLabels[appointment.consultationFormat] ?? appointment.consultationFormat}`,
-      `Дата: ${formatDateTime(appointment.scheduledAt)}`,
-      appointment.message ? `Запрос: ${escapeHtml(appointment.message)}` : "",
-    ]
-      .filter(Boolean)
-      .join("\n");
+    "<b>Новая запись на консультацию</b>",
+    ...formatAppointmentLines(appointment),
+  ].join("\n");
 
-  const [telegramResult, emailResult] = await Promise.all([
-    sendTelegramMessage({ text }),
-    sendOwnerEmailNotification("Новая запись на консультацию", text),
-  ]);
-
-  return combineNotificationResults(telegramResult, emailResult);
+  return notifyOwner("Новая запись на консультацию", text);
 }
 
 export async function notifyOwnerAppointmentChanged({
   appointment,
   status,
   dateChanged,
+  locationChanged,
 }: {
   appointment: AppointmentLike;
   status?: string;
   dateChanged?: boolean;
+  locationChanged?: boolean;
+}) {
+  const title =
+    status === "cancelled"
+      ? "Отмена консультации"
+      : dateChanged
+        ? "Перенос консультации"
+        : locationChanged
+          ? "Изменение места консультации"
+          : "Изменение консультации";
+
+  const text = [
+    `<b>${title}</b>`,
+    `Статус: ${status ? statusLabels[status] ?? status : "без изменения"}`,
+    ...formatAppointmentLines(appointment),
+  ].join("\n");
+
+  return notifyOwner(title, text);
+}
+
+export async function notifyOwnerAppointmentEvent({
+  appointment,
+  title,
+  details,
+}: {
+  appointment: AppointmentLike;
+  title: string;
+  details?: string | null;
 }) {
   const text = [
-      dateChanged ? "<b>Изменена дата записи</b>" : "<b>Изменен статус записи</b>",
-      `Клиент: ${escapeHtml(appointment.name)}`,
-      `Контакт: ${escapeHtml(appointment.contact)}`,
-      `Статус: ${status ? statusLabels[status] ?? status : "без изменения"}`,
-      `Дата: ${formatDateTime(appointment.scheduledAt)}`,
-    ].join("\n");
+    `<b>${escapeHtml(title)}</b>`,
+    details ? `Детали: ${escapeHtml(details)}` : "",
+    ...formatAppointmentLines(appointment),
+  ]
+    .filter(Boolean)
+    .join("\n");
 
-  const [telegramResult, emailResult] = await Promise.all([
-    sendTelegramMessage({ text }),
-    sendOwnerEmailNotification("Изменение записи на консультацию", text),
-  ]);
-
-  return combineNotificationResults(telegramResult, emailResult);
+  return notifyOwner(title, text);
 }
 
 export async function notifyOwnerPayment(appointment: AppointmentLike) {
   const text = [
-      "<b>Оплата по записи</b>",
-      `Клиент: ${escapeHtml(appointment.name)}`,
-      `Контакт: ${escapeHtml(appointment.contact)}`,
-      `Дата: ${formatDateTime(appointment.scheduledAt)}`,
-      `Статус оплаты: ${
-        appointment.paymentStatus
-          ? paymentStatusLabels[appointment.paymentStatus] ?? appointment.paymentStatus
-          : "не указан"
-      }`,
-      appointment.paymentLink ? `Ссылка: ${escapeHtml(appointment.paymentLink)}` : "",
-    ]
-      .filter(Boolean)
-      .join("\n");
+    "<b>Оплата по записи</b>",
+    ...formatAppointmentLines(appointment),
+  ].join("\n");
 
-  const [telegramResult, emailResult] = await Promise.all([
-    sendTelegramMessage({ text }),
-    sendOwnerEmailNotification("Оплата по записи", text),
-  ]);
+  return notifyOwner("Оплата по записи", text);
+}
 
-  return combineNotificationResults(telegramResult, emailResult);
+export async function notifyOwnerPaymentRefund({
+  appointment,
+  refund,
+  payment,
+  refundedAmountKopeks,
+  remainingAmountKopeks,
+}: {
+  appointment: AppointmentLike;
+  refund: {
+    type: string;
+    amountKopeks: number;
+    providerRefundId?: string | null;
+    reason?: string | null;
+    requestedBy?: string | null;
+  };
+  payment: {
+    providerPaymentId?: string | null;
+  };
+  refundedAmountKopeks: number;
+  remainingAmountKopeks: number;
+}) {
+  const text = [
+    "<b>Возврат выполнен</b>",
+    `Тип: ${refund.type === "full" ? "полный" : "частичный"}`,
+    ...formatAppointmentLines(appointment),
+    `Сумма возврата: ${(refund.amountKopeks / 100).toLocaleString("ru-RU")} руб.`,
+    `Всего возвращено: ${(refundedAmountKopeks / 100).toLocaleString("ru-RU")} руб.`,
+    `Остаток оплаты: ${(remainingAmountKopeks / 100).toLocaleString("ru-RU")} руб.`,
+    payment.providerPaymentId
+      ? `ID платежа ЮKassa: ${escapeHtml(payment.providerPaymentId)}`
+      : "",
+    refund.providerRefundId
+      ? `ID возврата ЮKassa: ${escapeHtml(refund.providerRefundId)}`
+      : "",
+    refund.requestedBy === "yookassa_dashboard"
+      ? "Инициатор: кабинет ЮKassa"
+      : "Инициатор: администратор",
+    refund.reason ? `Причина: ${escapeHtml(refund.reason)}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  return notifyOwner("Возврат по записи", text);
+}
+
+export async function notifyOwnerClientRegistered(client: ClientLike) {
+  const message = [
+    "<b>Новый клиент зарегистрировался</b>",
+    `Имя: ${escapeHtml(client.name)}`,
+    `Email: ${escapeHtml(client.email)}`,
+    client.phone ? `Телефон: ${escapeHtml(client.phone)}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  return notifyOwner("Новый клиент зарегистрировался", message);
+}
+
+export async function notifyOwnerPackageCreated({
+  client,
+  title,
+  consultationFormat,
+  totalSessions,
+}: {
+  client: ClientLike;
+  title: string;
+  consultationFormat: string;
+  totalSessions: number;
+}) {
+  const message = [
+    "<b>Клиенту добавлен пакет консультаций</b>",
+    `Клиент: ${escapeHtml(client.name)}`,
+    `Email: ${escapeHtml(client.email)}`,
+    client.phone ? `Телефон: ${escapeHtml(client.phone)}` : "",
+    `Пакет: ${escapeHtml(title)}`,
+    `Формат: ${formatLabels[consultationFormat] ?? consultationFormat}`,
+    `Количество консультаций: ${totalSessions}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  return notifyOwner("Клиенту добавлен пакет консультаций", message);
 }
 
 export async function notifyOwnerNewReview({
@@ -241,10 +392,5 @@ export async function notifyOwnerNewReview({
     .filter(Boolean)
     .join("\n");
 
-  const [telegramResult, emailResult] = await Promise.all([
-    sendTelegramMessage({ text: message }),
-    sendOwnerEmailNotification("Новый отзыв на Luneva Psy", message),
-  ]);
-
-  return combineNotificationResults(telegramResult, emailResult);
+  return notifyOwner("Новый отзыв на Luneva Psy", message);
 }

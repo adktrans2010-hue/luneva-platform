@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import Logo from "@/components/Logo";
+import { footerNavigation } from "@/src/lib/navigation";
 import { SITE_CONTACTS } from "@/src/lib/site-contacts";
 
 export default function Footer() {
@@ -25,12 +26,9 @@ export default function Footer() {
             </p>
 
             <div className="grid gap-4 text-[#5f5552]">
-              <Link href="/">Главная</Link>
-              <Link href="/about">Обо мне</Link>
-              <Link href="/help">Психологическая помощь</Link>
-              <Link href="/reviews">Отзывы</Link>
-              <Link href="/blog">Полезные статьи</Link>
-              <Link href="/faq">Частые вопросы</Link>
+              {footerNavigation.map((link) => (
+                <Link key={link.href} href={link.href}>{link.label}</Link>
+              ))}
             </div>
           </div>
 
@@ -45,15 +43,21 @@ export default function Footer() {
               </Link>
 
               <a href={`mailto:${SITE_CONTACTS.email}`}>{SITE_CONTACTS.email}</a>
+              <a href={SITE_CONTACTS.phoneTelHref}>{SITE_CONTACTS.phone}</a>
 
               <div className="mt-4 flex gap-4">
                 <span className="rounded-full border border-[#ead7d1] px-4 py-2">
                   Telegram
                 </span>
 
-                <span className="rounded-full border border-[#ead7d1] px-4 py-2">
+                <a
+                  href={SITE_CONTACTS.whatsappHref}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-full border border-[#ead7d1] px-4 py-2"
+                >
                   WhatsApp
-                </span>
+                </a>
               </div>
             </div>
           </div>
@@ -65,6 +69,7 @@ export default function Footer() {
 
             <div className="grid gap-4 text-sm leading-6 text-[#5f5552]">
               <Link href="/legal/terms">Пользовательское соглашение</Link>
+              <Link href="/requisites">Реквизиты</Link>
               <Link href="/legal/privacy">Политика обработки персональных данных</Link>
               <Link href="/legal/consent">Согласие на обработку персональных данных</Link>
               <Link href="/legal/cookies">Политика использования Cookie</Link>

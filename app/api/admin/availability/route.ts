@@ -3,6 +3,7 @@ import { and, asc, eq } from "drizzle-orm";
 
 import { db } from "@/src/db";
 import { appointmentAvailability } from "@/src/db/schema";
+import { normalizeConsultationLocation } from "@/src/lib/consultation-locations";
 
 function isValidTime(time: string) {
   return /^\d{2}:\d{2}$/.test(time);
@@ -11,6 +12,7 @@ function isValidTime(time: string) {
 export async function GET(request: NextRequest) {
   const date = request.nextUrl.searchParams.get("date");
   const consultationFormat = request.nextUrl.searchParams.get("format");
+  const consultationLocation = request.nextUrl.searchParams.get("location");
 
   const query = db
     .select()
@@ -21,14 +23,18 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(await query);
   }
 
-  if (date && consultationFormat) {
+  if (date && consultationFormat && consultationLocation) {
     const data = await db
       .select()
       .from(appointmentAvailability)
       .where(
         and(
           eq(appointmentAvailability.date, date),
-          eq(appointmentAvailability.consultationFormat, consultationFormat)
+          eq(appointmentAvailability.consultationFormat, consultationFormat),
+          eq(
+            appointmentAvailability.consultationLocation,
+            consultationLocation
+          )
         )
       )
       .orderBy(asc(appointmentAvailability.time));
@@ -54,8 +60,17 @@ export async function POST(request: Request) {
   const date = String(body.date ?? "").trim();
   const time = String(body.time ?? "").trim();
   const consultationFormat = String(body.format ?? "online").trim();
+  const consultationLocation = normalizeConsultationLocation(
+    consultationFormat,
+    body.location
+  );
 
-  if (!date || !isValidTime(time) || !["online", "office"].includes(consultationFormat)) {
+  if (
+    !date ||
+    !isValidTime(time) ||
+    !["online", "office"].includes(consultationFormat) ||
+    !consultationLocation
+  ) {
     return NextResponse.json(
       { error: "Выберите формат, дату и время приема." },
       { status: 400 }
@@ -69,7 +84,11 @@ export async function POST(request: Request) {
       and(
         eq(appointmentAvailability.date, date),
         eq(appointmentAvailability.time, time),
-        eq(appointmentAvailability.consultationFormat, consultationFormat)
+        eq(appointmentAvailability.consultationFormat, consultationFormat),
+        eq(
+          appointmentAvailability.consultationLocation,
+          consultationLocation
+        )
       )
     )
     .limit(1);
@@ -83,7 +102,13 @@ export async function POST(request: Request) {
 
   const [createdSlot] = await db
     .insert(appointmentAvailability)
-    .values({ date, time, consultationFormat, enabled: true })
+    .values({
+      date,
+      time,
+      consultationFormat,
+      consultationLocation,
+      enabled: true,
+    })
     .returning();
 
   return NextResponse.json(createdSlot, { status: 201 });

@@ -9,6 +9,8 @@ import ContactCta from "@/components/ContactCta";
 import SectionDivider from "@/components/SectionDivider";
 import { getSeoPage, seoToMetadata } from "@/src/lib/seo";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata() {
   return seoToMetadata(await getSeoPage("/"), "/");
 }

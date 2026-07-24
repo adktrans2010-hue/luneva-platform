@@ -1,7 +1,11 @@
 import AppointmentForm from "@/components/AppointmentForm";
+import Link from "next/link";
 import PageStructuredData from "@/components/seo/page-structured-data";
+import { getPublicConsultationProducts } from "@/src/lib/consultation-products";
 import { getSeoPage, seoToMetadata } from "@/src/lib/seo";
 import { SITE_CONTACTS } from "@/src/lib/site-contacts";
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata() {
   return seoToMetadata(await getSeoPage("/contacts"), "/contacts");
@@ -17,8 +21,8 @@ const contactCards = [
   {
     title: "Телефон",
     text: `${SITE_CONTACTS.phone}. На звонки не отвечаю, лучше написать в WhatsApp.`,
-    href: SITE_CONTACTS.phoneHref,
-    label: "Написать на номер",
+    href: SITE_CONTACTS.phoneTelHref,
+    label: "Позвонить",
   },
   {
     title: "E-mail",
@@ -43,7 +47,9 @@ const addresses = [
   },
 ];
 
-export default function ContactsPage() {
+export default async function ContactsPage() {
+  const products = await getPublicConsultationProducts();
+
   return (
     <section className="luneva-fade bg-[#fff8f6] px-6 py-24">
       <PageStructuredData path="/contacts" title="Контакты и запись на консультацию" breadcrumbs={[{ name: "Главная", path: "/" }, { name: "Контакты", path: "/contacts" }]} />
@@ -60,6 +66,47 @@ export default function ContactsPage() {
           Можно написать в WhatsApp, отправить письмо или выбрать свободное
           время в форме онлайн-записи.
         </p>
+
+        <div className="mt-12 rounded-[2rem] border border-[#ead7d1] bg-white p-8 shadow-sm md:p-10">
+          <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <p className="mb-4 text-sm uppercase tracking-[0.25em] text-[#c98778]">
+                Реквизиты
+              </p>
+              <h2 className="font-serif text-4xl text-[#332725]">
+                Контакты и реквизиты исполнителя
+              </h2>
+              <p className="mt-4 max-w-2xl leading-8 text-[#5f5552]">
+                {SITE_CONTACTS.ownerFullName}, {SITE_CONTACTS.ownerStatus.toLowerCase()} —{" "}
+                {SITE_CONTACTS.ownerTaxStatus.toLowerCase()}.
+              </p>
+            </div>
+
+            <Link
+              href="/requisites"
+              className="inline-flex shrink-0 items-center justify-center rounded-2xl border border-[#332725] px-6 py-3 text-[#332725] transition hover:bg-[#fff8f6]"
+            >
+              Смотреть реквизиты
+            </Link>
+          </div>
+
+          <dl className="mt-8 grid gap-5 md:grid-cols-2">
+            <div>
+              <dt className="text-sm uppercase tracking-[0.18em] text-[#c98778]">
+                ИНН
+              </dt>
+              <dd className="mt-2 text-lg text-[#332725]">{SITE_CONTACTS.inn}</dd>
+            </div>
+            <div>
+              <dt className="text-sm uppercase tracking-[0.18em] text-[#c98778]">
+                Сайт
+              </dt>
+              <dd className="mt-2 text-lg text-[#332725]">
+                <a href={SITE_CONTACTS.domain}>{SITE_CONTACTS.domainLabel}</a>
+              </dd>
+            </div>
+          </dl>
+        </div>
 
         <div className="mt-14 grid gap-6 md:grid-cols-3">
           {contactCards.map((item) => (
@@ -151,7 +198,7 @@ export default function ContactsPage() {
             подтверждения.
           </p>
 
-          <AppointmentForm />
+          <AppointmentForm products={products} />
         </div>
       </div>
     </section>

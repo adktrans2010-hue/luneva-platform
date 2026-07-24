@@ -3,6 +3,7 @@ import { desc, eq } from "drizzle-orm";
 
 import { db } from "@/src/db";
 import { userConsultationPackages, users } from "@/src/db/schema";
+import { notifyOwnerPackageCreated } from "@/src/lib/telegram";
 
 export async function GET() {
   const packages = await db
@@ -72,6 +73,17 @@ export async function POST(request: Request) {
       paidAt: new Date(),
     })
     .returning();
+
+  await notifyOwnerPackageCreated({
+    client: {
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+    },
+    title,
+    consultationFormat,
+    totalSessions,
+  });
 
   return NextResponse.json(createdPackage, { status: 201 });
 }

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import AdminReviews from "@/components/AdminReviews";
 
 export default function AdminReviewsPage() {
@@ -6,11 +5,7 @@ export default function AdminReviewsPage() {
     <>
       <section className="bg-[#fff8f6] px-6 py-16">
         <div className="mx-auto max-w-7xl">
-          <Link href="/admin" className="text-[#c98778]">
-            ← Назад в админку
-          </Link>
-
-          <p className="mt-8 mb-4 text-sm uppercase tracking-[0.25em] text-[#c98778]">
+          <p className="mb-4 text-sm uppercase tracking-[0.25em] text-[#c98778]">
             Luneva Admin
           </p>
 

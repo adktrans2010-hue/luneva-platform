@@ -132,6 +132,20 @@ Cookie не содержат паспортных данных, банковск
 
 Luneva Psy
 
-E-mail: [hello@luneva-psy.ru](mailto:hello@luneva-psy.ru)
+E-mail: [info@luneva-psy.ru](mailto:info@luneva-psy.ru)
 
 Сайт: [https://luneva-psy.ru/](https://luneva-psy.ru/)
+
+## Реквизиты оператора
+
+Оператор: Лунева Александра Александровна.
+
+Статус: самозанятая, плательщик налога на профессиональный доход.
+
+ИНН: 772990147598.
+
+Телефон: [+7 (926) 036-06-93](tel:+79260360693).
+
+Email: [info@luneva-psy.ru](mailto:info@luneva-psy.ru).
+
+Сайт: [https://luneva-psy.ru](https://luneva-psy.ru).

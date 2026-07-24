@@ -5,10 +5,19 @@ import { redirect } from "next/navigation";
 import { asc, desc, eq } from "drizzle-orm";
 
 import { db } from "@/src/db";
-import { appointmentRequests, userConsultationPackages } from "@/src/db/schema";
+import {
+  appointmentRequests,
+  clientNotifications,
+  userConsultationPackages,
+} from "@/src/db/schema";
 import { getCurrentUser } from "@/src/lib/auth-user";
 import AccountBookingForm from "@/components/AccountBookingForm";
+import AccountNotifications from "@/components/AccountNotifications";
 import LegalConsent from "@/components/legal/legal-consent";
+import {
+  getConsultationAddress,
+  getConsultationPlaceLabel,
+} from "@/src/lib/consultation-locations";
 
 export const dynamic = "force-dynamic";
 
@@ -90,15 +99,16 @@ function formatGoogleDate(value: Date) {
   return value.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
 }
 
-function buildCalendarLink(appointment: { scheduledAt: Date | null; consultationFormat: string }) {
+function buildCalendarLink(appointment: {
+  scheduledAt: Date | null;
+  consultationFormat: string;
+  consultationLocation: string;
+}) {
   if (!appointment.scheduledAt) return "/contacts#booking";
 
   const start = appointment.scheduledAt;
   const end = new Date(start.getTime() + 50 * 60 * 1000);
-  const location =
-    appointment.consultationFormat === "office"
-      ? "Москва, Кожевнический проезд, дом 4/5, строение 5"
-      : "Онлайн";
+  const location = getConsultationAddress(appointment.consultationLocation);
   const params = new URLSearchParams({
     action: "TEMPLATE",
     text: "Консультация с Александрой Луневой",
@@ -148,6 +158,12 @@ function AppointmentCard({
           <p className="mt-2 text-[#5f5552]">
             {formatLabels[appointment.consultationFormat] ??
               appointment.consultationFormat}
+            {appointment.consultationFormat === "office"
+              ? ` · ${getConsultationPlaceLabel(
+                  appointment.consultationFormat,
+                  appointment.consultationLocation
+                )}`
+              : ""}
           </p>
         </div>
 
@@ -213,12 +229,20 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
     .from(userConsultationPackages)
     .where(eq(userConsultationPackages.userId, user.id))
     .orderBy(desc(userConsultationPackages.createdAt));
+  const notifications = await db
+    .select()
+    .from(clientNotifications)
+    .where(eq(clientNotifications.userId, user.id))
+    .orderBy(desc(clientNotifications.createdAt));
+  const unreadNotifications = notifications.filter(
+    (notification) => !notification.readAt
+  ).length;
   const activePackages = packages
     .filter((item) => item.status === "active" && item.remainingSessions > 0)
     .map((item) => ({
       id: item.id,
       title: item.title,
-      consultationFormat: item.consultationFormat as "online" | "office",
+      consultationFormat: "online" as const,
       totalSessions: item.totalSessions,
       remainingSessions: item.remainingSessions,
     }));
@@ -260,6 +284,9 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
               className="rounded-full border border-[#ead7d1] bg-white px-5 py-3 text-sm text-[#5f5552] transition hover:border-[#c98778] hover:text-[#332725]"
             >
               {item.label}
+              {item.href === "#messages" && unreadNotifications > 0
+                ? ` · ${unreadNotifications}`
+                : ""}
             </a>
           ))}
           <form action="/api/auth/logout" method="post">
@@ -280,11 +307,18 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                   {formatDateTime(nearest.scheduledAt)}
                 </h3>
                 <p className="mt-4 text-lg text-[#ead7d1]">
-                  {formatLabels[nearest.consultationFormat]} · 50 минут
+                  {formatLabels[nearest.consultationFormat]}
+                  {nearest.consultationFormat === "office"
+                    ? ` · ${getConsultationPlaceLabel(
+                        nearest.consultationFormat,
+                        nearest.consultationLocation
+                      )}`
+                    : ""}{" "}
+                  · 50 минут
                 </p>
                 <p className="mt-2 text-[#ead7d1]">
                   {nearest.consultationFormat === "office"
-                    ? "Москва, Кожевнический проезд, дом 4/5, строение 5"
+                    ? getConsultationAddress(nearest.consultationLocation)
                     : "Ссылка на онлайн-встречу будет направлена отдельно."}
                 </p>
                 <p className="mt-4 text-lg">
@@ -490,12 +524,13 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           </Section>
 
           <Section id="messages" title="Сообщения">
-            <div className="rounded-2xl bg-[#fff8f6] p-6 text-[#5f5552]">
-              В первой версии здесь будут только организационные сообщения:
-              подтверждение записи, напоминание, перенос, ссылка на консультацию
-              или сообщение от администратора. Терапевтический чат пока не
-              добавляем.
-            </div>
+            <AccountNotifications
+              notifications={notifications.map((notification) => ({
+                ...notification,
+                readAt: notification.readAt?.toISOString() ?? null,
+                createdAt: notification.createdAt.toISOString(),
+              }))}
+            />
           </Section>
 
           <Section id="profile" title="Профиль">

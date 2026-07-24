@@ -11,6 +11,7 @@ import {
   USER_SESSION_MAX_AGE,
 } from "@/src/lib/user-session";
 import { consumeRateLimit, getRequestClientIp } from "@/src/lib/rate-limit";
+import { notifyOwnerClientRegistered } from "@/src/lib/telegram";
 
 export const runtime = "nodejs";
 
@@ -103,6 +104,12 @@ export async function POST(request: NextRequest) {
   await db
     .delete(userRegistrationCodes)
     .where(eq(userRegistrationCodes.email, email));
+
+  await notifyOwnerClientRegistered({
+    name: createdUser.name,
+    email: createdUser.email,
+    phone: createdUser.phone,
+  });
 
   const response = NextResponse.redirect(publicUrl(request, "/account"), {
     status: 303,

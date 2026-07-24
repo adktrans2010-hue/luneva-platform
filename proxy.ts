@@ -72,6 +72,10 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  if (pathname === "/account/invite" || pathname === "/api/account/invite") {
+    return NextResponse.next();
+  }
+
   if (pathname.startsWith("/account")) {
     const userToken = request.cookies.get(USER_COOKIE_NAME)?.value;
 

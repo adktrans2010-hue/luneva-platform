@@ -7,7 +7,16 @@ import {
   appointmentRequests,
   userConsultationPackages,
 } from "@/src/db/schema";
-import { notifyOwnerAppointmentChanged, notifyOwnerPayment } from "@/src/lib/telegram";
+import {
+  notifyOwnerAppointmentChanged,
+  notifyOwnerAppointmentEvent,
+  notifyOwnerPayment,
+} from "@/src/lib/telegram";
+import { createClientNotification } from "@/src/lib/client-notifications";
+import {
+  getConsultationPlaceLabel,
+  normalizeConsultationLocation,
+} from "@/src/lib/consultation-locations";
 
 type AppointmentParams = {
   params: Promise<{
@@ -25,7 +34,12 @@ const allowedStatuses = new Set([
 const allowedPaymentStatuses = new Set([
   "waiting",
   "invoice_sent",
+  "waiting_for_capture",
   "paid",
+  "partially_refunded",
+  "refund_pending",
+  "refund_failed",
+  "manual_review",
   "cancelled",
   "refunded",
   "not_required",
@@ -47,7 +61,12 @@ const statusLabels: Record<string, string> = {
 const paymentStatusLabels: Record<string, string> = {
   waiting: "Ожидает оплаты",
   invoice_sent: "Ссылка отправлена",
+  waiting_for_capture: "Ожидает подтверждения",
   paid: "Оплачено",
+  partially_refunded: "Частичный возврат",
+  refund_pending: "Возврат в обработке",
+  refund_failed: "Ошибка возврата",
+  manual_review: "Требует проверки",
   cancelled: "Отменено",
   refunded: "Возврат",
   not_required: "Без онлайн-оплаты",
@@ -80,6 +99,7 @@ export async function PATCH(request: Request, { params }: AppointmentParams) {
   const body = (await request.json()) as Record<string, unknown>;
   const status = String(body.status ?? "").trim();
   const scheduledAt = readDate(body.scheduledAt);
+  const requestedConsultationLocation = body.consultationLocation;
   const notes = String(body.notes ?? "").trim() || null;
   const paymentStatus = String(body.paymentStatus ?? "").trim();
   const paymentLink = String(body.paymentLink ?? "").trim() || null;
@@ -124,11 +144,24 @@ export async function PATCH(request: Request, { params }: AppointmentParams) {
     return NextResponse.json({ error: "Заявка не найдена." }, { status: 404 });
   }
 
+  const consultationLocation = normalizeConsultationLocation(
+    currentRequest.consultationFormat,
+    requestedConsultationLocation ?? currentRequest.consultationLocation
+  );
+
+  if (!consultationLocation) {
+    return NextResponse.json(
+      { error: "Выберите город очной консультации." },
+      { status: 400 }
+    );
+  }
+
   const [updatedRequest] = await db
     .update(appointmentRequests)
     .set({
       status,
       scheduledAt,
+      consultationLocation,
       notes,
       paymentStatus,
       paymentLink,
@@ -143,6 +176,9 @@ export async function PATCH(request: Request, { params }: AppointmentParams) {
   const nextTime = updatedRequest.scheduledAt?.toISOString() ?? "";
   const statusChanged = currentRequest.status !== updatedRequest.status;
   const timeChanged = previousTime !== nextTime;
+  const locationChanged =
+    currentRequest.consultationLocation !==
+    updatedRequest.consultationLocation;
   const notesChanged = (currentRequest.notes ?? "") !== (updatedRequest.notes ?? "");
   const paymentChanged =
     currentRequest.paymentStatus !== updatedRequest.paymentStatus ||
@@ -161,6 +197,17 @@ export async function PATCH(request: Request, { params }: AppointmentParams) {
           ? updatedRequest.scheduledAt.toLocaleString("ru-RU")
           : "без даты"
       }`,
+    });
+  }
+
+  if (locationChanged) {
+    await db.insert(appointmentHistory).values({
+      appointmentId: id,
+      action: "Место консультации",
+      details: `Новое место: ${getConsultationPlaceLabel(
+        updatedRequest.consultationFormat,
+        updatedRequest.consultationLocation
+      )}`,
     });
   }
 
@@ -228,11 +275,79 @@ export async function PATCH(request: Request, { params }: AppointmentParams) {
     });
   }
 
-  if (timeChanged || statusChanged) {
+  if (updatedRequest.userId && (timeChanged || statusChanged || locationChanged)) {
+    const changes: string[] = [];
+
+    if (timeChanged) {
+      changes.push(
+        updatedRequest.scheduledAt
+          ? `Новая дата и время: ${updatedRequest.scheduledAt.toLocaleString(
+              "ru-RU"
+            )}.`
+          : "Дата консультации уточняется."
+      );
+    }
+
+    if (locationChanged) {
+      changes.push(
+        `Место: ${getConsultationPlaceLabel(
+          updatedRequest.consultationFormat,
+          updatedRequest.consultationLocation
+        )}.`
+      );
+    }
+
+    if (statusChanged) {
+      const clientStatusLabels: Record<string, string> = {
+        new: "Новая",
+        scheduled: "Запланирована",
+        completed: "Проведена",
+        cancelled: "Отменена",
+      };
+      changes.push(`Статус: ${clientStatusLabels[status] ?? status}.`);
+    }
+
+    await createClientNotification({
+      userId: updatedRequest.userId,
+      appointmentId: id,
+      kind: "appointment_update",
+      title: "Изменение записи",
+      message: changes.join(" "),
+    });
+  }
+
+  if (updatedRequest.userId && paymentChanged) {
+    const clientPaymentLabels: Record<string, string> = {
+      waiting: "Ожидает оплаты",
+      invoice_sent: "Ссылка на оплату готова",
+      waiting_for_capture: "Оплата ожидает подтверждения",
+      paid: "Оплачено",
+      partially_refunded: "Оформлен частичный возврат",
+      refund_pending: "Возврат в обработке",
+      refund_failed: "Возврат не выполнен",
+      manual_review: "Оплата требует проверки",
+      cancelled: "Оплата отменена",
+      refunded: "Оформлен возврат",
+      not_required: "Онлайн-оплата не требуется",
+    };
+
+    await createClientNotification({
+      userId: updatedRequest.userId,
+      appointmentId: id,
+      kind: "payment",
+      title: "Изменение оплаты",
+      message: `${clientPaymentLabels[paymentStatus] ?? paymentStatus}.${
+        paymentLink ? " Ссылка доступна в разделе оплаты." : ""
+      }`,
+    });
+  }
+
+  if (timeChanged || statusChanged || locationChanged) {
     const telegramResult = await notifyOwnerAppointmentChanged({
       appointment: updatedRequest,
       status,
       dateChanged: timeChanged,
+      locationChanged,
     });
 
     await db.insert(appointmentHistory).values({
@@ -256,11 +371,57 @@ export async function PATCH(request: Request, { params }: AppointmentParams) {
     });
   }
 
+  if (notesChanged) {
+    const telegramResult = await notifyOwnerAppointmentEvent({
+      appointment: updatedRequest,
+      title: "Заметка по консультации обновлена",
+      details: updatedRequest.notes || "Заметка очищена",
+    });
+
+    await db.insert(appointmentHistory).values({
+      appointmentId: id,
+      action: "Telegram",
+      details: telegramResult.ok
+        ? "Владельцу отправлено уведомление об изменении заметки."
+        : telegramResult.reason,
+    });
+  }
+
+  if (notificationChanged) {
+    const telegramResult = await notifyOwnerAppointmentEvent({
+      appointment: updatedRequest,
+      title: "Изменен статус уведомления по консультации",
+      details: `Статус: ${notificationStatusLabels[notificationStatus]}`,
+    });
+
+    await db.insert(appointmentHistory).values({
+      appointmentId: id,
+      action: "Telegram",
+      details: telegramResult.ok
+        ? "Владельцу отправлено уведомление об изменении статуса уведомления."
+        : telegramResult.reason,
+    });
+  }
+
   return NextResponse.json(updatedRequest);
 }
 
 export async function DELETE(_request: Request, { params }: AppointmentParams) {
   const { id } = await params;
+
+  const [currentRequest] = await db
+    .select()
+    .from(appointmentRequests)
+    .where(eq(appointmentRequests.id, id))
+    .limit(1);
+
+  if (currentRequest) {
+    await notifyOwnerAppointmentEvent({
+      appointment: currentRequest,
+      title: "Запись удалена из админки",
+      details: "Запись удалена без сохранения в журнале консультаций.",
+    });
+  }
 
   await db.delete(appointmentRequests).where(eq(appointmentRequests.id, id));
 

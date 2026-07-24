@@ -1,10 +1,11 @@
-import { and, eq, gte, lt, ne } from "drizzle-orm";
+import { and, eq, gte, inArray, lt, ne } from "drizzle-orm";
 
 import { db } from "@/src/db";
 import {
   appointmentAvailability,
   appointmentRequests,
 } from "@/src/db/schema";
+import { normalizeConsultationFormat } from "@/src/lib/consultation-products";
 
 function pad(value: number) {
   return String(value).padStart(2, "0");
@@ -26,8 +27,12 @@ export function createSlotDate(date: string, time: string) {
 
 export async function getAvailableAppointmentSlots(
   date: string,
-  consultationFormat = "online"
+  consultationFormat = "online",
+  consultationLocation = "online"
 ) {
+  const normalizedFormat = normalizeConsultationFormat(consultationFormat);
+  const compatibleFormats =
+    normalizedFormat === "in_person" ? ["in_person", "office"] : [normalizedFormat];
   const dayStart = new Date(`${date}T00:00:00`);
   const dayEnd = new Date(`${date}T23:59:59.999`);
 
@@ -41,31 +46,52 @@ export async function getAvailableAppointmentSlots(
     .where(
       and(
         eq(appointmentAvailability.date, date),
-        eq(appointmentAvailability.consultationFormat, consultationFormat),
+        inArray(appointmentAvailability.consultationFormat, compatibleFormats),
+        eq(
+          appointmentAvailability.consultationLocation,
+          consultationLocation
+        ),
         eq(appointmentAvailability.enabled, true)
       )
     );
 
   const busyAppointments = await db
-    .select({ scheduledAt: appointmentRequests.scheduledAt })
+    .select({
+      scheduledAt: appointmentRequests.scheduledAt,
+      status: appointmentRequests.status,
+      holdExpiresAt: appointmentRequests.holdExpiresAt,
+    })
     .from(appointmentRequests)
     .where(
       and(
         gte(appointmentRequests.scheduledAt, dayStart),
         lt(appointmentRequests.scheduledAt, dayEnd),
-        eq(appointmentRequests.consultationFormat, consultationFormat),
+        inArray(appointmentRequests.consultationFormat, compatibleFormats),
+        eq(appointmentRequests.consultationLocation, consultationLocation),
         ne(appointmentRequests.status, "cancelled")
       )
     );
 
+  const now = new Date();
   const busySlots = new Set(
     busyAppointments
+      .filter((appointment) => {
+        if (appointment.status === "expired") return false;
+
+        if (
+          appointment.status === "awaiting_payment" &&
+          appointment.holdExpiresAt &&
+          appointment.holdExpiresAt <= now
+        ) {
+          return false;
+        }
+
+        return true;
+      })
       .map((appointment) => appointment.scheduledAt)
       .filter((scheduledAt): scheduledAt is Date => scheduledAt instanceof Date)
       .map(formatSlotTime)
   );
-
-  const now = new Date();
 
   return availableSlots
     .map((slot) => slot.time)

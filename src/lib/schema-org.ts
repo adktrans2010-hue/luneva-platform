@@ -28,7 +28,7 @@ export function createGlobalSchema() {
       {
         "@type": "Person",
         "@id": personId,
-        name: "Лунева Александра Александровна",
+        name: SITE_CONTACTS.ownerFullName,
         givenName: "Александра",
         familyName: "Лунева",
         url: absoluteUrl("/about"),
@@ -36,6 +36,7 @@ export function createGlobalSchema() {
         jobTitle: "Психолог",
         email: `mailto:${SITE_CONTACTS.publicEmail}`,
         telephone: SITE_CONTACTS.whatsapp,
+        taxID: SITE_CONTACTS.inn,
         hasOccupation: {
           "@type": "Occupation",
           name: "Психолог",

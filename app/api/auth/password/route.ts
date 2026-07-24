@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/src/db";
 import { users } from "@/src/db/schema";
@@ -26,7 +26,17 @@ export async function POST(request: NextRequest) {
   const currentPassword = String(formData.get("currentPassword") ?? "");
   const nextPassword = String(formData.get("nextPassword") ?? "");
 
-  const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  const [user] = await db
+    .select()
+    .from(users)
+    .where(
+      and(
+        eq(users.id, userId),
+        eq(users.isBlocked, false),
+        isNull(users.deletedAt)
+      )
+    )
+    .limit(1);
 
   if (
     !user ||
