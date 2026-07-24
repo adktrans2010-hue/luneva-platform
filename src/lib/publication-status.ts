@@ -1,14 +1,15 @@
 export type PublicationStatus = "published" | "draft" | "placeholder";
 
 const pageStatuses: Readonly<Record<string, PublicationStatus>> = {
-  "/help/anxiety": "placeholder",
+  "/help/anxiety": "published",
   "/help/trauma-ptsd": "placeholder",
   "/help/eating-disorders": "placeholder",
-  "/help/relationships": "placeholder",
-  "/help/self-esteem": "placeholder",
-  "/help/grief-crisis": "placeholder",
+  "/help/relationships": "published",
+  "/help/self-esteem": "published",
+  "/help/grief-crisis": "published",
   "/help/teenagers": "placeholder",
   "/help/gestalt": "placeholder",
+  "/help/emotions": "published",
   "/help/faq": "placeholder",
   "/rpp/podrostki": "placeholder",
   "/rpp/blizkim": "placeholder",

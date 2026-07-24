@@ -25,7 +25,7 @@ export default function HelpPage() {
           лучше понимать себя и строить отношения с собой и другими.
         </p>
 
-        <SymptomsCarousel />
+        <SymptomsCarousel source="help" />
 
         <ConsultationCta className="mt-16 px-0 py-0" />
       </div>

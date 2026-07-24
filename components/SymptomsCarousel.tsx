@@ -210,7 +210,11 @@ function ArrowIcon({ direction }: { direction: "left" | "right" }) {
   );
 }
 
-export default function SymptomsCarousel() {
+export default function SymptomsCarousel({
+  source = "home",
+}: {
+  source?: "home" | "help";
+}) {
   const trackRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLElement | null)[]>([]);
   const dragState = useRef({ active: false, startX: 0, startScrollLeft: 0 });
@@ -330,6 +334,7 @@ export default function SymptomsCarousel() {
             key={topic.id}
             onClick={() =>
               trackGoal("help_topic_click", {
+                source,
                 topicId: topic.id,
                 topicTitle: topic.title,
                 href: topic.href,

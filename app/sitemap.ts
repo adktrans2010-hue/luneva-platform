@@ -4,6 +4,7 @@ import { getPublishedArticles } from "@/src/lib/articles";
 import { absoluteUrl, getSeoPagesForSitemap, seoToSitemap } from "@/src/lib/seo";
 import { blogCategoryLinks, matchesBlogCategory } from "@/src/lib/navigation";
 import { rppPages } from "@/src/lib/rpp-pages";
+import { helpTopicPages } from "@/src/lib/help-topic-pages";
 
 const legalPaths = [
   "/legal/terms",
@@ -64,9 +65,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: slug ? 0.7 : 0.8,
     }));
 
+  const helpTopicPagesForSitemap: MetadataRoute.Sitemap = Object.values(
+    helpTopicPages,
+  ).map((page) => ({
+    url: absoluteUrl(page.path),
+    lastModified: new Date("2026-07-24T00:00:00+03:00"),
+    changeFrequency: "monthly",
+    priority: 0.75,
+  }));
+
   const entries = [
     ...pages.map(seoToSitemap),
     ...requiredPages,
+    ...helpTopicPagesForSitemap,
     ...articlePages,
     ...blogCategoryPages,
     ...rppPagesForSitemap,
