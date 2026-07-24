@@ -32,12 +32,23 @@ const publicAdminPaths = new Set([
   "/api/admin/google/callback",
 ]);
 
+function legacyPageIdRedirect(request: NextRequest) {
+  if (request.nextUrl.pathname !== "/") return null;
+  if (request.nextUrl.searchParams.get("page_id") !== "812") return null;
+
+  const redirectUrl = request.nextUrl.clone();
+  redirectUrl.pathname = "/blog";
+  redirectUrl.searchParams.delete("page_id");
+
+  return NextResponse.redirect(redirectUrl, 301);
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const pageIdRedirect = legacyPageIdRedirect(request);
 
-  if (pathname === "/" && request.nextUrl.searchParams.get("page_id") === "812") {
-    const redirectUrl = new URL("/blog", request.url);
-    return NextResponse.redirect(redirectUrl, 301);
+  if (pageIdRedirect) {
+    return pageIdRedirect;
   }
 
   const normalizedPathname =
