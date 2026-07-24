@@ -286,6 +286,7 @@ export default function SymptomsCarousel({
     if (event.pointerType !== "mouse" || event.button !== 0) return;
     const track = trackRef.current;
     if (!track) return;
+    if (track.scrollWidth <= track.clientWidth + 1) return;
 
     dragState.current = {
       active: true,
