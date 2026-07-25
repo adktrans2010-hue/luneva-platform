@@ -93,6 +93,16 @@ export default function AnalyticsTracker() {
         return;
       }
 
+      if (href.includes("max.ru")) {
+        trackGoal("max_click");
+        return;
+      }
+
+      if (href.startsWith("mailto:")) {
+        trackGoal("email_click");
+        return;
+      }
+
       if (href === "/contacts#booking" || href.endsWith("/contacts#booking")) {
         trackGoal("booking_cta_click");
       }

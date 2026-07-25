@@ -1,8 +1,8 @@
 import Link from "next/link";
 
+import ContactIcons from "@/components/ContactIcons";
 import Logo from "@/components/Logo";
 import { footerNavigation } from "@/src/lib/navigation";
-import { SITE_CONTACTS } from "@/src/lib/site-contacts";
 
 export default function Footer() {
   return (
@@ -42,23 +42,8 @@ export default function Footer() {
                 Записаться на консультацию
               </Link>
 
-              <a href={`mailto:${SITE_CONTACTS.email}`}>{SITE_CONTACTS.email}</a>
-              <a href={SITE_CONTACTS.phoneTelHref}>{SITE_CONTACTS.phone}</a>
+              <ContactIcons variant="list" className="mt-1" />
 
-              <div className="mt-4 flex gap-4">
-                <span className="rounded-full border border-[#ead7d1] px-4 py-2">
-                  Telegram
-                </span>
-
-                <a
-                  href={SITE_CONTACTS.whatsappHref}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="rounded-full border border-[#ead7d1] px-4 py-2"
-                >
-                  WhatsApp
-                </a>
-              </div>
             </div>
           </div>
 

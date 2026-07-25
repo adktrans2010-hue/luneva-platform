@@ -8,14 +8,14 @@ import { SITE_CONTACTS } from "@/src/lib/site-contacts";
 export const metadata: Metadata = {
   title: "Реквизиты | Luneva Psy",
   description:
-    "Реквизиты психолога Александры Луневой: ФИО, статус самозанятой, ИНН, телефон, email и сайт.",
+    "Реквизиты психолога Александры Луневой: ФИО, статус самозанятой, ИНН, email и сайт.",
   alternates: {
     canonical: absoluteUrl("/requisites"),
   },
   openGraph: {
     title: "Реквизиты | Luneva Psy",
     description:
-      "Реквизиты психолога Александры Луневой: ФИО, статус самозанятой, ИНН, телефон, email и сайт.",
+      "Реквизиты психолога Александры Луневой: ФИО, статус самозанятой, ИНН, email и сайт.",
     url: absoluteUrl("/requisites"),
     siteName: "Luneva Psy",
     locale: "ru_RU",
@@ -37,11 +37,6 @@ const requisites = [
     value: SITE_CONTACTS.inn,
   },
   {
-    label: "Телефон",
-    value: SITE_CONTACTS.phone,
-    href: SITE_CONTACTS.phoneTelHref,
-  },
-  {
     label: "Email",
     value: SITE_CONTACTS.publicEmail,
     href: `mailto:${SITE_CONTACTS.publicEmail}`,
@@ -60,7 +55,6 @@ const requisitesSchema = {
   name: SITE_CONTACTS.ownerFullName,
   url: SITE_CONTACTS.domain,
   email: `mailto:${SITE_CONTACTS.publicEmail}`,
-  telephone: SITE_CONTACTS.phone,
   taxID: SITE_CONTACTS.inn,
   jobTitle: "Психолог",
 };

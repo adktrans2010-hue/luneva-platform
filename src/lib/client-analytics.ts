@@ -30,6 +30,8 @@ export type AnalyticsGoal =
   | "phone_click"
   | "whatsapp_click"
   | "telegram_click"
+  | "max_click"
+  | "email_click"
   | "help_topic_click"
   | "review_submit";
 

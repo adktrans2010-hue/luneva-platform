@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 
+import ContactIcons from "@/components/ContactIcons";
 import Logo from "@/components/Logo";
 import {
   isNavigationItemActive,
@@ -285,6 +286,8 @@ export default function Header() {
           </ul>
         </nav>
 
+        <ContactIcons className="hidden shrink-0 xl:flex" />
+
         <button
           type="button"
           onClick={() => setMenuOpen((open) => !open)}
@@ -305,7 +308,7 @@ export default function Header() {
           aria-label="Мобильная навигация"
           className="fixed inset-x-0 top-[73px] z-[80] h-[calc(100dvh-73px)] overflow-y-auto overscroll-contain border-t border-[#ead7d1] bg-[#fff8f6] px-4 py-4 shadow-[0_20px_50px_rgba(51,39,37,0.14)] sm:top-[89px] sm:h-[calc(100dvh-89px)] xl:hidden"
         >
-          <ul className="mx-auto grid max-w-xl pb-[max(2rem,env(safe-area-inset-bottom))]">
+          <ul className="mx-auto grid max-w-xl">
             {navigationItems.map((item) => (
               <MobileSection
                 key={item.href}
@@ -317,6 +320,13 @@ export default function Header() {
               />
             ))}
           </ul>
+
+          <div className="mx-auto mt-5 max-w-xl rounded-3xl border border-[#ead7d1] bg-white/80 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+            <p className="mb-3 px-1 text-xs uppercase tracking-[0.18em] text-[#c98778]">
+              Способы связи
+            </p>
+            <ContactIcons />
+          </div>
         </nav>
       )}
     </header>

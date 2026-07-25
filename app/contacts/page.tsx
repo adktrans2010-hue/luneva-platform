@@ -1,4 +1,5 @@
 import AppointmentForm from "@/components/AppointmentForm";
+import ContactIcons from "@/components/ContactIcons";
 import Link from "next/link";
 import PageStructuredData from "@/components/seo/page-structured-data";
 import { getPublicConsultationProducts } from "@/src/lib/consultation-products";
@@ -13,21 +14,27 @@ export async function generateMetadata() {
 
 const contactCards = [
   {
+    title: "Max",
+    text: "Написать в Max для согласования консультации и организационных вопросов.",
+    href: SITE_CONTACTS.maxHref,
+    label: "Открыть Max",
+  },
+  {
+    title: "Telegram",
+    text: "Написать в Telegram для быстрой связи и уточнения свободного времени.",
+    href: SITE_CONTACTS.telegramHref,
+    label: "Открыть Telegram",
+  },
+  {
     title: "WhatsApp",
     text: `Пишите в WhatsApp: ${SITE_CONTACTS.whatsapp}.`,
     href: SITE_CONTACTS.whatsappHref,
     label: "Написать в WhatsApp",
   },
   {
-    title: "Телефон",
-    text: `${SITE_CONTACTS.phone}. На звонки не отвечаю, лучше написать в WhatsApp.`,
-    href: SITE_CONTACTS.phoneTelHref,
-    label: "Позвонить",
-  },
-  {
     title: "E-mail",
-    text: `Для писем и организационных вопросов: ${SITE_CONTACTS.publicEmail}.`,
-    href: `mailto:${SITE_CONTACTS.publicEmail}`,
+    text: `Для писем и организационных вопросов: ${SITE_CONTACTS.contactEmail}.`,
+    href: `mailto:${SITE_CONTACTS.contactEmail}`,
     label: "Написать письмо",
   },
 ];
@@ -105,10 +112,27 @@ export default async function ContactsPage() {
                 <a href={SITE_CONTACTS.domain}>{SITE_CONTACTS.domainLabel}</a>
               </dd>
             </div>
+            <div>
+              <dt className="text-sm uppercase tracking-[0.18em] text-[#c98778]">
+                Email
+              </dt>
+              <dd className="mt-2 text-lg text-[#332725]">
+                <a href={`mailto:${SITE_CONTACTS.contactEmail}`}>{SITE_CONTACTS.contactEmail}</a>
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm uppercase tracking-[0.18em] text-[#c98778]">
+                Телефон
+              </dt>
+              <dd className="mt-2 text-lg text-[#332725]">
+                <a href={SITE_CONTACTS.phoneTelHref}>{SITE_CONTACTS.phone}</a>
+                <span className="mt-1 block text-sm text-[#8a7a76]">на звонки не отвечаю</span>
+              </dd>
+            </div>
           </dl>
         </div>
 
-        <div className="mt-14 grid gap-6 md:grid-cols-3">
+        <div className="mt-14 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
           {contactCards.map((item) => (
             <a
               key={item.title}
@@ -141,20 +165,7 @@ export default async function ContactsPage() {
             Быстрая связь
           </h2>
 
-          <div className="mt-8 flex flex-wrap gap-4">
-            <a
-              href={SITE_CONTACTS.whatsappHref}
-              target="_blank"
-              rel="noreferrer"
-              className="rounded-2xl border border-[#332725] px-6 py-3 text-[#332725] transition hover:bg-[#fff8f6]"
-            >
-              WhatsApp
-            </a>
-
-            <span className="rounded-2xl border border-[#ead7d1] px-6 py-3 text-[#8a7a76]">
-              Telegram
-            </span>
-          </div>
+          <ContactIcons variant="list" className="mt-8 sm:grid-cols-2" />
         </div>
 
         <div className="mt-16 grid gap-8 lg:grid-cols-2">
