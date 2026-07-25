@@ -35,7 +35,6 @@ export function createGlobalSchema() {
         image: absoluteUrl("/sasha-about-page.jpg"),
         jobTitle: "Психолог",
         email: `mailto:${SITE_CONTACTS.publicEmail}`,
-        telephone: SITE_CONTACTS.whatsapp,
         taxID: SITE_CONTACTS.inn,
         hasOccupation: {
           "@type": "Occupation",
