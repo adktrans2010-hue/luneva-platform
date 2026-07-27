@@ -8,7 +8,7 @@ export default function About() {
           <div className="absolute -inset-4 rounded-[3rem] bg-[#ead7d1] opacity-60 blur-2xl" />
 
           <Image
-            src="/sasha-about-portrait.jpg"
+            src="/sasha-home-about-yellow.png"
             alt="Лунева Александра Александровна"
             width={800}
             height={1000}
