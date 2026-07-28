@@ -10,7 +10,8 @@
 
 ## 3. Итоговый commit
 
-Будет указан после фиксации и публикации этапа.
+- Production code commit: `b60221956be30f9ed10b74557ce0fd81594efbc6`
+- Финальный hash коммита, содержащего обновлённый отчёт после smoke-test, указан в финальном сообщении Codex.
 
 ## 4. Ветка и remote
 
@@ -251,7 +252,35 @@ npm run build
 
 ## 24. Production smoke-test
 
-Будет выполнен после commit, push и публикации на VPS. Результаты будут добавлены в этот файл перед финальной фиксацией отчёта.
+Публикация выполнена на существующий VPS `/var/www/luneva-platform`.
+
+Перед публикацией создан backup файлов этапа:
+
+```text
+backups/final-ui-stage-before-b602219-20260728-114158.tar.gz
+```
+
+Сборка на VPS:
+
+```bash
+npm run build
+```
+
+Результат: успешно, сгенерировано 104 маршрута.
+
+PM2:
+
+```text
+luneva-platform online
+```
+
+HTTP smoke-test production-домена:
+
+| URL | Результат |
+| --- | --- |
+| `https://luneva-psy.ru/` | `200 OK` |
+| `https://luneva-psy.ru/contacts` | `200 OK` |
+| `https://luneva-psy.ru/certificates` | `200 OK` |
 
 ## 25. Проверка записи и оплаты
 
@@ -259,7 +288,14 @@ npm run build
 
 ## 26. Проверка логов
 
-Будет выполнена после публикации на VPS.
+PM2 после перезапуска показывает готовность Next.js:
+
+```text
+Next.js 16.2.9
+Ready
+```
+
+В error-log присутствуют старые сообщения `Failed to find Server Action`, характерные для клиентских запросов со старыми action id после предыдущих/смешанных деплоев. На проверенных production URL новых HTTP 500 не обнаружено.
 
 ## 27. Проверка аналитики
 
@@ -309,12 +345,18 @@ npm run lint
 npm run typecheck
 npm test
 npm run build
+git commit -m "feat: finalize responsive UI and contact flows"
+git push origin HEAD:production
+tar -czf final-ui-stage-b602219.tar.gz ...
+scp final-ui-stage-b602219.tar.gz root@217.12.38.173:/tmp/
+ssh root@217.12.38.173 "tar ... && npm run build && pm2 restart luneva-platform"
+curl -I https://luneva-psy.ru/
+curl -I https://luneva-psy.ru/contacts
+curl -I https://luneva-psy.ru/certificates
 ```
 
 Команды с секретами не выполнялись и в отчёт не включались.
 
 ## 32. Финальный статус
 
-FINAL UI STAGE НЕ ЗАВЕРШЁН
-
-Причина: ожидается commit, push, публикация на VPS и production smoke-test.
+FINAL UI STAGE ЗАВЕРШЁН
