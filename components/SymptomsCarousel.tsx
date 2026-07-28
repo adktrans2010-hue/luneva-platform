@@ -317,7 +317,7 @@ export default function SymptomsCarousel({
   };
 
   return (
-    <div className="mt-14 lg:mx-auto lg:max-w-6xl">
+    <div className="mt-14 overflow-hidden [contain:layout_paint] lg:mx-auto lg:max-w-6xl">
       <div
         ref={trackRef}
         onPointerDown={handlePointerDown}
@@ -325,7 +325,7 @@ export default function SymptomsCarousel({
         onPointerUp={handlePointerEnd}
         onPointerCancel={handlePointerEnd}
         aria-label="Когда стоит обратиться"
-        className="-mr-5 flex cursor-grab snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain pr-11 pb-3 select-none [scrollbar-width:none] active:cursor-grabbing [&::-webkit-scrollbar]:hidden md:mr-0 md:grid md:cursor-auto md:grid-cols-2 md:gap-5 md:overflow-visible md:pr-0 md:pb-0 md:select-auto lg:grid-cols-3 lg:gap-6"
+        className="flex w-full min-w-0 cursor-grab snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain pr-6 pb-3 select-none [scrollbar-width:none] active:cursor-grabbing [&::-webkit-scrollbar]:hidden md:grid md:cursor-auto md:grid-cols-2 md:gap-5 md:overflow-visible md:pr-0 md:pb-0 md:select-auto lg:grid-cols-3 lg:gap-6"
       >
         {helpTopics.map((topic, index) => (
           <Link

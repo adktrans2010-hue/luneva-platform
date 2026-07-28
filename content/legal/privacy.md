@@ -18,7 +18,7 @@
 
 Оператор персональных данных — Лунева Александра Александровна (Luneva Psy).
 
-Контактный e-mail: [info@luneva-psy.ru](mailto:info@luneva-psy.ru)
+Контактный e-mail: [luneva.shura@yandex.ru](mailto:luneva.shura@yandex.ru)
 
 Сайт: [https://luneva-psy.ru/](https://luneva-psy.ru/)
 
@@ -152,7 +152,7 @@
 
 ## 13. Отзыв согласия
 
-Отозвать согласие можно в любое время, направив письмо на электронную почту [info@luneva-psy.ru](mailto:info@luneva-psy.ru).
+Отозвать согласие можно в любое время, направив письмо на электронную почту [luneva.shura@yandex.ru](mailto:luneva.shura@yandex.ru).
 
 После получения обращения обработка будет прекращена, если отсутствуют иные законные основания для хранения персональных данных.
 
@@ -181,7 +181,7 @@
 
 Luneva Psy
 
-E-mail: [info@luneva-psy.ru](mailto:info@luneva-psy.ru)
+E-mail: [luneva.shura@yandex.ru](mailto:luneva.shura@yandex.ru)
 
 Сайт: [https://luneva-psy.ru/](https://luneva-psy.ru/)
 
@@ -195,8 +195,8 @@ E-mail: [info@luneva-psy.ru](mailto:info@luneva-psy.ru)
 
 ИНН: 772990147598.
 
-Телефон: [+7 (926) 036-06-93](tel:+79260360693).
+Телефон для связи указан на странице [«Контакты»](/contacts).
 
-Email: [info@luneva-psy.ru](mailto:info@luneva-psy.ru).
+Email: [luneva.shura@yandex.ru](mailto:luneva.shura@yandex.ru).
 
 Сайт: [https://luneva-psy.ru](https://luneva-psy.ru).

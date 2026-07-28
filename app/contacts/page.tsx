@@ -34,7 +34,7 @@ const contactCards = [
   {
     title: "E-mail",
     text: `Для писем и организационных вопросов: ${SITE_CONTACTS.contactEmail}.`,
-    href: `mailto:${SITE_CONTACTS.contactEmail}`,
+    href: SITE_CONTACTS.emailHref,
     label: "Написать письмо",
   },
 ];
@@ -138,7 +138,7 @@ export default async function ContactsPage() {
               key={item.title}
               href={item.href}
               target={item.href.startsWith("http") ? "_blank" : undefined}
-              rel={item.href.startsWith("http") ? "noreferrer" : undefined}
+              rel={item.href.startsWith("http") ? "noopener noreferrer" : undefined}
               className="luneva-card rounded-[2rem] border border-[#ead7d1] bg-white p-8 shadow-sm"
             >
               <div className="mb-6 text-3xl text-[#c98778]">✦</div>
@@ -165,7 +165,7 @@ export default async function ContactsPage() {
             Быстрая связь
           </h2>
 
-          <ContactIcons variant="list" className="mt-8 sm:grid-cols-2" />
+          <ContactIcons variant="list" className="mt-8 sm:grid-cols-2" showPhone />
         </div>
 
         <div className="mt-16 grid gap-8 lg:grid-cols-2">

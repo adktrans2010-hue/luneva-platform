@@ -192,7 +192,7 @@ Luneva Psy
 
 Сайт: [https://luneva-psy.ru/](https://luneva-psy.ru/)
 
-Электронная почта: [info@luneva-psy.ru](mailto:info@luneva-psy.ru)
+Электронная почта: [luneva.shura@yandex.ru](mailto:luneva.shura@yandex.ru)
 
 ## 17. Заключительные положения
 
@@ -226,8 +226,8 @@ Luneva Psy
 
 ИНН: 772990147598.
 
-Телефон: [+7 (926) 036-06-93](tel:+79260360693).
+Телефон для связи указан на странице [«Контакты»](/contacts).
 
-Email: [info@luneva-psy.ru](mailto:info@luneva-psy.ru).
+Email: [luneva.shura@yandex.ru](mailto:luneva.shura@yandex.ru).
 
 Сайт: [https://luneva-psy.ru](https://luneva-psy.ru).

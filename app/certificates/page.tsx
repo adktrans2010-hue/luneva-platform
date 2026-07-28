@@ -1,6 +1,7 @@
 import CertificateGallery from "@/components/CertificateGallery";
 import JsonLd from "@/components/seo/json-ld";
 import PageStructuredData from "@/components/seo/page-structured-data";
+import { toCertificatePreviews } from "@/src/lib/certificate-previews";
 import { getPublishedCertificates } from "@/src/lib/certificates";
 import { getSeoPage, seoToMetadata } from "@/src/lib/seo";
 
@@ -52,7 +53,7 @@ export default async function CertificatesPage() {
         </p>
 
         {certificates.length > 0 ? (
-          <CertificateGallery certificates={certificates} />
+          <CertificateGallery certificates={toCertificatePreviews(certificates)} />
         ) : (
           <div className="mt-16 rounded-[3rem] bg-[#332725] p-10 text-white md:p-14">
             <h2 className="font-serif text-4xl">Документы скоро появятся</h2>

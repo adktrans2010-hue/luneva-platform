@@ -1,6 +1,9 @@
-import { SITE_CONTACTS } from "@/src/lib/site-contacts";
+"use client";
 
-type ContactIconName = "max" | "telegram" | "whatsapp" | "email";
+import { SITE_CONTACTS } from "@/src/lib/site-contacts";
+import { trackGoal } from "@/src/lib/client-analytics";
+
+type ContactIconName = "max" | "telegram" | "whatsapp" | "email" | "phone";
 
 type ContactIconLink = {
   name: ContactIconName;
@@ -12,30 +15,42 @@ type ContactIconsProps = {
   variant?: "icons" | "list";
   className?: string;
   showLabels?: boolean;
+  showPhone?: boolean;
 };
 
-const contactLinks: ContactIconLink[] = [
-  {
-    name: "max",
-    label: "Max",
-    href: SITE_CONTACTS.maxHref,
-  },
-  {
-    name: "telegram",
-    label: "Telegram",
-    href: SITE_CONTACTS.telegramHref,
-  },
-  {
-    name: "whatsapp",
-    label: "WhatsApp",
-    href: SITE_CONTACTS.whatsappHref,
-  },
-  {
-    name: "email",
-    label: "Email",
-    href: `mailto:${SITE_CONTACTS.contactEmail}`,
-  },
-];
+function getContactLinks(showPhone: boolean): ContactIconLink[] {
+  return [
+    {
+      name: "max",
+      label: "Max",
+      href: SITE_CONTACTS.maxHref,
+    },
+    {
+      name: "telegram",
+      label: "Telegram",
+      href: SITE_CONTACTS.telegramHref,
+    },
+    {
+      name: "whatsapp",
+      label: "WhatsApp",
+      href: SITE_CONTACTS.whatsappHref,
+    },
+    {
+      name: "email",
+      label: "Email",
+      href: SITE_CONTACTS.emailHref,
+    },
+    ...(showPhone
+      ? [
+          {
+            name: "phone" as const,
+            label: SITE_CONTACTS.phoneLabel,
+            href: SITE_CONTACTS.phoneTelHref,
+          },
+        ]
+      : []),
+  ];
+}
 
 function MaxIcon() {
   return (
@@ -137,18 +152,47 @@ function EmailIcon() {
   );
 }
 
+function PhoneIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5">
+      <path
+        d="M8.4 5.2 10 8.8c.2.5.1 1-.3 1.4l-1 1c.8 1.7 2.2 3.1 4 4l1-1c.4-.4.9-.5 1.4-.3l3.6 1.6c.6.3.9.9.7 1.6-.4 1.6-1.8 2.7-3.5 2.7A11.7 11.7 0 0 1 4.2 8.1c0-1.7 1.1-3.1 2.7-3.5.6-.2 1.3.1 1.5.6Z"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.9"
+      />
+    </svg>
+  );
+}
+
 function ContactGlyph({ name }: { name: ContactIconName }) {
   if (name === "max") return <MaxIcon />;
   if (name === "telegram") return <TelegramIcon />;
   if (name === "whatsapp") return <WhatsAppIcon />;
+  if (name === "phone") return <PhoneIcon />;
   return <EmailIcon />;
+}
+
+function trackContactClick(name: ContactIconName) {
+  if (name === "telegram") {
+    trackGoal("contact_telegram_click");
+  } else if (name === "whatsapp") {
+    trackGoal("contact_whatsapp_click");
+  } else if (name === "email") {
+    trackGoal("contact_email_click");
+  }
 }
 
 export default function ContactIcons({
   variant = "icons",
   className = "",
   showLabels = false,
+  showPhone = false,
 }: ContactIconsProps) {
+  const contactLinks = getContactLinks(showPhone);
+
   if (variant === "list") {
     return (
       <ul className={`grid gap-3 ${className}`} aria-label="Способы связи">
@@ -156,6 +200,7 @@ export default function ContactIcons({
           <li key={`${link.name}-${link.href}`}>
             <a
               href={link.href}
+              onClick={() => trackContactClick(link.name)}
               target={link.href.startsWith("http") ? "_blank" : undefined}
               rel={link.href.startsWith("http") ? "noopener noreferrer" : undefined}
               aria-label={link.label}
@@ -178,6 +223,7 @@ export default function ContactIcons({
         <a
           key={`${link.name}-${link.href}`}
           href={link.href}
+          onClick={() => trackContactClick(link.name)}
           target={link.href.startsWith("http") ? "_blank" : undefined}
           rel={link.href.startsWith("http") ? "noopener noreferrer" : undefined}
           aria-label={link.label}

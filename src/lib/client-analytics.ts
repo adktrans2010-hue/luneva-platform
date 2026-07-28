@@ -32,6 +32,12 @@ export type AnalyticsGoal =
   | "telegram_click"
   | "max_click"
   | "email_click"
+  | "certificate_card_click"
+  | "certificate_modal_open"
+  | "certificate_modal_close"
+  | "contact_telegram_click"
+  | "contact_whatsapp_click"
+  | "contact_email_click"
   | "help_topic_click"
   | "review_submit";
 

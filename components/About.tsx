@@ -1,6 +1,21 @@
 import Image from "next/image";
 
-export default function About() {
+import QualificationCertificateCards from "@/components/QualificationCertificateCards";
+import { getPublishedCertificates } from "@/src/lib/certificates";
+import { getQualificationCertificateCards } from "@/src/lib/qualification-certificates";
+
+async function loadQualificationCards() {
+  try {
+    const certificates = await getPublishedCertificates();
+    return getQualificationCertificateCards(certificates);
+  } catch {
+    return getQualificationCertificateCards([]);
+  }
+}
+
+export default async function About() {
+  const qualificationCards = await loadQualificationCards();
+
   return (
     <section className="bg-[#fff8f6] px-6 py-24">
       <div className="mx-auto grid max-w-7xl items-center gap-14 lg:grid-cols-2">
@@ -30,22 +45,7 @@ export default function About() {
             с травмой, утратой, ПТСР и расстройствами пищевого поведения.
           </p>
 
-          <div className="mt-8 grid gap-4">
-            {[
-              "Дипломированный психолог",
-              "Гештальт-терапевт",
-              "Специалист по травме и ПТСР",
-              "Специалист по расстройствам пищевого поведения",
-              "Автор и преподаватель курсов",
-            ].map((item) => (
-              <div
-                key={item}
-                className="rounded-2xl border border-[#ead7d1] bg-white px-5 py-4 text-[#5f5552]"
-              >
-                {item}
-              </div>
-            ))}
-          </div>
+          <QualificationCertificateCards cards={qualificationCards} />
         </div>
       </div>
     </section>

@@ -13,6 +13,10 @@ const steps = [
     title: "Поиск опоры",
     text: "Находим новые способы справляться с трудностями и лучше понимать себя.",
   },
+  {
+    title: "Поддержка изменений",
+    text: "Мы замечаем, что уже меняется, закрепляем новые способы справляться и постепенно переносим их в повседневную жизнь.",
+  },
 ];
 
 export default function Process() {
@@ -49,7 +53,7 @@ export default function Process() {
               </p>
             </div>
 
-            <div className="mt-12 grid gap-8 lg:grid-cols-3">
+            <div className="mt-12 grid gap-8 md:grid-cols-2 xl:grid-cols-4">
               {steps.map((step, index) => (
                 <article
                   key={step.title}

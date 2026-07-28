@@ -1,24 +1,33 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
-import type { Certificate } from "@/src/lib/certificates";
+import CertificateLightbox from "@/components/CertificateLightbox";
+import {
+  getCertificateImageSrc,
+  type CertificatePreview,
+} from "@/src/lib/certificate-previews";
 
 type CertificateGalleryProps = {
-  certificates: Certificate[];
+  certificates: CertificatePreview[];
 };
-
-function getCertificateImageSrc(certificate: Certificate) {
-  const separator = certificate.image.includes("?") ? "&" : "?";
-
-  return `${certificate.image}${separator}v=2-${encodeURIComponent(certificate.id)}`;
-}
 
 export default function CertificateGallery({
   certificates,
 }: CertificateGalleryProps) {
-  const [selected, setSelected] = useState<Certificate | null>(null);
+  const openerRef = useRef<HTMLButtonElement | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+
+  function openCertificate(index: number, opener: HTMLButtonElement) {
+    openerRef.current = opener;
+    setSelectedIndex(index);
+  }
+
+  function closeCertificate() {
+    setSelectedIndex(null);
+    window.requestAnimationFrame(() => openerRef.current?.focus());
+  }
 
   return (
     <>
@@ -27,8 +36,8 @@ export default function CertificateGallery({
           <button
             key={certificate.id}
             type="button"
-            onClick={() => setSelected(certificate)}
-            className="group rounded-[2rem] border border-[#ead7d1] bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
+            onClick={(event) => openCertificate(index, event.currentTarget)}
+            className="group rounded-[2rem] border border-[#ead7d1] bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#c98778] motion-reduce:transition-none motion-reduce:hover:translate-y-0"
           >
             <div className="flex h-72 items-center justify-center">
               <Image
@@ -49,29 +58,13 @@ export default function CertificateGallery({
         ))}
       </div>
 
-      {selected && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-[#332725]/80 p-6 backdrop-blur-sm"
-          onClick={() => setSelected(null)}
-        >
-          <button
-            type="button"
-            className="absolute right-8 top-8 rounded-full bg-white px-5 py-3 text-[#332725]"
-          >
-            Закрыть
-          </button>
-
-          <div className="relative h-[85vh] w-full max-w-5xl">
-            <Image
-              src={getCertificateImageSrc(selected)}
-              alt={selected.title}
-              fill
-              loading="lazy"
-              sizes="(max-width: 1024px) 100vw, 1024px"
-              className="object-contain"
-            />
-          </div>
-        </div>
+      {selectedIndex !== null && (
+        <CertificateLightbox
+          certificates={certificates}
+          initialIndex={selectedIndex}
+          title="Дипломы и сертификаты"
+          onClose={closeCertificate}
+        />
       )}
     </>
   );
