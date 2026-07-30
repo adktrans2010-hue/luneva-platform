@@ -48,8 +48,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ru" className="overflow-x-hidden">
-      <body className="min-h-screen overflow-x-hidden bg-[#fff8f6] text-[#332725] antialiased">
+    <html lang="ru">
+      <body className="min-h-screen bg-[#fff8f6] text-[#332725] antialiased">
         <Suspense fallback={null}>
           <AnalyticsTracker />
         </Suspense>

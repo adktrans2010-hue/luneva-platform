@@ -51,7 +51,9 @@ function TextBlock({
           : "rounded-[2rem] border border-[#ead7d1] bg-[#f7e9e5] p-8 md:p-10"
       }
     >
-      <h2 className="font-serif text-4xl text-[#332725]">{title}</h2>
+      <h2 className="font-serif text-[clamp(1.875rem,8vw,2.25rem)] leading-tight break-words hyphens-auto text-[#332725]">
+        {title}
+      </h2>
       <div className="mt-6 space-y-5 text-lg leading-8 text-[#5f5552]">
         {children}
       </div>
@@ -80,8 +82,8 @@ export default function AboutPage() {
     <section className="bg-[#fff8f6] px-6 py-24">
       <PageStructuredData path="/about" title="О психологе Александре Луневой" breadcrumbs={[{ name: "Главная", path: "/" }, { name: "Обо мне", path: "/about" }]} />
       <div className="mx-auto max-w-7xl">
-        <div className="grid gap-16 lg:grid-cols-[1.08fr_0.92fr] lg:items-center">
-          <div className="relative">
+        <div className="grid grid-cols-1 gap-16 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] lg:items-center">
+          <div className="relative min-w-0">
             <div className="absolute -inset-6 rounded-[4rem] bg-[#e7b8ad]/40 blur-3xl" />
 
             <Image
@@ -93,12 +95,12 @@ export default function AboutPage() {
             />
           </div>
 
-          <div>
+          <div className="min-w-0">
             <p className="mb-4 text-sm uppercase tracking-[0.25em] text-[#c98778]">
               Обо мне
             </p>
 
-            <h1 className="font-serif text-6xl leading-tight text-[#332725]">
+            <h1 className="max-w-full font-serif text-[clamp(2.25rem,10vw,3.75rem)] leading-[1.05] tracking-tight break-words hyphens-auto text-[#332725]">
               Лунева Александра Александровна
             </h1>
 
@@ -141,7 +143,7 @@ export default function AboutPage() {
           </div>
         </div>
 
-        <div className="mt-20 grid gap-8 lg:grid-cols-2">
+        <div className="mt-20 grid grid-cols-1 gap-8 lg:grid-cols-2">
           <TextBlock title="Как я работаю">
             <p>
               Для меня психотерапия - это не набор готовых советов и

@@ -17,13 +17,12 @@ import {
   isUnsafeRequest,
 } from "@/src/lib/admin-security";
 import { getArticleRedirect } from "@/src/lib/article-archive";
-
-const legacyRedirects: Record<string, string> = {
-  "/contact-us": "/contacts",
-  "/useful-articles": "/blog",
-  "/luneva-psy-biography": "/about",
-  "/psychological-help": "/help",
-};
+import {
+  getLegacyRoute,
+  hasWordPressPreviewParameters,
+  hasWordPressQuery,
+  stripWordPressPreviewParameters,
+} from "@/src/lib/legacy-routes";
 
 const publicAdminPaths = new Set([
   "/admin/login",
@@ -51,14 +50,24 @@ export async function proxy(request: NextRequest) {
     return pageIdRedirect;
   }
 
-  const normalizedPathname =
-    pathname.length > 1 && pathname.endsWith("/")
-      ? pathname.slice(0, -1)
-      : pathname;
-  const legacyTarget = legacyRedirects[normalizedPathname];
+  const legacyRoute = getLegacyRoute(pathname);
 
-  if (legacyTarget) {
-    return NextResponse.redirect(new URL(legacyTarget, request.url), 301);
+  if (legacyRoute?.action === "gone") {
+    return new NextResponse(null, { status: 410 });
+  }
+
+  if (legacyRoute?.action === "redirect") {
+    return NextResponse.redirect(new URL(legacyRoute.destination, request.url), 301);
+  }
+
+  if (pathname === "/" && hasWordPressQuery(request.nextUrl)) {
+    return new NextResponse(null, { status: 410 });
+  }
+
+  if (pathname === "/about" && hasWordPressPreviewParameters(request.nextUrl)) {
+    const redirectUrl = request.nextUrl.clone();
+    stripWordPressPreviewParameters(redirectUrl);
+    return NextResponse.redirect(redirectUrl, 301);
   }
 
   if (pathname.startsWith("/blog/")) {
@@ -153,5 +162,18 @@ export const config = {
     "/useful-articles/:path*",
     "/luneva-psy-biography/:path*",
     "/psychological-help/:path*",
+    "/about",
+    "/sample-page",
+    "/sample-page-2",
+    "/hello-world",
+    "/author/:path*",
+    "/category/:path*",
+    "/tag/:path*",
+    "/feed",
+    "/comments/feed",
+    "/wp-json/:path*",
+    "/xmlrpc.php",
+    "/wp-admin/:path*",
+    "/:year(\\d{4})/:month(\\d{1,2})?/:day(\\d{1,2})?/:path*",
   ],
 };

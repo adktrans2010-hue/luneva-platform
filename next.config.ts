@@ -23,45 +23,6 @@ const contentSecurityPolicy = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   skipTrailingSlashRedirect: true,
-  async redirects() {
-    return [
-      {
-        source: "/luneva-psy-biography/:path*",
-        destination: "/about",
-        statusCode: 301,
-      },
-      {
-        source: "/psychological-help/:path*",
-        destination: "/help",
-        statusCode: 301,
-      },
-      {
-        source: "/help/eating-disorders",
-        destination: "/rpp",
-        statusCode: 301,
-      },
-      {
-        source: "/help/trauma-ptsd",
-        destination: "/help/grief-crisis",
-        statusCode: 301,
-      },
-      {
-        source: "/useful-articles/:path*",
-        destination: "/blog",
-        statusCode: 301,
-      },
-      {
-        source: "/contact-us/:path*",
-        destination: "/contacts",
-        statusCode: 301,
-      },
-      {
-        source: "/about/education",
-        destination: "/certificates",
-        statusCode: 301,
-      },
-    ];
-  },
   async headers() {
     return [
       ...[

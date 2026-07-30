@@ -21,8 +21,8 @@ const steps = [
 
 export default function Process() {
   return (
-    <section className="bg-[#fff8f6] px-6 py-24">
-      <div className="mx-auto max-w-7xl">
+    <section className="box-border w-full max-w-full bg-[#fff8f6] px-4 py-24 sm:px-6">
+      <div className="mx-auto w-full max-w-7xl min-w-0">
         <div className="overflow-hidden rounded-[3rem] border border-[#ead7d1] bg-white shadow-sm">
           <div className="relative h-72 md:h-96 lg:h-[460px]">
             <Image
@@ -37,13 +37,13 @@ export default function Process() {
             <div className="absolute inset-0 bg-gradient-to-t from-[#fff8f6]/35 via-transparent to-transparent" />
           </div>
 
-          <div className="bg-[#fff8f6] px-6 py-12 md:px-12 lg:px-16">
-            <div className="mx-auto max-w-3xl text-center">
+          <div className="box-border w-full max-w-full bg-[#fff8f6] px-4 py-12 sm:px-6 md:px-12 lg:px-16">
+            <div className="mx-auto w-full max-w-3xl min-w-0 text-center">
               <p className="mb-3 text-sm uppercase tracking-[0.25em] text-[#c98778]">
                 Процесс терапии
               </p>
 
-              <h2 className="font-serif text-5xl leading-tight text-[#332725]">
+              <h2 className="box-border w-full max-w-full min-w-0 font-serif text-[clamp(2rem,9.5vw,3rem)] leading-[1.08] tracking-tight whitespace-normal text-[#332725]">
                 Как проходит консультация
               </h2>
 
@@ -53,7 +53,7 @@ export default function Process() {
               </p>
             </div>
 
-            <div className="mt-12 grid gap-8 md:grid-cols-2 xl:grid-cols-4">
+            <div className="mt-12 grid min-w-0 grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-4">
               {steps.map((step, index) => (
                 <article
                   key={step.title}
@@ -63,7 +63,7 @@ export default function Process() {
                       {index + 1}
                   </div>
 
-                  <div>
+                  <div className="min-w-0">
                     <h3 className="text-lg font-medium text-[#332725]">
                       {step.title}
                     </h3>
