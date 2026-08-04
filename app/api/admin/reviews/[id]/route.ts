@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 
 import { db } from "@/src/db";
@@ -36,6 +37,9 @@ export async function PATCH(
     .where(eq(reviews.id, id))
     .returning();
 
+  revalidatePath("/");
+  revalidatePath("/reviews");
+
   return NextResponse.json(updatedReview);
 }
 
@@ -46,6 +50,9 @@ export async function DELETE(
   const { id } = await params;
 
   await db.delete(reviews).where(eq(reviews.id, id));
+
+  revalidatePath("/");
+  revalidatePath("/reviews");
 
   return NextResponse.json({ success: true });
 }

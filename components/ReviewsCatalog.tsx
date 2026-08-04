@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 
 import StarRating from "@/components/StarRating";
 import { formatReviewDate } from "@/src/lib/format-review-date";
+import { trackGoal } from "@/src/lib/client-analytics";
 
 type ReviewItem = {
   id: string;
@@ -45,7 +46,10 @@ export default function ReviewsCatalog({
       <div className="mt-9 flex flex-wrap gap-3" aria-label="Категории отзывов">
         <button
           type="button"
-          onClick={() => setSelectedCategoryId(null)}
+          onClick={() => {
+            setSelectedCategoryId(null);
+            trackGoal("review_filter_click", { categoryId: "all" });
+          }}
           aria-pressed={selectedCategoryId === null}
           className={
             selectedCategoryId === null
@@ -60,7 +64,10 @@ export default function ReviewsCatalog({
           <button
             key={category.id}
             type="button"
-            onClick={() => setSelectedCategoryId(category.id)}
+            onClick={() => {
+              setSelectedCategoryId(category.id);
+              trackGoal("review_filter_click", { categoryId: category.id });
+            }}
             aria-pressed={selectedCategoryId === category.id}
             className={
               selectedCategoryId === category.id

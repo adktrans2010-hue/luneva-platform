@@ -16,27 +16,29 @@ function BranchIcon() {
       fill="none"
     >
       <path
-        d="M16 43c8-11 11-23 10-35"
+        d="M13 44c10-12 15-25 15-39"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="1.9"
         strokeLinecap="round"
       />
       <path
-        d="M25 22c-6-3-10-7-12-13M24 28c7-3 12-8 15-15M21 34c-6-1-11-4-15-9M20 38c8 1 15-1 21-6"
+        d="M27 17c-6-4-10-8-12-14M27 24c7-3 13-8 17-16M23 32c-7-1-13-5-17-11M22 38c8 2 16 0 23-6"
         stroke="currentColor"
-        strokeWidth="1.7"
+        strokeWidth="1.45"
         strokeLinecap="round"
       />
-      {[13, 18, 24, 31, 36, 41].map((x, index) => (
-        <circle
-          key={x}
-          cx={x}
-          cy={[9, 22, 16, 30, 14, 32][index]}
-          r="2.3"
-          fill="currentColor"
-          opacity="0.7"
-        />
-      ))}
+      <g fill="currentColor" opacity="0.72">
+        <path d="M14 3c5 2 7 6 6 11-5-1-8-5-6-11Z" />
+        <path d="M43 8c-2 6-6 9-12 8 1-6 6-9 12-8Z" />
+        <path d="M6 20c6 0 10 3 11 8-6 1-10-2-11-8Z" />
+        <path d="M45 31c-4 5-9 6-14 3 3-5 8-6 14-3Z" />
+        <path d="M15 34c5 2 7 6 6 11-5-1-8-5-6-11Z" />
+      </g>
+      <g fill="currentColor" opacity="0.46">
+        <circle cx="28" cy="24" r="2" />
+        <circle cx="23" cy="32" r="1.8" />
+        <circle cx="28" cy="16" r="1.7" />
+      </g>
     </svg>
   );
 }
@@ -82,9 +84,9 @@ export default function Hero() {
                 подросткам и взрослым.
               </p>
 
-              <div className="mt-8 flex max-w-[455px] items-center gap-6 rounded-[22px] border border-white/70 bg-white/54 px-5 py-4 shadow-[0_20px_60px_rgba(94,55,45,0.06)] backdrop-blur-sm">
+              <div className="mt-8 flex max-w-[455px] items-center gap-4 rounded-[22px] border border-white/70 bg-white/54 px-5 py-4 shadow-[0_20px_60px_rgba(94,55,45,0.06)] backdrop-blur-sm sm:gap-6 md:items-start">
                 <BranchIcon />
-                <p className="font-serif text-[20px] leading-[1.62] text-[#c87970]">
+                <p className="min-w-0 font-serif text-[19px] leading-[1.62] text-[#c87970] sm:text-[20px]">
                   Когда становится трудно, важно,
                   <br />
                   чтобы рядом был человек!

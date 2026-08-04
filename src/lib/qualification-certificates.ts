@@ -120,6 +120,46 @@ const qualificationDefinitions: Array<
   },
 ];
 
+const qualificationCertificateOverrides: Partial<
+  Record<QualificationCertificateId, CertificatePreview[]>
+> = {
+  "gestalt-therapy": [
+    {
+      id: "gestalt-therapy-yandex",
+      title: "Гештальт-терапевт",
+      description: "Документ о подготовке в гештальт-подходе",
+      image: "",
+      externalUrl: "https://disk.yandex.ru/i/N86LaG0kj-B7Pw",
+    },
+  ],
+  "eating-disorders": [
+    "https://disk.yandex.ru/i/5dePP6DGK9Gngw",
+    "https://disk.yandex.ru/i/6c4kZ9ISHO_zVA",
+    "https://disk.yandex.ru/i/-BA0bM-C2t7biw",
+    "https://disk.yandex.ru/i/vaDvNhOG_ypLEg",
+    "https://disk.yandex.ru/i/gCPwOwxgMzFYSg",
+    "https://disk.yandex.ru/i/wG_MsdezfIeZPA",
+    "https://disk.yandex.ru/i/r43Rx-9UmJ-0dQ",
+    "https://disk.yandex.ru/i/GTXktXxSo-woKA",
+    "https://disk.yandex.ru/i/iKkkaziI8sThlQ",
+  ].map((externalUrl, index) => ({
+    id: `eating-disorders-yandex-${index + 1}`,
+    title: `Документ по РПП ${index + 1}`,
+    description: "Документ по теме расстройств пищевого поведения",
+    image: "",
+    externalUrl,
+  })),
+  "course-author": [
+    {
+      id: "course-author-yandex",
+      title: "Автор и преподаватель",
+      description: "Документ о преподавательской и авторской работе",
+      image: "",
+      externalUrl: "https://disk.yandex.ru/i/iGPCpLeOQuL6mQ",
+    },
+  ],
+};
+
 function normalize(value: string) {
   return value.toLowerCase().replaceAll("ё", "е");
 }
@@ -195,7 +235,9 @@ export function getQualificationCertificateCards(
   const previews = certificates.length > 0 ? toCertificatePreviews(certificates) : fallbackCertificates;
 
   return qualificationDefinitions.map((definition) => {
-    const resolvedCertificates = resolveCertificates(previews, definition.match);
+    const resolvedCertificates =
+      qualificationCertificateOverrides[definition.id] ??
+      resolveCertificates(previews, definition.match);
 
     return {
       id: definition.id,

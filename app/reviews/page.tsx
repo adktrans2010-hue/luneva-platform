@@ -9,6 +9,8 @@ import {
 } from "@/src/lib/reviews";
 import { getSeoPage, seoToMetadata } from "@/src/lib/seo";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata() {
   return seoToMetadata(await getSeoPage("/reviews"), "/reviews");
 }

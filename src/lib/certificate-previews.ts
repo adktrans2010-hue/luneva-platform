@@ -5,6 +5,7 @@ export type CertificatePreview = {
   title: string;
   description: string | null;
   image: string;
+  externalUrl?: string;
 };
 
 export function toCertificatePreviews(
@@ -19,6 +20,8 @@ export function toCertificatePreviews(
 }
 
 export function getCertificateImageSrc(certificate: CertificatePreview) {
+  if (!certificate.image) return "";
+
   const separator = certificate.image.includes("?") ? "&" : "?";
 
   return `${certificate.image}${separator}v=2-${encodeURIComponent(certificate.id)}`;

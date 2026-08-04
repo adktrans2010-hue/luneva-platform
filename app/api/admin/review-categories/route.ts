@@ -1,4 +1,5 @@
 import { asc } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { db } from "@/src/db";
@@ -26,6 +27,8 @@ export async function POST(request: Request) {
       .insert(reviewCategories)
       .values({ name })
       .returning();
+
+    revalidatePath("/reviews");
 
     return NextResponse.json(createdCategory, { status: 201 });
   } catch {

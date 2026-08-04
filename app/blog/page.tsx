@@ -31,7 +31,7 @@ export default async function BlogPage() {
         </p>
 
         {articles.length > 0 ? (
-          <div className="mt-14 grid gap-8 md:grid-cols-3">
+          <div className="mt-14 grid gap-8 md:grid-cols-2 xl:grid-cols-3">
             {articles.map((article) => (
               <article
                 key={article.id}
@@ -45,7 +45,7 @@ export default async function BlogPage() {
                   {article.title}
                 </h2>
 
-                <p className="mt-5 leading-7 text-[#5f5552]">
+                <p className="mt-5 leading-7 text-[#5f5552] md:line-clamp-4">
                   {article.excerpt}
                 </p>
 

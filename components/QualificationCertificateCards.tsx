@@ -41,10 +41,10 @@ export default function QualificationCertificateCards({
             onClick={(event) => openCard(card, event.currentTarget)}
             disabled={card.certificates.length === 0}
             aria-label={`${card.title}. ${card.actionLabel}`}
-            className="group flex min-h-16 w-full items-center justify-between gap-4 rounded-2xl border border-[#ead7d1] bg-white px-5 py-4 text-left text-[#5f5552] shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#d9b6ad] hover:shadow-[0_14px_34px_rgba(70,45,40,0.08)] disabled:cursor-not-allowed disabled:opacity-65 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#c98778] motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+            className="group flex min-h-16 w-full min-w-0 flex-col items-start justify-between gap-3 rounded-2xl border border-[#ead7d1] bg-white px-5 py-4 text-left text-[#5f5552] shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#d9b6ad] hover:shadow-[0_14px_34px_rgba(70,45,40,0.08)] disabled:cursor-not-allowed disabled:opacity-65 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#c98778] sm:flex-row sm:items-center sm:gap-4 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
           >
-            <span>{card.title}</span>
-            <span className="shrink-0 text-sm text-[#9c544c] opacity-80 transition group-hover:translate-x-1 group-hover:opacity-100 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0">
+            <span className="min-w-0 [overflow-wrap:anywhere]">{card.title}</span>
+            <span className="text-sm leading-5 text-[#9c544c] opacity-80 transition group-hover:translate-x-1 group-hover:opacity-100 sm:shrink-0 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0">
               {card.actionLabel} →
             </span>
           </button>

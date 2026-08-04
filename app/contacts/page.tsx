@@ -1,5 +1,5 @@
 import AppointmentForm from "@/components/AppointmentForm";
-import ContactIcons from "@/components/ContactIcons";
+import SocialLinks from "@/components/SocialLinks";
 import Link from "next/link";
 import PageStructuredData from "@/components/seo/page-structured-data";
 import { getPublicConsultationProducts } from "@/src/lib/consultation-products";
@@ -14,18 +14,6 @@ export async function generateMetadata() {
 
 const contactCards = [
   {
-    title: "Max",
-    text: "Написать в Max для согласования консультации и организационных вопросов.",
-    href: SITE_CONTACTS.maxHref,
-    label: "Открыть Max",
-  },
-  {
-    title: "Telegram",
-    text: "Написать в Telegram для быстрой связи и уточнения свободного времени.",
-    href: SITE_CONTACTS.telegramHref,
-    label: "Открыть Telegram",
-  },
-  {
     title: "WhatsApp",
     text: `Пишите в WhatsApp: ${SITE_CONTACTS.whatsapp}.`,
     href: SITE_CONTACTS.whatsappHref,
@@ -36,6 +24,12 @@ const contactCards = [
     text: `Для писем и организационных вопросов: ${SITE_CONTACTS.contactEmail}.`,
     href: SITE_CONTACTS.emailHref,
     label: "Написать письмо",
+  },
+  {
+    title: "Телефон",
+    text: `Основной номер WhatsApp: ${SITE_CONTACTS.phone}. На звонки не отвечаю.`,
+    href: SITE_CONTACTS.whatsappHref,
+    label: "Написать по номеру",
   },
 ];
 
@@ -74,7 +68,83 @@ export default async function ContactsPage() {
           время в форме онлайн-записи.
         </p>
 
-        <div className="mt-12 rounded-[2rem] border border-[#ead7d1] bg-white p-8 shadow-sm md:p-10">
+        <div className="mt-14 grid gap-6 md:grid-cols-3">
+          {contactCards.map((item) => (
+            <a
+              key={item.title}
+              href={item.href}
+              target={item.href.startsWith("http") ? "_blank" : undefined}
+              rel={item.href.startsWith("http") ? "noopener noreferrer" : undefined}
+              className="luneva-card rounded-[2rem] border border-[#ead7d1] bg-white p-8 shadow-sm"
+            >
+              <div className="mb-6 text-3xl text-[#c98778]">✦</div>
+
+              <h2 className="text-xl font-medium text-[#332725]">
+                {item.title}
+              </h2>
+
+              <p className="mt-4 leading-7 text-[#5f5552]">{item.text}</p>
+
+              <span className="mt-6 inline-flex text-[#c98778] [overflow-wrap:anywhere]">
+                {item.label}
+              </span>
+            </a>
+          ))}
+        </div>
+
+        <div className="mt-16 rounded-[3rem] bg-white p-10 shadow-sm md:p-12">
+          <p className="mb-4 text-sm uppercase tracking-[0.25em] text-[#c98778]">
+            Социальные сети
+          </p>
+
+          <SocialLinks className="mt-8" />
+        </div>
+
+        <div className="mt-16 grid gap-8 lg:grid-cols-2">
+          {addresses.map((place) => (
+            <div
+              key={place.address}
+              className="overflow-hidden rounded-[3rem] border border-[#ead7d1] bg-white shadow-sm"
+            >
+              <div className="p-8 md:p-10">
+                <p className="mb-4 text-sm uppercase tracking-[0.25em] text-[#c98778]">
+                  Карта
+                </p>
+
+                <h2 className="font-serif text-4xl text-[#332725]">
+                  {place.title}
+                </h2>
+
+                <p className="mt-5 leading-8 text-[#5f5552]">
+                  Личный прием по адресу: {place.address}
+                </p>
+              </div>
+
+              <iframe
+                title={`Яндекс Карта: ${place.title}`}
+                src={place.map}
+                className="h-80 w-full border-0"
+                loading="lazy"
+              />
+            </div>
+          ))}
+        </div>
+
+        <div id="booking" className="mt-16 scroll-mt-28 rounded-[3rem] bg-white p-10 shadow-sm md:p-14">
+          <h2 className="font-serif text-4xl text-[#332725]">
+            Онлайн-запись
+          </h2>
+
+          <p className="mt-5 max-w-2xl leading-8 text-[#5f5552]">
+            Заполните короткую форму, выберите формат консультации, дату и
+            свободное время. Выбранное окно будет забронировано до
+            подтверждения.
+          </p>
+
+          <AppointmentForm products={products} />
+        </div>
+
+        <div className="mt-16 rounded-[2rem] border border-[#ead7d1] bg-white p-8 shadow-sm md:p-10">
           <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <p className="mb-4 text-sm uppercase tracking-[0.25em] text-[#c98778]">
@@ -130,86 +200,6 @@ export default async function ContactsPage() {
               </dd>
             </div>
           </dl>
-        </div>
-
-        <div className="mt-14 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-          {contactCards.map((item) => (
-            <a
-              key={item.title}
-              href={item.href}
-              target={item.href.startsWith("http") ? "_blank" : undefined}
-              rel={item.href.startsWith("http") ? "noopener noreferrer" : undefined}
-              className="luneva-card rounded-[2rem] border border-[#ead7d1] bg-white p-8 shadow-sm"
-            >
-              <div className="mb-6 text-3xl text-[#c98778]">✦</div>
-
-              <h2 className="text-xl font-medium text-[#332725]">
-                {item.title}
-              </h2>
-
-              <p className="mt-4 leading-7 text-[#5f5552]">{item.text}</p>
-
-              <span className="mt-6 inline-flex text-[#c98778]">
-                {item.label}
-              </span>
-            </a>
-          ))}
-        </div>
-
-        <div className="mt-16 rounded-[3rem] bg-white p-10 shadow-sm md:p-12">
-          <p className="mb-4 text-sm uppercase tracking-[0.25em] text-[#c98778]">
-            Соцсети
-          </p>
-
-          <h2 className="font-serif text-4xl text-[#332725]">
-            Быстрая связь
-          </h2>
-
-          <ContactIcons variant="list" className="mt-8 sm:grid-cols-2" showPhone />
-        </div>
-
-        <div className="mt-16 grid gap-8 lg:grid-cols-2">
-          {addresses.map((place) => (
-            <div
-              key={place.address}
-              className="overflow-hidden rounded-[3rem] border border-[#ead7d1] bg-white shadow-sm"
-            >
-              <div className="p-8 md:p-10">
-                <p className="mb-4 text-sm uppercase tracking-[0.25em] text-[#c98778]">
-                  Карта
-                </p>
-
-                <h2 className="font-serif text-4xl text-[#332725]">
-                  {place.title}
-                </h2>
-
-                <p className="mt-5 leading-8 text-[#5f5552]">
-                  Личный прием по адресу: {place.address}
-                </p>
-              </div>
-
-              <iframe
-                title={`Яндекс Карта: ${place.title}`}
-                src={place.map}
-                className="h-80 w-full border-0"
-                loading="lazy"
-              />
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-16 rounded-[3rem] bg-white p-10 shadow-sm md:p-14">
-          <h2 className="font-serif text-4xl text-[#332725]">
-            Онлайн-запись
-          </h2>
-
-          <p className="mt-5 max-w-2xl leading-8 text-[#5f5552]">
-            Заполните короткую форму, выберите формат консультации, дату и
-            свободное время. Выбранное окно будет забронировано до
-            подтверждения.
-          </p>
-
-          <AppointmentForm products={products} />
         </div>
       </div>
     </section>

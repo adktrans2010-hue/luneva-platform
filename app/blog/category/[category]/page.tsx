@@ -58,12 +58,12 @@ export default async function BlogCategoryPage({ params }: Props) {
         <h1 className="mt-4 font-serif text-4xl leading-tight text-[#332725] sm:text-5xl lg:text-6xl">{category.label}</h1>
 
         {articles.length > 0 ? (
-          <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-12 grid gap-8 md:grid-cols-2 xl:grid-cols-3">
             {articles.map((article) => (
               <article key={article.id} className="luneva-card rounded-[2rem] border border-[#ead7d1] bg-white p-8 shadow-sm">
                 <p className="text-sm uppercase tracking-[0.16em] text-[#c98778]">{article.category}</p>
                 <h2 className="mt-4 text-2xl font-medium leading-snug text-[#332725]">{article.title}</h2>
-                <p className="mt-4 leading-7 text-[#5f5552]">{article.excerpt}</p>
+                <p className="mt-4 leading-7 text-[#5f5552] md:line-clamp-4">{article.excerpt}</p>
                 <Link href={`/blog/${article.slug}`} className="mt-7 inline-flex text-[#9c544c]">Читать →</Link>
               </article>
             ))}

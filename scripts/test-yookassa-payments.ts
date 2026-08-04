@@ -19,6 +19,9 @@ import {
   deriveRefundedPaymentStatus,
 } from "@/src/lib/yookassa-refunds";
 import { normalizePaymentCustomerContact } from "@/src/lib/payment-contact";
+import { navigationItems } from "@/src/lib/navigation";
+import { socialLinks } from "@/src/lib/social-links";
+import { getQualificationCertificateCards } from "@/src/lib/qualification-certificates";
 
 assert.equal(
   mapYooKassaPaymentStatus({ status: "succeeded", paid: true }),
@@ -255,6 +258,82 @@ assert.equal(
     yookassaService.includes("preferredFormat"),
   true,
   "YooKassa metadata must include product and preferred format"
+);
+
+const contactsNav = navigationItems.find((item) => item.label === "Контакты");
+const blogNav = navigationItems.find((item) => item.label === "Статьи");
+assert.equal(contactsNav?.href, "/contacts", "Контакты must link to /contacts");
+assert.equal(blogNav?.href, "/blog", "Статьи must link to /blog");
+
+assert.equal(socialLinks.length, 7, "socialLinks must contain seven items");
+assert.deepEqual(
+  socialLinks.map((link) => link.id),
+  ["max", "telegram", "vk", "youtube", "tiktok", "threads", "instagram"],
+  "socialLinks order must stay stable"
+);
+assert.deepEqual(
+  socialLinks.filter((link) => link.restricted).map((link) => link.id),
+  ["threads", "instagram"],
+  "only Threads and Instagram must have restricted flag"
+);
+
+const qualificationCards = getQualificationCertificateCards([]);
+const rppCard = qualificationCards.find((card) => card.id === "eating-disorders");
+assert.equal(rppCard?.certificates.length, 9, "RPP card must contain nine documents");
+assert.equal(
+  qualificationCards.find((card) => card.id === "gestalt-therapy")?.certificates[0]?.externalUrl,
+  "https://disk.yandex.ru/i/N86LaG0kj-B7Pw",
+  "Gestalt card must open the specified document"
+);
+assert.equal(
+  qualificationCards.find((card) => card.id === "course-author")?.certificates[0]?.externalUrl,
+  "https://disk.yandex.ru/i/iGPCpLeOQuL6mQ",
+  "Course author card must open the specified document"
+);
+
+const heroSource = readFileSync(join(process.cwd(), "components/Hero.tsx"), "utf8");
+assert.equal(
+  heroSource.includes('aria-hidden="true"') && heroSource.includes("path"),
+  true,
+  "Hero decorative branch must stay aria-hidden SVG"
+);
+assert.equal(
+  heroSource.includes('href="/contacts#booking"'),
+  true,
+  "Hero booking CTA must lead to #booking"
+);
+
+const contactsSource = readFileSync(join(process.cwd(), "app/contacts/page.tsx"), "utf8");
+assert.equal(
+  contactsSource.includes('id="booking"') && contactsSource.includes("scroll-mt-28"),
+  true,
+  "booking block must have stable anchor and scroll margin"
+);
+assert.equal(
+  contactsSource.includes("Быстрая связь"),
+  false,
+  "contacts social block must not contain old title"
+);
+
+const qualificationCardSource = readFileSync(
+  join(process.cwd(), "components/QualificationCertificateCards.tsx"),
+  "utf8"
+);
+assert.equal(
+  qualificationCardSource.includes("min-w-0") &&
+    qualificationCardSource.includes("[overflow-wrap:anywhere]"),
+  true,
+  "qualification card text must be allowed to wrap"
+);
+
+const certificateLightboxSource = readFileSync(
+  join(process.cwd(), "components/CertificateLightbox.tsx"),
+  "utf8"
+);
+assert.equal(
+  certificateLightboxSource.includes('event.key === "Escape"'),
+  true,
+  "certificate modal must close on Escape"
 );
 
 console.info("YooKassa invariant tests passed");

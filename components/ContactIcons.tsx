@@ -176,12 +176,16 @@ function ContactGlyph({ name }: { name: ContactIconName }) {
 }
 
 function trackContactClick(name: ContactIconName) {
-  if (name === "telegram") {
-    trackGoal("contact_telegram_click");
+  if (name === "max") {
+    trackGoal("max_click");
+  } else if (name === "telegram") {
+    trackGoal("telegram_click");
   } else if (name === "whatsapp") {
-    trackGoal("contact_whatsapp_click");
+    trackGoal("whatsapp_click");
   } else if (name === "email") {
-    trackGoal("contact_email_click");
+    trackGoal("email_click");
+  } else if (name === "phone") {
+    trackGoal("phone_click");
   }
 }
 

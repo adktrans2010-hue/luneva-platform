@@ -344,7 +344,7 @@ export default function SymptomsCarousel({
             ref={(element) => {
               cardRefs.current[index] = element;
             }}
-            className="group relative flex min-h-[520px] flex-[0_0_calc(100%-1.5rem)] snap-start flex-col overflow-hidden rounded-[1.9rem] border border-[rgba(201,135,120,0.18)] bg-[rgba(255,255,255,0.78)] p-8 text-left no-underline shadow-[0_12px_35px_rgba(70,45,40,0.06)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#c98778] md:min-h-[390px] md:min-w-0 md:p-7 lg:min-h-[405px] lg:p-8 lg:transition-[transform,box-shadow,border-color] lg:duration-300 lg:ease-out lg:hover:-translate-y-1 lg:hover:border-[rgba(201,135,120,0.3)] lg:hover:shadow-[0_22px_52px_rgba(70,45,40,0.11)] motion-reduce:scroll-auto motion-reduce:transition-none motion-reduce:lg:hover:translate-y-0 motion-reduce:lg:hover:border-[rgba(201,135,120,0.18)] motion-reduce:lg:hover:shadow-[0_12px_35px_rgba(70,45,40,0.06)]"
+            className="group relative flex min-h-[520px] min-w-0 flex-[0_0_calc(100%-1.5rem)] snap-start flex-col overflow-hidden rounded-[1.9rem] border border-[rgba(201,135,120,0.18)] bg-[rgba(255,255,255,0.78)] p-8 text-left no-underline shadow-[0_12px_35px_rgba(70,45,40,0.06)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#c98778] md:min-h-[390px] md:min-w-0 md:p-7 lg:min-h-[405px] lg:p-8 lg:transition-[transform,box-shadow,border-color] lg:duration-300 lg:ease-out lg:hover:-translate-y-1 lg:hover:border-[rgba(201,135,120,0.3)] lg:hover:shadow-[0_22px_52px_rgba(70,45,40,0.11)] motion-reduce:scroll-auto motion-reduce:transition-none motion-reduce:lg:hover:translate-y-0 motion-reduce:lg:hover:border-[rgba(201,135,120,0.18)] motion-reduce:lg:hover:shadow-[0_12px_35px_rgba(70,45,40,0.06)]"
           >
             <div className="relative z-10 flex items-start justify-between gap-5">
               <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[#fff1ed] text-[#76564f] md:h-14 md:w-14">
@@ -355,17 +355,17 @@ export default function SymptomsCarousel({
               <DecorativeStar />
             </div>
 
-            <h3 className="relative z-10 mt-9 font-serif text-[2.05rem] leading-[1.12] text-[#332725] sm:text-[2.2rem] md:mt-7 md:text-[1.6rem] md:leading-[1.16] lg:text-[1.68rem]">
+            <h3 className="relative z-10 mt-9 min-w-0 font-serif text-[2.05rem] leading-[1.12] text-[#332725] [overflow-wrap:anywhere] sm:text-[2.2rem] md:mt-7 md:text-[1.6rem] md:leading-[1.16] lg:text-[1.68rem]">
               {topic.title}
             </h3>
 
             <div className="relative z-10 mt-7 h-px w-16 bg-[#c98778] md:mt-5 md:w-14" />
 
             <div className="relative z-10 mt-auto pt-8 text-[#5f5552] md:pt-6">
-              <p className="text-[1.0625rem] leading-[1.68] md:text-[0.9375rem] md:leading-[1.62] lg:text-[0.98rem]">
+              <p className="min-w-0 text-[1.0625rem] leading-[1.68] [overflow-wrap:anywhere] md:text-[0.9375rem] md:leading-[1.62] lg:text-[0.98rem]">
                 {topic.description}
               </p>
-              <p className="mt-4 text-[0.98rem] leading-[1.65] text-[#746865] md:mt-3 md:text-[0.9rem]">
+              <p className="mt-4 min-w-0 text-[0.98rem] leading-[1.65] text-[#746865] [overflow-wrap:anywhere] md:mt-3 md:text-[0.9rem]">
                 {topic.explanation}
               </p>
               <span className="mt-7 inline-flex items-center gap-2 text-[0.95rem] font-medium text-[#9c544c] transition-colors duration-300 group-hover:text-[#7f3f39] motion-reduce:transition-none">

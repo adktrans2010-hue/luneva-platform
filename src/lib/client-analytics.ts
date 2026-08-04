@@ -31,6 +31,11 @@ export type AnalyticsGoal =
   | "whatsapp_click"
   | "telegram_click"
   | "max_click"
+  | "vk_click"
+  | "youtube_click"
+  | "tiktok_click"
+  | "threads_click"
+  | "instagram_click"
   | "email_click"
   | "certificate_card_click"
   | "certificate_modal_open"
@@ -39,6 +44,7 @@ export type AnalyticsGoal =
   | "contact_whatsapp_click"
   | "contact_email_click"
   | "help_topic_click"
+  | "review_filter_click"
   | "review_submit";
 
 declare global {

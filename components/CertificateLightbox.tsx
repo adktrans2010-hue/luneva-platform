@@ -177,16 +177,33 @@ export default function CertificateLightbox({
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 md:px-7">
-          <div className="relative mx-auto min-h-[58dvh] w-full max-w-5xl md:min-h-[66dvh]">
-            <Image
-              src={getCertificateImageSrc(activeCertificate)}
-              alt={activeCertificate.title}
-              fill
-              loading="lazy"
-              sizes="(max-width: 767px) 94vw, 1024px"
-              className="object-contain"
-            />
-          </div>
+          {activeCertificate.image ? (
+            <div className="relative mx-auto min-h-[58dvh] w-full max-w-5xl md:min-h-[66dvh]">
+              <Image
+                src={getCertificateImageSrc(activeCertificate)}
+                alt={activeCertificate.title}
+                fill
+                loading="lazy"
+                sizes="(max-width: 767px) 94vw, 1024px"
+                className="object-contain"
+              />
+            </div>
+          ) : activeCertificate.externalUrl ? (
+            <div className="mx-auto flex min-h-[42dvh] w-full max-w-3xl flex-col items-center justify-center rounded-[24px] border border-[#ead7d1] bg-[#fff8f6] p-8 text-center">
+              <p className="text-lg leading-8 text-[#5f5552]">
+                Документ хранится во внешнем архиве. Откройте его в новой
+                вкладке для просмотра.
+              </p>
+              <a
+                href={activeCertificate.externalUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-6 inline-flex min-h-11 items-center justify-center rounded-full bg-[#332725] px-6 text-white transition hover:bg-[#4a3935] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#c98778]"
+              >
+                Открыть документ
+              </a>
+            </div>
+          ) : null}
 
           {activeCertificate.description && (
             <p className="mx-auto mt-4 max-w-3xl text-center leading-7 text-[#5f5552]">
