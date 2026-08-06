@@ -34,7 +34,7 @@ export default function SocialLinks({ className = "" }: { className?: string }) 
                 <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#f3e2dd] text-[#9c544c] transition group-hover:bg-[#ead3cc] group-hover:text-[#7f3f39]">
                   <Icon className="h-5 w-5" />
                 </span>
-                <span className="min-w-0 text-sm font-medium [overflow-wrap:anywhere]">
+                <span className="min-w-0 max-w-full whitespace-normal text-sm font-medium [word-break:normal] [overflow-wrap:normal] [hyphens:none]">
                   {label}
                 </span>
               </a>

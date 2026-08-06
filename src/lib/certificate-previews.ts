@@ -5,7 +5,6 @@ export type CertificatePreview = {
   title: string;
   description: string | null;
   image: string;
-  externalUrl?: string;
 };
 
 export function toCertificatePreviews(

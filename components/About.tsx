@@ -1,20 +1,10 @@
 import Image from "next/image";
 
 import QualificationCertificateCards from "@/components/QualificationCertificateCards";
-import { getPublishedCertificates } from "@/src/lib/certificates";
 import { getQualificationCertificateCards } from "@/src/lib/qualification-certificates";
 
-async function loadQualificationCards() {
-  try {
-    const certificates = await getPublishedCertificates();
-    return getQualificationCertificateCards(certificates);
-  } catch {
-    return getQualificationCertificateCards([]);
-  }
-}
-
-export default async function About() {
-  const qualificationCards = await loadQualificationCards();
+export default function About() {
+  const qualificationCards = getQualificationCertificateCards();
 
   return (
     <section className="bg-[#fff8f6] px-6 py-24">

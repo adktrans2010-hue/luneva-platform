@@ -277,18 +277,25 @@ assert.deepEqual(
   "only Threads and Instagram must have restricted flag"
 );
 
-const qualificationCards = getQualificationCertificateCards([]);
+const qualificationCards = getQualificationCertificateCards();
 const rppCard = qualificationCards.find((card) => card.id === "eating-disorders");
 assert.equal(rppCard?.certificates.length, 9, "RPP card must contain nine documents");
 assert.equal(
-  qualificationCards.find((card) => card.id === "gestalt-therapy")?.certificates[0]?.externalUrl,
-  "https://disk.yandex.ru/i/N86LaG0kj-B7Pw",
-  "Gestalt card must open the specified document"
+  qualificationCards.find((card) => card.id === "gestalt-therapist")?.certificates[0]?.image,
+  "/certificates/gestalt/gestalt-therapist.jpg",
+  "Gestalt card must use the local certificate image"
 );
 assert.equal(
-  qualificationCards.find((card) => card.id === "course-author")?.certificates[0]?.externalUrl,
-  "https://disk.yandex.ru/i/iGPCpLeOQuL6mQ",
-  "Course author card must open the specified document"
+  qualificationCards.find((card) => card.id === "teacher-author")?.certificates[0]?.image,
+  "/certificates/teaching/teacher-author.jpg",
+  "Teacher card must use the local certificate image"
+);
+assert.equal(
+  rppCard?.certificates.every((certificate) =>
+    /^\/certificates\/rpp\/rpp-\d{2}\.jpg$/.test(certificate.image),
+  ),
+  true,
+  "RPP gallery must use only local certificate images"
 );
 
 const heroSource = readFileSync(join(process.cwd(), "components/Hero.tsx"), "utf8");
@@ -321,9 +328,10 @@ const qualificationCardSource = readFileSync(
 );
 assert.equal(
   qualificationCardSource.includes("min-w-0") &&
-    qualificationCardSource.includes("[overflow-wrap:anywhere]"),
+    qualificationCardSource.includes("[overflow-wrap:normal]") &&
+    !qualificationCardSource.includes("[overflow-wrap:anywhere]"),
   true,
-  "qualification card text must be allowed to wrap"
+  "qualification card text must wrap without splitting words"
 );
 
 const certificateLightboxSource = readFileSync(
@@ -334,6 +342,23 @@ assert.equal(
   certificateLightboxSource.includes('event.key === "Escape"'),
   true,
   "certificate modal must close on Escape"
+);
+assert.equal(
+  !certificateLightboxSource.includes("externalUrl"),
+  true,
+  "certificate modal must not link visitors to external document storage"
+);
+
+const symptomsCarouselSource = readFileSync(
+  join(process.cwd(), "components/SymptomsCarousel.tsx"),
+  "utf8"
+);
+assert.equal(
+  symptomsCarouselSource.includes("[overflow-wrap:normal]") &&
+    !symptomsCarouselSource.includes("[overflow-wrap:anywhere]") &&
+    !symptomsCarouselSource.includes("line-clamp"),
+  true,
+  "help cards must wrap text naturally without clipping it"
 );
 
 console.info("YooKassa invariant tests passed");
