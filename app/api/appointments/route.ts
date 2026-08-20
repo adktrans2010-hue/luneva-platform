@@ -3,6 +3,7 @@ import { and, eq, inArray, ne, sql } from "drizzle-orm";
 
 import { db } from "@/src/db";
 import { appointmentHistory, appointmentRequests, users } from "@/src/db/schema";
+import { classifyAppointmentPreparationError } from "@/src/lib/appointment-api-errors";
 import {
   createSlotDate,
   getAvailableAppointmentSlots,
@@ -12,6 +13,7 @@ import {
   findPurchasableProduct,
   normalizeConsultationFormat,
 } from "@/src/lib/consultation-products";
+import { resolvePromotionQuote } from "@/src/lib/consultation-promotions";
 import { normalizeConsultationLocation } from "@/src/lib/consultation-locations";
 import {
   checkPublicFormSpam,
@@ -64,6 +66,32 @@ function safeAppointmentError(error: unknown) {
   }
 
   return "Не удалось создать запись. Пожалуйста, попробуйте ещё раз или напишите Александре напрямую.";
+}
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  let product;
+
+  try {
+    product = await findPurchasableProduct({
+      productCode: searchParams.get("productCode"),
+      publicPurchase: true,
+    });
+  } catch (error) {
+    const response = classifyAppointmentPreparationError(error, "product");
+    if (response.status === 503) console.error("product_lookup_failed", error);
+    return NextResponse.json(response.body, { status: response.status });
+  }
+
+  try {
+    const quote = await resolvePromotionQuote(product, searchParams.get("promo"));
+
+    return NextResponse.json(quote);
+  } catch (error) {
+    console.error("promotion_quote_failed", error);
+    const response = classifyAppointmentPreparationError(error, "quote");
+    return NextResponse.json(response.body, { status: response.status });
+  }
 }
 
 export async function POST(request: Request) {
@@ -144,6 +172,7 @@ export async function POST(request: Request) {
   }
 
   let product;
+  let promotionQuote;
 
   try {
     product = await findPurchasableProduct({
@@ -152,13 +181,17 @@ export async function POST(request: Request) {
       publicPurchase: true,
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error ? error.message : "Выберите услугу для записи.",
-      },
-      { status: 400 }
-    );
+    const response = classifyAppointmentPreparationError(error, "product");
+    if (response.status === 503) console.error("product_lookup_failed", error);
+    return NextResponse.json(response.body, { status: response.status });
+  }
+
+  try {
+    promotionQuote = await resolvePromotionQuote(product, body.promoCode);
+  } catch (error) {
+    console.error("promotion_quote_failed", error);
+    const response = classifyAppointmentPreparationError(error, "quote");
+    return NextResponse.json(response.body, { status: response.status });
   }
 
   const availableSlots = await getAvailableAppointmentSlots(
@@ -249,9 +282,14 @@ export async function POST(request: Request) {
           holdExpiresAt,
           paymentMethod: "online",
           paymentStatus: "waiting",
-          paymentAmount: product.priceKopeks / 100,
+          paymentAmount: promotionQuote.finalPriceKopeks / 100,
           paymentNote: `${product.name}: ${product.sessionsCount} консультаций`,
           attribution,
+          promoCodeSnapshot: promotionQuote.applied ? promotionQuote.code : null,
+          campaignSnapshot: promotionQuote.applied ? promotionQuote.campaign : null,
+          basePriceKopeksSnapshot: promotionQuote.basePriceKopeks,
+          discountKopeksSnapshot: promotionQuote.discountKopeks,
+          finalPriceKopeksSnapshot: promotionQuote.finalPriceKopeks,
           notificationStatus: "not_sent",
         })
         .returning();
@@ -270,6 +308,7 @@ export async function POST(request: Request) {
     const payment = await createOrReuseAppointmentPayment({
       appointment: createdRequest,
       product,
+      promotionQuote,
       preferredFormat: consultationFormat,
       source: "public_booking",
     });

@@ -13,6 +13,7 @@ import {
   getDefaultPublicProduct,
   getProductPaymentAmountKopeks,
 } from "@/src/lib/consultation-products";
+import type { PromotionQuote } from "@/src/lib/consultation-promotions";
 import { createYooKassaPayment } from "@/src/lib/yookassa";
 
 type AppointmentPaymentSource = "public_booking" | "account_booking" | "admin";
@@ -49,11 +50,13 @@ function canCreatePayment(appointment: AppointmentLike) {
 export async function createOrReuseAppointmentPayment({
   appointment,
   product,
+  promotionQuote,
   preferredFormat,
   source,
 }: {
   appointment: AppointmentLike;
   product?: ProductLike;
+  promotionQuote?: PromotionQuote;
   preferredFormat?: string;
   source: AppointmentPaymentSource;
 }) {
@@ -65,7 +68,9 @@ export async function createOrReuseAppointmentPayment({
 
   const paymentProduct = product ?? (await getDefaultPublicProduct());
   const snapshot = createProductSnapshot(paymentProduct);
-  const amountKopeks = getProductPaymentAmountKopeks(paymentProduct);
+  const basePriceKopeks = getProductPaymentAmountKopeks(paymentProduct);
+  const amountKopeks = promotionQuote?.finalPriceKopeks ?? basePriceKopeks;
+  const discountKopeks = promotionQuote?.discountKopeks ?? 0;
 
   const reusablePayments = await db
     .select()
@@ -113,6 +118,11 @@ export async function createOrReuseAppointmentPayment({
       currencySnapshot: snapshot.currencySnapshot,
       durationMinutesSnapshot: snapshot.durationMinutesSnapshot,
       receiptDescriptionSnapshot: snapshot.receiptDescriptionSnapshot,
+      promoCodeSnapshot: promotionQuote?.applied ? promotionQuote.code : null,
+      campaignSnapshot: promotionQuote?.applied ? promotionQuote.campaign : null,
+      basePriceKopeksSnapshot: basePriceKopeks,
+      discountKopeksSnapshot: discountKopeks,
+      finalPriceKopeksSnapshot: amountKopeks,
       idempotenceKey: randomUUID(),
       amountKopeks,
       currency: snapshot.currencySnapshot,

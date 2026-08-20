@@ -14,6 +14,10 @@ function stableReviewScore(id: string) {
 }
 
 export async function getPublishedReviews() {
+  if (process.env.LOCAL_BUILD_NO_DB === "1") {
+    return [];
+  }
+
   const data = await db
     .select()
     .from(reviews)

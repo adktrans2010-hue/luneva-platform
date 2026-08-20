@@ -15,7 +15,13 @@ export const defaultSocialImage = {
   alt: "Лунева Александра — психолог",
 };
 
+function isLocalDbFreeBuild() {
+  return process.env.LOCAL_BUILD_NO_DB === "1";
+}
+
 export async function getSeoPage(path: string) {
+  if (isLocalDbFreeBuild()) return undefined;
+
   const [page] = await db
     .select()
     .from(seoPages)
@@ -26,6 +32,8 @@ export async function getSeoPage(path: string) {
 }
 
 export async function getSeoPagesForSitemap() {
+  if (isLocalDbFreeBuild()) return [];
+
   return db
     .select()
     .from(seoPages)

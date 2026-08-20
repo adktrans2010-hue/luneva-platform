@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import LegalConsent from "@/components/legal/legal-consent";
 import {
@@ -8,6 +8,13 @@ import {
   type PublicConsultationProduct,
 } from "@/src/lib/consultation-product-shared";
 import { getAttribution, trackGoal } from "@/src/lib/client-analytics";
+import {
+  createPromotionQuoteRequestKey,
+  createPromotionQuoteFallback,
+  quoteForCurrentSelection,
+  readPromotionQuoteResponse,
+  type PromotionQuoteState,
+} from "@/src/lib/promotion-quote";
 
 type AppointmentFormProps = {
   products: PublicConsultationProduct[];
@@ -22,6 +29,11 @@ const officeLocations = [
   { value: "moscow", label: "Москва" },
   { value: "vidnoye", label: "Видное" },
 ];
+
+function campaignPromoFromUrl() {
+  if (typeof window === "undefined") return "";
+  return new URLSearchParams(window.location.search).get("promo")?.trim() ?? "";
+}
 
 function toDateInputValue(date: Date) {
   const year = date.getFullYear();
@@ -48,9 +60,87 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [legalAccepted, setLegalAccepted] = useState(false);
   const [formOpenedTracked, setFormOpenedTracked] = useState(false);
+  const [campaignPromo] = useState(campaignPromoFromUrl);
+  const [promoOpen, setPromoOpen] = useState(() => Boolean(campaignPromo));
+  const [promoInput, setPromoInput] = useState(campaignPromo);
+  const [appliedPromoCode, setAppliedPromoCode] = useState(campaignPromo);
+  const [promotionQuoteState, setPromotionQuoteState] =
+    useState<PromotionQuoteState | null>(null);
+  const [promoLoading, setPromoLoading] = useState(false);
+  const promoRequestId = useRef(0);
 
   const selectedProduct =
     products.find((product) => product.code === productCode) ?? products[0];
+  const promotionQuote = quoteForCurrentSelection(
+    promotionQuoteState,
+    selectedProduct,
+    appliedPromoCode
+  );
+
+  const displayedPriceKopeks =
+    promotionQuote?.applied && promotionQuote.finalPriceKopeks
+      ? promotionQuote.finalPriceKopeks
+      : selectedProduct?.priceKopeks ?? 0;
+
+  const validatePromo = useCallback(
+    async (
+      code: string,
+      product: PublicConsultationProduct,
+      signal: AbortSignal
+    ) => {
+      const requestId = ++promoRequestId.current;
+      const requestKey = createPromotionQuoteRequestKey(product.code, code);
+      setPromoLoading(true);
+
+      try {
+        const response = await fetch(
+          `/api/appointments?productCode=${encodeURIComponent(product.code)}&promo=${encodeURIComponent(code)}`,
+          { signal }
+        );
+        const quote = await readPromotionQuoteResponse(
+          response,
+          product.priceKopeks
+        );
+
+        if (requestId === promoRequestId.current) {
+          setPromotionQuoteState({ requestKey, quote });
+        }
+      } catch (quoteError) {
+        if (quoteError instanceof DOMException && quoteError.name === "AbortError") {
+          return;
+        }
+
+        if (requestId === promoRequestId.current) {
+          setPromotionQuoteState({
+            requestKey,
+            quote: createPromotionQuoteFallback(product.priceKopeks),
+          });
+        }
+      } finally {
+        if (requestId === promoRequestId.current) {
+          setPromoLoading(false);
+        }
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (!appliedPromoCode || !selectedProduct) {
+      promoRequestId.current += 1;
+      return;
+    }
+
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => {
+      void validatePromo(appliedPromoCode, selectedProduct, controller.signal);
+    }, 0);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timer);
+    };
+  }, [appliedPromoCode, selectedProduct, validatePromo]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -122,6 +212,7 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
         formStartedAt,
         legalConsent: legalAccepted,
         attribution: getAttribution(),
+        promoCode: appliedPromoCode,
       }),
     });
 
@@ -187,6 +278,51 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
             </button>
           ))}
         </div>
+      </div>
+
+      <div className="rounded-2xl border border-[#ead7d1] bg-white p-4">
+        {!promoOpen ? (
+          <button
+            type="button"
+            onClick={() => setPromoOpen(true)}
+            className="text-sm font-medium text-[#332725] underline decoration-[#c98778] underline-offset-4"
+          >
+            Есть промокод?
+          </button>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+            <label className="grid gap-2">
+              <span className="text-sm uppercase tracking-[0.18em] text-[#8a7a76]">
+                Промокод
+              </span>
+              <input
+                value={promoInput}
+                onChange={(event) => setPromoInput(event.target.value)}
+                className="rounded-xl border border-[#ead7d1] px-4 py-3 uppercase outline-none transition focus:border-[#c98778]"
+                placeholder="Введите промокод"
+                autoComplete="off"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={() => setAppliedPromoCode(promoInput)}
+              disabled={!promoInput.trim() || promoLoading}
+              className="rounded-xl border border-[#332725] px-5 py-3 font-medium text-[#332725] disabled:opacity-50"
+            >
+              {promoLoading ? "Проверяю..." : "Применить"}
+            </button>
+          </div>
+        )}
+
+        {promotionQuote?.message && (
+          <p
+            className={`mt-3 text-sm ${
+              promotionQuote.applied ? "text-[#55704b]" : "text-[#9a5a1f]"
+            }`}
+          >
+            {promotionQuote.message}
+          </p>
+        )}
       </div>
 
       <div className="rounded-2xl border border-[#ead7d1] bg-[#fff8f6] p-4">
@@ -334,7 +470,13 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
           {appointmentTime ? `, ${appointmentTime}` : ""}
         </p>
         <p className="mt-3 text-lg font-semibold text-[#332725]">
-          К оплате: {formatKopeks(selectedProduct.priceKopeks)} руб.
+          К оплате:{" "}
+          {promotionQuote?.applied && (
+            <span className="mr-2 text-base font-normal text-[#8a7a76] line-through">
+              {formatKopeks(selectedProduct.priceKopeks)} руб.
+            </span>
+          )}
+          {formatKopeks(displayedPriceKopeks)} руб.
         </p>
       </div>
 

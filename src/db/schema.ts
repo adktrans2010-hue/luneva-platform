@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   pgTable,
   text,
@@ -8,6 +9,7 @@ import {
   index,
   uniqueIndex,
   jsonb,
+  check,
 } from "drizzle-orm/pg-core";
 
 export const reviewCategories = pgTable(
@@ -343,6 +345,39 @@ export const consultationProducts = pgTable(
   ]
 );
 
+export const consultationPromotions = pgTable(
+  "consultation_promotions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    code: text("code").notNull(),
+    campaign: text("campaign"),
+    targetProductCode: text("target_product_code").notNull(),
+    finalPriceKopeks: integer("final_price_kopeks").notNull(),
+    isActive: boolean("is_active").default(true).notNull(),
+    validFrom: timestamp("valid_from"),
+    validUntil: timestamp("valid_until"),
+    maxUses: integer("max_uses"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("consultation_promotions_code_unique").on(table.code),
+    index("consultation_promotions_active_idx").on(table.isActive),
+    check(
+      "consultation_promotions_positive_price_check",
+      sql`${table.finalPriceKopeks} > 0`
+    ),
+    check(
+      "consultation_promotions_positive_max_uses_check",
+      sql`${table.maxUses} IS NULL OR ${table.maxUses} > 0`
+    ),
+    check(
+      "consultation_promotions_valid_dates_check",
+      sql`${table.validFrom} IS NULL OR ${table.validUntil} IS NULL OR ${table.validUntil} >= ${table.validFrom}`
+    ),
+  ]
+);
+
 export const appointmentRequests = pgTable("appointment_requests", {
   id: uuid("id").defaultRandom().primaryKey(),
 
@@ -401,6 +436,16 @@ export const appointmentRequests = pgTable("appointment_requests", {
   yookassaPaymentId: text("yookassa_payment_id"),
 
   paymentAmount: integer("payment_amount"),
+
+  promoCodeSnapshot: text("promo_code_snapshot"),
+
+  campaignSnapshot: text("campaign_snapshot"),
+
+  basePriceKopeksSnapshot: integer("base_price_kopeks_snapshot"),
+
+  discountKopeksSnapshot: integer("discount_kopeks_snapshot").default(0).notNull(),
+
+  finalPriceKopeksSnapshot: integer("final_price_kopeks_snapshot"),
 
   paymentLink: text("payment_link"),
 
@@ -543,6 +588,16 @@ export const yookassaPayments = pgTable(
     durationMinutesSnapshot: integer("duration_minutes_snapshot"),
 
     receiptDescriptionSnapshot: text("receipt_description_snapshot"),
+
+    promoCodeSnapshot: text("promo_code_snapshot"),
+
+    campaignSnapshot: text("campaign_snapshot"),
+
+    basePriceKopeksSnapshot: integer("base_price_kopeks_snapshot"),
+
+    discountKopeksSnapshot: integer("discount_kopeks_snapshot").default(0).notNull(),
+
+    finalPriceKopeksSnapshot: integer("final_price_kopeks_snapshot"),
 
     status: text("status")
       .default("creating")

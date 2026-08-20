@@ -34,3 +34,17 @@ next-env.d.ts
 
 # WordPress backups
 *.wpress
+
+# local secrets and data
+*.key
+*.pfx
+*.p12
+*.sqlite
+*.sqlite3
+*.db
+*.dump
+*.backup
+/backup/
+/backups/
+/dump/
+/dumps/
