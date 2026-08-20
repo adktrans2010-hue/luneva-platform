@@ -190,6 +190,10 @@ export function mapPublicProduct(
 }
 
 export async function getPublicConsultationProducts() {
+  if (process.env.LOCAL_BUILD_NO_DB === "1") {
+    return [];
+  }
+
   const products = await db
     .select()
     .from(consultationProducts)

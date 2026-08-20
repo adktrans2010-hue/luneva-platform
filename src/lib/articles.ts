@@ -86,6 +86,10 @@ export async function createUniqueSlug(title: string, currentId?: string) {
 }
 
 export async function getPublishedArticles() {
+  if (process.env.LOCAL_BUILD_NO_DB === "1") {
+    return [];
+  }
+
   return db
     .select()
     .from(articles)
