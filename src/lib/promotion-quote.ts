@@ -8,6 +8,32 @@ export type PromotionQuote = {
   message: string | null;
 };
 
+export type PromotionQuoteState = {
+  requestKey: string;
+  quote: PromotionQuote;
+};
+
+export function createPromotionQuoteRequestKey(
+  productCode: string,
+  promotionCode: string
+) {
+  return `${productCode}\u0000${promotionCode.trim().toUpperCase()}`;
+}
+
+export function quoteForCurrentSelection(
+  state: PromotionQuoteState | null,
+  product: { code: string; priceKopeks: number } | undefined,
+  promotionCode: string
+) {
+  if (!state || !product) return null;
+
+  const expectedKey = createPromotionQuoteRequestKey(product.code, promotionCode);
+  return state.requestKey === expectedKey &&
+    state.quote.basePriceKopeks === product.priceKopeks
+    ? state.quote
+    : null;
+}
+
 export const promotionQuoteFallbackMessage =
   "Не удалось проверить промокод. Попробуйте ещё раз.";
 

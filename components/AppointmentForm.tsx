@@ -9,9 +9,11 @@ import {
 } from "@/src/lib/consultation-product-shared";
 import { getAttribution, trackGoal } from "@/src/lib/client-analytics";
 import {
+  createPromotionQuoteRequestKey,
   createPromotionQuoteFallback,
+  quoteForCurrentSelection,
   readPromotionQuoteResponse,
-  type PromotionQuote,
+  type PromotionQuoteState,
 } from "@/src/lib/promotion-quote";
 
 type AppointmentFormProps = {
@@ -62,12 +64,18 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
   const [promoOpen, setPromoOpen] = useState(() => Boolean(campaignPromo));
   const [promoInput, setPromoInput] = useState(campaignPromo);
   const [appliedPromoCode, setAppliedPromoCode] = useState(campaignPromo);
-  const [promotionQuote, setPromotionQuote] = useState<PromotionQuote | null>(null);
+  const [promotionQuoteState, setPromotionQuoteState] =
+    useState<PromotionQuoteState | null>(null);
   const [promoLoading, setPromoLoading] = useState(false);
   const promoRequestId = useRef(0);
 
   const selectedProduct =
     products.find((product) => product.code === productCode) ?? products[0];
+  const promotionQuote = quoteForCurrentSelection(
+    promotionQuoteState,
+    selectedProduct,
+    appliedPromoCode
+  );
 
   const displayedPriceKopeks =
     promotionQuote?.applied && promotionQuote.finalPriceKopeks
@@ -81,6 +89,7 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
       signal: AbortSignal
     ) => {
       const requestId = ++promoRequestId.current;
+      const requestKey = createPromotionQuoteRequestKey(product.code, code);
       setPromoLoading(true);
 
       try {
@@ -94,7 +103,7 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
         );
 
         if (requestId === promoRequestId.current) {
-          setPromotionQuote(quote);
+          setPromotionQuoteState({ requestKey, quote });
         }
       } catch (quoteError) {
         if (quoteError instanceof DOMException && quoteError.name === "AbortError") {
@@ -102,7 +111,10 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
         }
 
         if (requestId === promoRequestId.current) {
-          setPromotionQuote(createPromotionQuoteFallback(product.priceKopeks));
+          setPromotionQuoteState({
+            requestKey,
+            quote: createPromotionQuoteFallback(product.priceKopeks),
+          });
         }
       } finally {
         if (requestId === promoRequestId.current) {

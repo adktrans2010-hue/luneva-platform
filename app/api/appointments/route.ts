@@ -3,6 +3,7 @@ import { and, eq, inArray, ne, sql } from "drizzle-orm";
 
 import { db } from "@/src/db";
 import { appointmentHistory, appointmentRequests, users } from "@/src/db/schema";
+import { classifyAppointmentPreparationError } from "@/src/lib/appointment-api-errors";
 import {
   createSlotDate,
   getAvailableAppointmentSlots,
@@ -77,17 +78,9 @@ export async function GET(request: Request) {
       publicPurchase: true,
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        error: {
-          code: "INVALID_PRODUCT",
-          message:
-            error instanceof Error ? error.message : "Выберите услугу для записи.",
-          retryable: false,
-        },
-      },
-      { status: 400 }
-    );
+    const response = classifyAppointmentPreparationError(error, "product");
+    if (response.status === 503) console.error("product_lookup_failed", error);
+    return NextResponse.json(response.body, { status: response.status });
   }
 
   try {
@@ -96,17 +89,8 @@ export async function GET(request: Request) {
     return NextResponse.json(quote);
   } catch (error) {
     console.error("promotion_quote_failed", error);
-
-    return NextResponse.json(
-      {
-        error: {
-          code: "QUOTE_UNAVAILABLE",
-          message: "Не удалось проверить промокод",
-          retryable: true,
-        },
-      },
-      { status: 503 }
-    );
+    const response = classifyAppointmentPreparationError(error, "quote");
+    return NextResponse.json(response.body, { status: response.status });
   }
 }
 
@@ -196,15 +180,18 @@ export async function POST(request: Request) {
       productCode: String(body.productCode ?? "").trim() || null,
       publicPurchase: true,
     });
+  } catch (error) {
+    const response = classifyAppointmentPreparationError(error, "product");
+    if (response.status === 503) console.error("product_lookup_failed", error);
+    return NextResponse.json(response.body, { status: response.status });
+  }
+
+  try {
     promotionQuote = await resolvePromotionQuote(product, body.promoCode);
   } catch (error) {
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error ? error.message : "Выберите услугу для записи.",
-      },
-      { status: 400 }
-    );
+    console.error("promotion_quote_failed", error);
+    const response = classifyAppointmentPreparationError(error, "quote");
+    return NextResponse.json(response.body, { status: response.status });
   }
 
   const availableSlots = await getAvailableAppointmentSlots(

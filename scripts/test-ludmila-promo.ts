@@ -6,9 +6,13 @@ import {
   normalizePromotionCode,
 } from "../src/lib/consultation-promotions";
 import {
+  createPromotionQuoteRequestKey,
   createPromotionQuoteFallback,
+  quoteForCurrentSelection,
   readPromotionQuoteResponse,
 } from "../src/lib/promotion-quote";
+import { classifyAppointmentPreparationError } from "../src/lib/appointment-api-errors";
+import { PurchasableProductError } from "../src/lib/consultation-products";
 
 const singleSession = { code: "single-session", priceKopeks: 700000 };
 const packageProduct = { code: "package-7", priceKopeks: 4200000 };
@@ -53,6 +57,67 @@ const unsupportedLimitedQuote = evaluatePromotion(
   "LUDMILA"
 );
 assert.equal(unsupportedLimitedQuote.applied, false);
+
+const internalError = new Error(
+  "Database driver detail: connection failed for a private internal endpoint"
+);
+const safeQuoteError = classifyAppointmentPreparationError(internalError, "quote");
+assert.equal(safeQuoteError.status, 503);
+assert.equal(safeQuoteError.body.error.code, "QUOTE_UNAVAILABLE");
+assert.equal(JSON.stringify(safeQuoteError).includes("driver detail"), false);
+
+const safeProductFailure = classifyAppointmentPreparationError(
+  internalError,
+  "product"
+);
+assert.equal(safeProductFailure.status, 503);
+assert.equal(safeProductFailure.body.error.code, "BOOKING_UNAVAILABLE");
+assert.equal(JSON.stringify(safeProductFailure).includes("internal endpoint"), false);
+
+const invalidProduct = classifyAppointmentPreparationError(
+  new PurchasableProductError("Выберите услугу для записи."),
+  "product"
+);
+assert.equal(invalidProduct.status, 400);
+assert.equal(invalidProduct.body.error.code, "INVALID_PRODUCT");
+
+const quoteA = evaluatePromotion(singleSession, ludmila, "LUDMILA");
+const stateA = {
+  requestKey: createPromotionQuoteRequestKey(singleSession.code, "LUDMILA"),
+  quote: quoteA,
+};
+assert.equal(
+  quoteForCurrentSelection(stateA, singleSession, "LUDMILA")?.finalPriceKopeks,
+  500000
+);
+assert.equal(quoteForCurrentSelection(stateA, packageProduct, "LUDMILA"), null);
+
+const quoteB = evaluatePromotion(packageProduct, ludmila, "LUDMILA");
+const stateB = {
+  requestKey: createPromotionQuoteRequestKey(packageProduct.code, "LUDMILA"),
+  quote: quoteB,
+};
+assert.equal(
+  quoteForCurrentSelection(stateB, packageProduct, "LUDMILA")?.finalPriceKopeks,
+  packageProduct.priceKopeks
+);
+
+const appointmentRoute = readFileSync(
+  new URL("../app/api/appointments/route.ts", import.meta.url),
+  "utf8"
+);
+assert.match(appointmentRoute, /classifyAppointmentPreparationError/);
+assert.doesNotMatch(
+  appointmentRoute,
+  /error instanceof Error \? error\.message/
+);
+
+const appointmentForm = readFileSync(
+  new URL("../components/AppointmentForm.tsx", import.meta.url),
+  "utf8"
+);
+assert.match(appointmentForm, /quoteForCurrentSelection/);
+assert.match(appointmentForm, /setPromotionQuoteState\(\{ requestKey, quote \}\)/);
 
 async function runAsyncTests() {
   const validQuote = evaluatePromotion(singleSession, ludmila, "LUDMILA");

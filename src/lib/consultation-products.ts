@@ -90,6 +90,10 @@ export function getProductPaymentAmountKopeks(
   return product.priceKopeks;
 }
 
+export class PurchasableProductError extends Error {
+  override name = "PurchasableProductError";
+}
+
 export function assertProductCanBePurchased(
   product:
     | Pick<
@@ -106,31 +110,37 @@ export function assertProductCanBePurchased(
   { publicPurchase = true } = {}
 ) {
   if (!product) {
-    throw new Error("Выберите услугу для записи.");
+    throw new PurchasableProductError("Выберите услугу для записи.");
   }
 
   if (product.archivedAt) {
-    throw new Error("Эта услуга перенесена в архив.");
+    throw new PurchasableProductError("Эта услуга перенесена в архив.");
   }
 
   if (!product.isActive) {
-    throw new Error("Эта услуга временно недоступна.");
+    throw new PurchasableProductError("Эта услуга временно недоступна.");
   }
 
   if (publicPurchase && !product.isPublic) {
-    throw new Error("Эта услуга недоступна для онлайн-записи.");
+    throw new PurchasableProductError(
+      "Эта услуга недоступна для онлайн-записи."
+    );
   }
 
   if (!Number.isInteger(product.sessionsCount) || product.sessionsCount <= 0) {
-    throw new Error("У услуги некорректное количество консультаций.");
+    throw new PurchasableProductError(
+      "У услуги некорректное количество консультаций."
+    );
   }
 
   if (!Number.isInteger(product.priceKopeks) || product.priceKopeks <= 0) {
-    throw new Error("У услуги некорректная стоимость.");
+    throw new PurchasableProductError("У услуги некорректная стоимость.");
   }
 
   if (product.currency !== "RUB") {
-    throw new Error("Для онлайн-оплаты сейчас доступна только валюта RUB.");
+    throw new PurchasableProductError(
+      "Для онлайн-оплаты сейчас доступна только валюта RUB."
+    );
   }
 }
 
