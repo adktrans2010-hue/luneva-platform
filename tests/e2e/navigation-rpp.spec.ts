@@ -81,6 +81,28 @@ test("mobile menu has one open main group, hides drafts and closes after navigat
   await expect(mobileNavigation).toHaveCount(0);
 });
 
+test("desktop and mobile certificates navigation uses the canonical route", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await page.getByRole("button", { name: "Открыть меню «Обо мне»" }).click();
+  const desktopLink = page.locator('header a[href="/certificates"]', { hasText: "Дипломы и сертификаты" });
+  await expect(desktopLink).toBeVisible();
+  await desktopLink.click();
+  await expect(page).toHaveURL(/\/certificates$/);
+  await expect(page.getByRole("heading", { name: "Дипломы и сертификаты", level: 1 })).toBeVisible();
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await page.getByRole("button", { name: "Открыть меню" }).click();
+  await page.getByRole("button", { name: "Развернуть раздел «Обо мне»" }).click();
+  const mobileNavigation = page.getByRole("navigation", { name: "Мобильная навигация" });
+  const mobileLink = mobileNavigation.getByRole("link", { name: "Дипломы и сертификаты" });
+  await expect(mobileLink).toHaveAttribute("href", "/certificates");
+  await mobileLink.click();
+  await expect(page).toHaveURL(/\/certificates$/);
+  await expect(page.getByRole("heading", { name: "Дипломы и сертификаты", level: 1 })).toBeVisible();
+});
+
 test("unknown nested routes return true HTTP 404", async ({ request }) => {
   const routes = [
     "/proverka-neizvestnoy-stranitsy",

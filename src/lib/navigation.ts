@@ -44,7 +44,7 @@ const allNavigationItems: NavigationItem[] = [
         title: "Обо мне",
         links: [
           { label: "Об Александре", href: "/about" },
-          { label: "Образование и сертификаты", href: "/about/education" },
+          { label: "Дипломы и сертификаты", href: "/certificates" },
         ],
       },
     ],
