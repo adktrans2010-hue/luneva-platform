@@ -54,6 +54,7 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(true);
   const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [website, setWebsite] = useState("");
   const [sending, setSending] = useState(false);
@@ -207,6 +208,7 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
         appointmentDate,
         appointmentTime,
         name,
+        phone,
         email,
         website,
         formStartedAt,
@@ -418,16 +420,35 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
         )}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-3">
         <label className="grid gap-2">
           <span className="text-sm uppercase tracking-[0.18em] text-[#8a7a76]">
             Имя
           </span>
           <input
             value={name}
-            onChange={(event) => setName(event.target.value)}
+            onChange={(event) => { event.target.setCustomValidity(""); setName(event.target.value); }}
+            onInvalid={(event) => event.currentTarget.setCustomValidity("Введите имя")}
             className="rounded-2xl border border-[#ead7d1] px-4 py-3 outline-none transition focus:border-[#c98778]"
             placeholder="Ваше имя"
+            required
+          />
+        </label>
+
+        <label className="grid gap-2">
+          <span className="text-sm uppercase tracking-[0.18em] text-[#8a7a76]">
+            Телефон
+          </span>
+          <input
+            value={phone}
+            onChange={(event) => { event.target.setCustomValidity(""); setPhone(event.target.value); }}
+            onInvalid={(event) => event.currentTarget.setCustomValidity("Укажите телефон")}
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            pattern="[+0-9() -]{10,25}"
+            className="rounded-2xl border border-[#ead7d1] px-4 py-3 outline-none transition focus:border-[#c98778]"
+            placeholder="+7 999 123-45-67"
             required
           />
         </label>
@@ -438,7 +459,8 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
           </span>
           <input
             value={email}
-            onChange={(event) => setEmail(event.target.value)}
+            onChange={(event) => { event.target.setCustomValidity(""); setEmail(event.target.value); }}
+            onInvalid={(event) => event.currentTarget.setCustomValidity("Укажите email")}
             type="email"
             className="rounded-2xl border border-[#ead7d1] px-4 py-3 outline-none transition focus:border-[#c98778]"
             placeholder="email@example.ru"

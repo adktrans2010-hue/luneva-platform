@@ -82,6 +82,7 @@ export async function proxy(request: NextRequest) {
   if (
     pathname.startsWith("/api") &&
     pathname !== "/api/yookassa/webhook" &&
+    pathname !== "/api/internal/telegram/payments" &&
     isUnsafeRequest(request) &&
     !hasValidRequestSource(request)
   ) {

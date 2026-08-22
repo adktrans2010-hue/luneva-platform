@@ -16,7 +16,7 @@ import {
 import type { PromotionQuote } from "@/src/lib/consultation-promotions";
 import { createYooKassaPayment } from "@/src/lib/yookassa";
 
-type AppointmentPaymentSource = "public_booking" | "account_booking" | "admin";
+type AppointmentPaymentSource = "public_booking" | "account_booking" | "admin" | "telegram";
 
 type AppointmentLike = typeof appointmentRequests.$inferSelect;
 type ProductLike = typeof consultationProducts.$inferSelect;

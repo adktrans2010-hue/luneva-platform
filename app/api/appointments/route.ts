@@ -45,6 +45,15 @@ function normalizeName(value: unknown) {
   return String(value ?? "").trim().replace(/\s+/g, " ");
 }
 
+function normalizePhone(value: unknown) {
+  const raw = String(value ?? "").trim();
+  const digits = raw.replace(/\D/g, "");
+  if (digits.length === 11 && digits.startsWith("8")) return `+7${digits.slice(1)}`;
+  if (digits.length === 11 && digits.startsWith("7")) return `+${digits}`;
+  if (digits.length === 10) return `+7${digits}`;
+  return "";
+}
+
 function getHoldMinutes() {
   const value = Number(process.env.PAYMENT_SLOT_HOLD_MINUTES ?? 15);
   return Number.isFinite(value) && value >= 5 && value <= 30 ? value : 15;
@@ -108,6 +117,7 @@ export async function POST(request: Request) {
 
   const email = normalizeEmail(body.email ?? body.contact);
   const name = normalizeName(body.name);
+  const phone = normalizePhone(body.phone);
   const consultationFormat = normalizeConsultationFormat(
     body.preferredFormat ?? body.consultationFormat
   );
@@ -153,6 +163,13 @@ export async function POST(request: Request) {
   if (!name || name.length < 2 || name.length > 120) {
     return NextResponse.json(
       { error: "Укажите имя для записи и оплаты." },
+      { status: 400 }
+    );
+  }
+
+  if (!phone) {
+    return NextResponse.json(
+      { error: "Укажите корректный номер телефона." },
       { status: 400 }
     );
   }
@@ -276,7 +293,7 @@ export async function POST(request: Request) {
           consultationFormat,
           consultationLocation,
           preferredTime: `${appointmentDate} ${appointmentTime}`,
-          message: "Запись через форму сайта.",
+          message: `Запись через форму сайта. Телефон: ${phone}`,
           scheduledAt,
           status: "awaiting_payment",
           holdExpiresAt,
