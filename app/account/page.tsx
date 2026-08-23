@@ -18,6 +18,10 @@ import {
   getConsultationAddress,
   getConsultationPlaceLabel,
 } from "@/src/lib/consultation-locations";
+import {
+  consultationProductCodes,
+  getPublicConsultationProducts,
+} from "@/src/lib/consultation-products";
 
 export const dynamic = "force-dynamic";
 
@@ -237,6 +241,16 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
   const unreadNotifications = notifications.filter(
     (notification) => !notification.readAt
   ).length;
+  const publicProducts = await getPublicConsultationProducts();
+  const durationByProductId = new Map(
+    publicProducts.map((product) => [product.id, product.durationMinutes]),
+  );
+  const defaultDurationMinutes = publicProducts.find(
+    (product) => product.code === consultationProductCodes.singleSession,
+  )?.durationMinutes;
+  const nearestDurationMinutes = nearest?.productId
+    ? durationByProductId.get(nearest.productId) ?? defaultDurationMinutes
+    : defaultDurationMinutes;
   const activePackages = packages
     .filter((item) => item.status === "active" && item.remainingSessions > 0)
     .map((item) => ({
@@ -314,7 +328,9 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                         nearest.consultationLocation
                       )}`
                     : ""}{" "}
-                  · 50 минут
+                  {nearestDurationMinutes
+                    ? ` · ${nearestDurationMinutes} минут`
+                    : ""}
                 </p>
                 <p className="mt-2 text-[#ead7d1]">
                   {nearest.consultationFormat === "office"

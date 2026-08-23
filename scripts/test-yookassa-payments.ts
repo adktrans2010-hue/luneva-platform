@@ -281,6 +281,18 @@ const qualificationCards = getQualificationCertificateCards();
 const rppCard = qualificationCards.find((card) => card.id === "eating-disorders");
 assert.equal(rppCard?.certificates.length, 9, "RPP card must contain nine documents");
 assert.equal(
+  qualificationCards.some((card) => "externalUrl" in card),
+  false,
+  "qualification cards must always open local certificate images",
+);
+assert.equal(
+  qualificationCards.every((card) =>
+    card.certificates.every((certificate) => certificate.image.startsWith("/certificates/")),
+  ),
+  true,
+  "all qualification documents must use local certificate assets",
+);
+assert.equal(
   qualificationCards.find((card) => card.id === "gestalt-therapist")?.certificates[0]?.image,
   "/certificates/gestalt/gestalt-therapist.jpg",
   "Gestalt card must use the local certificate image"
@@ -332,6 +344,28 @@ assert.equal(
     !qualificationCardSource.includes("[overflow-wrap:anywhere]"),
   true,
   "qualification card text must wrap without splitting words"
+);
+assert.equal(
+  qualificationCardSource.includes("externalUrl") ||
+    qualificationCardSource.includes("target=\"_blank\""),
+  false,
+  "qualification cards must use the local lightbox instead of external navigation",
+);
+
+const pricingSource = readFileSync(join(process.cwd(), "components/Pricing.tsx"), "utf8");
+assert.equal(
+  pricingSource.includes("item.durationMinutes") &&
+    !pricingSource.includes("item.shortDescription ||"),
+  true,
+  "homepage duration must come from the product duration field",
+);
+
+const accountSource = readFileSync(join(process.cwd(), "app/account/page.tsx"), "utf8");
+assert.equal(
+  accountSource.includes("nearestDurationMinutes") &&
+    !accountSource.includes("· 50 минут"),
+  true,
+  "account appointment duration must come from consultation product data",
 );
 
 const certificateLightboxSource = readFileSync(

@@ -48,8 +48,7 @@ export default async function Pricing() {
                 <div className="mx-auto mt-6 h-[2px] w-20 bg-[#c98778]" />
 
                 <p className="mt-7 text-lg leading-8 text-[#5f5552]">
-                  {item.shortDescription ||
-                    `${item.sessionsCount} консультаций, ${item.durationMinutes} минут`}
+                  {`${item.sessionsCount} консультаций, ${item.durationMinutes} минут`}
                   , стоимость{" "}
                   <span className="font-semibold text-[#332725]">
                     {formatKopeks(item.priceKopeks)}

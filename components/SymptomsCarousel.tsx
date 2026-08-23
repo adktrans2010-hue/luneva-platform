@@ -355,7 +355,7 @@ export default function SymptomsCarousel({
               <DecorativeStar />
             </div>
 
-            <h3 className="relative z-10 mt-9 min-w-0 max-w-full whitespace-normal font-serif text-[1.75rem] leading-[1.15] text-[#332725] [overflow-wrap:anywhere] sm:text-[2rem] md:mt-7 md:text-[1.6rem] md:leading-[1.16] lg:text-[1.68rem]">
+            <h3 className="relative z-10 mt-9 min-w-0 max-w-full whitespace-normal font-serif text-[1.75rem] leading-[1.15] text-[#332725] [overflow-wrap:normal] [hyphens:none] sm:text-[2rem] md:mt-7 md:text-[1.6rem] md:leading-[1.16] lg:text-[1.68rem]">
               {topic.title}
             </h3>
 

@@ -13,7 +13,6 @@ export type QualificationCertificateCard = {
   modalTitle: string;
   actionLabel: string;
   certificates: CertificatePreview[];
-  externalUrl?: string;
 };
 
 const eatingDisorderCertificates: CertificatePreview[] = Array.from(
@@ -32,7 +31,6 @@ const qualificationCertificateCards: QualificationCertificateCard[] = [
     title: "Дипломированный психолог",
     modalTitle: "Бакалавр психологии",
     actionLabel: "Посмотреть диплом",
-    externalUrl: "https://disk.yandex.ru/i/BCxIxjh5yfos-A",
     certificates: [
       {
         id: "psychology-degree-bachelor",
@@ -61,7 +59,6 @@ const qualificationCertificateCards: QualificationCertificateCard[] = [
     title: "Специалист по травме и ПТСР",
     modalTitle: "Специалист по работе с травмой, утратой и ПТСР",
     actionLabel: "Посмотреть сертификат",
-    externalUrl: "https://disk.yandex.ru/i/olAMpm4Vr1zBJA",
     certificates: [
       {
         id: "trauma-ptsd-specialist",
