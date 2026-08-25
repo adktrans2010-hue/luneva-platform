@@ -15,15 +15,56 @@ export type QualificationCertificateCard = {
   certificates: CertificatePreview[];
 };
 
-const eatingDisorderCertificates: CertificatePreview[] = Array.from(
-  { length: 9 },
-  (_, index) => ({
-    id: `eating-disorders-${index + 1}`,
-    title: `Документ по РПП ${index + 1}`,
-    description: "Диплом или сертификат по работе с расстройствами пищевого поведения",
-    image: `/certificates/rpp/rpp-${String(index + 1).padStart(2, "0")}.jpg`,
-  }),
-);
+const eatingDisorderCertificates: CertificatePreview[] = [
+  {
+    id: "eating-disorders-gestalt",
+    title: "Работа с РПП в гештальт-подходе",
+    description: "Сертификат о специализации по работе с пищевым поведением",
+    image: "/certificates/rpp/rpp-gestalt.jpg",
+  },
+  {
+    id: "eating-disorders-children-adolescents",
+    title: "Терапия РПП детей и подростков",
+    description: "Удостоверение о повышении квалификации",
+    image: "/certificates/rpp/rpp-children-adolescents.jpg",
+  },
+  {
+    id: "eating-disorders-group-therapy",
+    title: "Групповая терапия пищевого поведения",
+    description: "Сертификат об участии в терапевтической группе",
+    image: "/certificates/rpp/rpp-group-therapy.jpg",
+  },
+  {
+    id: "eating-disorders-diagnostics-treatment",
+    title: "Диагностика и лечение РПП",
+    description: "Сертификат участника научно-практической конференции",
+    image: "/certificates/rpp/rpp-diagnostics-treatment.jpg",
+  },
+  {
+    id: "eating-disorders-round-table-2025",
+    title: "Круглый стол по ожирению и РПП",
+    description: "Сертификат участника круглого стола",
+    image: "/certificates/rpp/rpp-round-table-2025.jpg",
+  },
+  {
+    id: "eating-disorders-arpps-membership",
+    title: "Свидетельство АРППС",
+    description: "Свидетельство о членстве в профильной ассоциации",
+    image: "/certificates/rpp/arpps-membership.jpg",
+  },
+  {
+    id: "eating-disorders-certificate",
+    title: "Расстройства пищевого поведения",
+    description: "Сертификат о прохождении курса",
+    image: "/certificates/rpp/rpp-certificate.jpg",
+  },
+  {
+    id: "eating-disorders-luneva",
+    title: "Сертификат Луневой Александры Александровны",
+    description: "Сертификат участника образовательной программы",
+    image: "/certificates/rpp/luneva-rpp.jpg",
+  },
+];
 
 const qualificationCertificateCards: QualificationCertificateCard[] = [
   {
@@ -36,7 +77,7 @@ const qualificationCertificateCards: QualificationCertificateCard[] = [
         id: "psychology-degree-bachelor",
         title: "Бакалавр психологии",
         description: "Документ о психологическом образовании",
-        image: "/certificates/imported/Диплом о переподготовке.jpg",
+        image: "/certificates/psychology/bachelor-psychology.jpg",
       },
     ],
   },
@@ -64,7 +105,7 @@ const qualificationCertificateCards: QualificationCertificateCard[] = [
         id: "trauma-ptsd-specialist",
         title: "Специалист по работе с травмой, утратой и ПТСР",
         description: "Сертификат о повышении квалификации",
-        image: "/certificates/imported/Лунева Александра Александровна2_page-0001.jpg",
+        image: "/certificates/trauma/ptsd.jpg",
       },
     ],
   },

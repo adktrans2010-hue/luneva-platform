@@ -279,7 +279,7 @@ assert.deepEqual(
 
 const qualificationCards = getQualificationCertificateCards();
 const rppCard = qualificationCards.find((card) => card.id === "eating-disorders");
-assert.equal(rppCard?.certificates.length, 9, "RPP card must contain nine documents");
+assert.equal(rppCard?.certificates.length, 8, "RPP card must contain eight documents");
 assert.equal(
   qualificationCards.some((card) => "externalUrl" in card),
   false,
@@ -303,11 +303,28 @@ assert.equal(
   "Teacher card must use the local certificate image"
 );
 assert.equal(
-  rppCard?.certificates.every((certificate) =>
-    /^\/certificates\/rpp\/rpp-\d{2}\.jpg$/.test(certificate.image),
-  ),
-  true,
-  "RPP gallery must use only local certificate images"
+  qualificationCards.find((card) => card.id === "psychology-degree")?.certificates[0]?.image,
+  "/certificates/psychology/bachelor-psychology.jpg",
+  "Psychology card must use the local bachelor diploma",
+);
+assert.equal(
+  qualificationCards.find((card) => card.id === "trauma-ptsd")?.certificates[0]?.image,
+  "/certificates/trauma/ptsd.jpg",
+  "Trauma card must use the local PTSD certificate",
+);
+assert.deepEqual(
+  rppCard?.certificates.map((certificate) => certificate.image),
+  [
+    "/certificates/rpp/rpp-gestalt.jpg",
+    "/certificates/rpp/rpp-children-adolescents.jpg",
+    "/certificates/rpp/rpp-group-therapy.jpg",
+    "/certificates/rpp/rpp-diagnostics-treatment.jpg",
+    "/certificates/rpp/rpp-round-table-2025.jpg",
+    "/certificates/rpp/arpps-membership.jpg",
+    "/certificates/rpp/rpp-certificate.jpg",
+    "/certificates/rpp/luneva-rpp.jpg",
+  ],
+  "RPP gallery must use the eight local images in the approved order",
 );
 
 const heroSource = readFileSync(join(process.cwd(), "components/Hero.tsx"), "utf8");

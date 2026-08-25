@@ -160,7 +160,7 @@ export default function CertificateLightbox({
             </h2>
             <p className="mt-1 text-sm text-[#8a7a76]">
               {activeCertificate.title}
-              {hasMany ? ` · ${activeIndex + 1} / ${certificates.length}` : ""}
+              {hasMany ? ` · ${activeIndex + 1} из ${certificates.length}` : ""}
             </p>
           </div>
 
