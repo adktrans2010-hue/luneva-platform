@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 import {
   ADMIN_COOKIE_NAME,
+  ADMIN_BOOTSTRAP_COOKIE_NAME,
   ADMIN_SESSION_MAX_AGE,
+  authorizeAdminBootstrap,
   authorizeAdminSession,
   renewAdminSessionToken,
 } from "@/src/lib/admin-auth";
@@ -29,6 +31,12 @@ const publicAdminPaths = new Set([
   "/api/admin/login",
   "/api/admin/google/start",
   "/api/admin/google/callback",
+]);
+const bootstrapAdminPaths = new Set([
+  "/admin/password",
+  "/api/admin/password",
+  "/admin/mfa-enroll",
+  "/api/admin/mfa-enroll",
 ]);
 
 function legacyPageIdRedirect(request: NextRequest) {
@@ -118,10 +126,34 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  if (bootstrapAdminPaths.has(pathname)) {
+    const bootstrap = await authorizeAdminBootstrap(request.cookies.get(ADMIN_BOOTSTRAP_COOKIE_NAME)?.value);
+    if (!bootstrap) {
+      if (pathname.startsWith("/api/")) return NextResponse.json({ error: "Bootstrap authentication required" }, { status: 401 });
+      return NextResponse.redirect(new URL("/admin/login?error=credentials", request.url));
+    }
+    if (isUnsafeRequest(request) && !(await hasValidCsrfToken(request))) {
+      return NextResponse.json({ error: "Invalid CSRF token" }, { status: 403 });
+    }
+    return NextResponse.next();
+  }
+
   const token = request.cookies.get(ADMIN_COOKIE_NAME)?.value;
   const authorization = await authorizeAdminSession(token, ["admin"]);
 
   if (authorization.authorized) {
+    if (
+      authorization.session.mustChangePassword &&
+      pathname !== "/admin/password" &&
+      pathname !== "/api/admin/password" &&
+      pathname !== "/api/admin/logout"
+    ) {
+      if (pathname.startsWith("/api/admin")) {
+        return NextResponse.json({ error: "Password change required" }, { status: 403 });
+      }
+      return NextResponse.redirect(new URL("/admin/password", request.url));
+    }
+
     if (isUnsafeRequest(request) && !(await hasValidCsrfToken(request))) {
       return NextResponse.json({ error: "Invalid CSRF token" }, { status: 403 });
     }

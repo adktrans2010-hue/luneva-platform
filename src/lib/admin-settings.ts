@@ -57,6 +57,52 @@ export async function getAdminSettings() {
   return nextSettings ?? null;
 }
 
+export async function getAdminAccountByEmail(email: string) {
+  const normalized = email.trim().toLowerCase();
+  const [account] = await db
+    .select()
+    .from(adminSettings)
+    .where(eq(adminSettings.email, normalized))
+    .limit(1);
+  return account ?? null;
+}
+
+export async function getAdminAccountById(id: string) {
+  const [account] = await db
+    .select()
+    .from(adminSettings)
+    .where(eq(adminSettings.id, id))
+    .limit(1);
+  return account ?? null;
+}
+
+export async function updateAdminAccountPassword(id: string, passwordHash: string) {
+  const [account] = await db
+    .update(adminSettings)
+    .set({ passwordHash, mustChangePassword: false, updatedAt: new Date() })
+    .where(eq(adminSettings.id, id))
+    .returning();
+  return account ?? null;
+}
+
+export async function rehashAdminAccountPassword(id: string, passwordHash: string) {
+  const [account] = await db
+    .update(adminSettings)
+    .set({ passwordHash, updatedAt: new Date() })
+    .where(eq(adminSettings.id, id))
+    .returning();
+  return account ?? null;
+}
+
+export async function updateAdminAccountMfa(id: string, values: { totpSecret?: string | null; totpEnabled?: boolean }) {
+  const [account] = await db
+    .update(adminSettings)
+    .set({ ...values, updatedAt: new Date() })
+    .where(eq(adminSettings.id, id))
+    .returning();
+  return account ?? null;
+}
+
 export async function updateAdminSettings(values: {
   email?: string;
   phone?: string | null;

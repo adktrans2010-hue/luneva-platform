@@ -1,5 +1,7 @@
 export const ADMIN_COOKIE_NAME = "luneva_admin_session";
 export const ADMIN_SESSION_MAX_AGE = 60 * 60;
+export const ADMIN_BOOTSTRAP_COOKIE_NAME = "luneva_admin_bootstrap";
+export const ADMIN_BOOTSTRAP_MAX_AGE = 10 * 60;
 
 export const ADMIN_ROLES = ["admin", "editor", "assistant"] as const;
 export type AdminRole = (typeof ADMIN_ROLES)[number];
@@ -13,12 +15,23 @@ export type AdminSession = {
   email: string;
   role: AdminRole;
   credentialVersion: string;
+  mustChangePassword?: boolean;
   expiresAt: number;
 };
 
 export type AdminAuthorization =
   | { authorized: true; session: AdminSession }
   | { authorized: false; reason: "unauthenticated" | "forbidden" };
+
+export type AdminBootstrapSession = {
+  version: 1;
+  purpose: "admin-mfa-bootstrap";
+  accountId: string;
+  email: string;
+  credentialVersion: string;
+  nonce: string;
+  expiresAt: number;
+};
 
 function getAdminEmail() {
   return process.env.ADMIN_EMAIL?.trim().toLowerCase() ?? "";
@@ -99,17 +112,88 @@ async function signAdminSession(payload: AdminSession) {
   return `${encodedPayload}.${bytesToBase64Url(new Uint8Array(signature))}`;
 }
 
+async function signPayload(payload: object) {
+  const encodedPayload = stringToBase64Url(JSON.stringify(payload));
+  const signature = await crypto.subtle.sign(
+    "HMAC",
+    await createSigningKey(),
+    new TextEncoder().encode(encodedPayload)
+  );
+  return `${encodedPayload}.${bytesToBase64Url(new Uint8Array(signature))}`;
+}
+
+async function readSignedPayload(token?: string) {
+  if (!token || !isAdminAuthConfigured()) return null;
+  const [encodedPayload, encodedSignature, extraPart] = token.split(".");
+  if (!encodedPayload || !encodedSignature || extraPart) return null;
+  const valid = await crypto.subtle.verify(
+    "HMAC",
+    await createSigningKey(),
+    base64UrlToBytes(encodedSignature),
+    new TextEncoder().encode(encodedPayload)
+  );
+  return valid ? JSON.parse(base64UrlToString(encodedPayload)) as unknown : null;
+}
+
+export async function hashAdminBootstrapToken(token: string) {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token));
+  return bytesToBase64Url(new Uint8Array(digest));
+}
+
+export async function createAdminBootstrapToken(options: { accountId: string; email: string; passwordHash: string }) {
+  const nonceBytes = new Uint8Array(24);
+  crypto.getRandomValues(nonceBytes);
+  const session: AdminBootstrapSession = {
+    version: 1,
+    purpose: "admin-mfa-bootstrap",
+    accountId: options.accountId,
+    email: options.email.trim().toLowerCase(),
+    credentialVersion: await getCredentialVersion(options.passwordHash),
+    nonce: bytesToBase64Url(nonceBytes),
+    expiresAt: Date.now() + ADMIN_BOOTSTRAP_MAX_AGE * 1000,
+  };
+  const token = await signPayload(session);
+  return { token, tokenHash: await hashAdminBootstrapToken(token), session };
+}
+
+export async function authorizeAdminBootstrap(token?: string): Promise<AdminBootstrapSession | null> {
+  try {
+    const session = await readSignedPayload(token) as AdminBootstrapSession | null;
+    if (
+      !session || session.version !== 1 || session.purpose !== "admin-mfa-bootstrap" ||
+      !session.accountId || !session.email || !session.nonce ||
+      !Number.isFinite(session.expiresAt) || session.expiresAt <= Date.now()
+    ) return null;
+    const { getAdminAccountById } = await import("@/src/lib/admin-settings");
+    const account = await getAdminAccountById(session.accountId);
+    if (
+      !account?.isActive || account.email.trim().toLowerCase() !== session.email ||
+      !account.passwordHash || session.credentialVersion !== await getCredentialVersion(account.passwordHash)
+    ) return null;
+    return session;
+  } catch {
+    return null;
+  }
+}
+
+export function isMfaRequiredForRole(role: AdminRole) {
+  return role === "admin";
+}
+
 export async function createAdminSessionToken(options: {
+  accountId?: string;
   email: string;
   passwordHash: string;
   role?: AdminRole;
+  mustChangePassword?: boolean;
 }) {
   const payload: AdminSession = {
     version: ADMIN_SESSION_VERSION,
-    subject: PRIMARY_ADMIN_SUBJECT,
+    subject: options.accountId ?? PRIMARY_ADMIN_SUBJECT,
     email: options.email.trim().toLowerCase(),
     role: options.role ?? "admin",
     credentialVersion: await getCredentialVersion(options.passwordHash),
+    mustChangePassword: options.mustChangePassword ?? false,
     expiresAt: Date.now() + ADMIN_SESSION_MAX_AGE * 1000,
   };
 
@@ -141,7 +225,7 @@ async function readAdminSession(token?: string): Promise<AdminSession | null> {
     const session = JSON.parse(base64UrlToString(encodedPayload)) as AdminSession;
     if (
       session.version !== ADMIN_SESSION_VERSION ||
-      session.subject !== PRIMARY_ADMIN_SUBJECT ||
+      !session.subject ||
       !session.email ||
       !isAdminRole(session.role) ||
       !Number.isFinite(session.expiresAt) ||
@@ -150,11 +234,14 @@ async function readAdminSession(token?: string): Promise<AdminSession | null> {
       return null;
     }
 
-    const { getAdminSettings } = await import("@/src/lib/admin-settings");
-    const settings = await getAdminSettings();
+    const { getAdminAccountByEmail } = await import("@/src/lib/admin-settings");
+    const settings = await getAdminAccountByEmail(session.email);
     if (
       !settings?.passwordHash ||
-      session.email !== settings.email.trim().toLowerCase() ||
+      !settings.isActive ||
+      !isAdminRole(settings.role) ||
+      (session.subject !== PRIMARY_ADMIN_SUBJECT && session.subject !== settings.id) ||
+      session.role !== settings.role ||
       session.credentialVersion !==
         (await getCredentialVersion(settings.passwordHash))
     ) {

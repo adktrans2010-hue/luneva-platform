@@ -968,6 +968,14 @@ export const adminSettings = pgTable("admin_settings", {
     .default(false)
     .notNull(),
 
+  role: text("role").default("admin").notNull(),
+
+  isActive: boolean("is_active").default(true).notNull(),
+
+  mustChangePassword: boolean("must_change_password")
+    .default(false)
+    .notNull(),
+
   updatedAt: timestamp("updated_at")
     .defaultNow()
     .notNull(),
@@ -976,6 +984,23 @@ export const adminSettings = pgTable("admin_settings", {
     .defaultNow()
     .notNull(),
 });
+
+export const adminMfaEnrollments = pgTable(
+  "admin_mfa_enrollments",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    accountId: text("account_id").notNull(),
+    tokenHash: text("token_hash").notNull(),
+    attempts: integer("attempts").default(0).notNull(),
+    expiresAt: timestamp("expires_at").notNull(),
+    usedAt: timestamp("used_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("admin_mfa_enrollments_token_unique").on(table.tokenHash),
+    index("admin_mfa_enrollments_account_index").on(table.accountId),
+  ]
+);
 
 export const adminLoginAttempts = pgTable("admin_login_attempts", {
   id: text("id").primaryKey(),

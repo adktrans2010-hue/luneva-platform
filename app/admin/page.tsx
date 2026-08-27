@@ -4,6 +4,11 @@ import { AdminCsrfField } from "@/components/admin/admin-csrf-field";
 
 const adminSections = [
   {
+    title: "AI · База знаний",
+    text: "Загружать и активировать утверждённые материалы для AI-помощника.",
+    href: "/admin/ai/knowledge",
+  },
+  {
     title: "Отзывы",
     text: "Добавлять, редактировать и скрывать отзывы клиентов.",
     href: "/admin/reviews",
