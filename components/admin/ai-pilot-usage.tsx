@@ -12,6 +12,9 @@ type ClientUsage = {
   usage_usd: number;
   requests: number;
   failed_requests: number;
+  daily_usage_usd: number;
+  daily_remaining_usd: number;
+  daily_request_limit: number;
 };
 
 type Usage = {
@@ -21,9 +24,15 @@ type Usage = {
   global_budget_usd: number;
   usage_usd: number;
   remaining_usd: number;
+  global_daily_budget_usd: number;
+  daily_usage_usd: number;
+  daily_remaining_usd: number;
   requests: number;
   failed_requests: number;
   budget_exhaustion_events: number;
+  safety_block_events: number;
+  input_tokens: number;
+  output_tokens: number;
   clients: ClientUsage[];
 };
 
@@ -50,6 +59,9 @@ export function AiPilotUsage() {
       <Metric label="Usage / reserved" value={`$${usage.usage_usd.toFixed(4)}`} />
       <Metric label="Remaining" value={`$${usage.remaining_usd.toFixed(4)}`} />
       <Metric label="Failed / exhausted" value={`${usage.failed_requests} / ${usage.budget_exhaustion_events}`} />
+      <Metric label="Daily remaining" value={`$${usage.daily_remaining_usd.toFixed(4)} / $${usage.global_daily_budget_usd.toFixed(2)}`} />
+      <Metric label="Tokens in / out" value={`${usage.input_tokens} / ${usage.output_tokens}`} />
+      <Metric label="Safety blocks" value={`${usage.safety_block_events}`} />
     </div>
     <div className="rounded-2xl border border-[#ead7d1] bg-white p-5">
       <p className="text-sm text-[#6b5b57]">Provider: {usage.provider} · Model: {usage.configured_model ?? "не настроена"}</p>
@@ -60,6 +72,7 @@ export function AiPilotUsage() {
       {usage.clients.map((client) => <article key={client.client_id} className="rounded-2xl border border-[#ead7d1] bg-white p-5">
         <div className="flex flex-wrap items-center justify-between gap-3"><strong>{client.client}</strong><span>{client.enabled ? "enabled" : "disabled"}</span></div>
         <p className="mt-2 text-sm text-[#6b5b57]">Usage ${client.usage_usd.toFixed(4)} · requests {client.requests} · failed {client.failed_requests}</p>
+        <p className="mt-1 text-sm text-[#6b5b57]">Today ${client.daily_usage_usd.toFixed(4)} · remaining ${client.daily_remaining_usd.toFixed(4)} · limit {client.daily_request_limit} requests</p>
         <p className="mt-1 break-words text-sm text-[#6b5b57]">Models: {client.allowed_models.join(", ") || "global allowlist"}</p>
       </article>)}
     </div>
