@@ -142,7 +142,7 @@ export async function proxy(request: NextRequest) {
   const authorization = await authorizeAdminSession(token, ["admin", "clinical_admin"]);
 
   if (authorization.authorized) {
-    const clinicalPath = pathname.startsWith("/admin/ai/conversations") || pathname.startsWith("/admin/ai/attention") || pathname.startsWith("/api/admin/ai/clinical");
+    const clinicalPath = pathname.startsWith("/admin/ai/conversations") || pathname.startsWith("/admin/ai/attention") || pathname.startsWith("/admin/ai/pilot") || pathname.startsWith("/api/admin/ai/clinical");
     if (clinicalPath && authorization.session.role !== "clinical_admin") {
       if (pathname.startsWith("/api/")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       return NextResponse.redirect(new URL("/admin", request.url));

@@ -6,6 +6,12 @@ import { ADMIN_COOKIE_NAME, authorizeAdminSession } from "@/src/lib/admin-auth";
 
 const adminSections = [
   {
+    title: "AI · Pilot / Usage",
+    text: "Entitlements, usage, budgets и ошибки pilot-инфраструктуры. Только clinical_admin.",
+    href: "/admin/ai/pilot",
+    clinical: true,
+  },
+  {
     title: "AI · Диалоги",
     text: "Чувствительные AI-диалоги и ответы human operator. Только clinical_admin.",
     href: "/admin/ai/conversations",
