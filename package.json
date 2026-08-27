@@ -18,6 +18,7 @@
     "test:deploy-env-guard": "bash scripts/test-safe-site-restart.sh",
     "test:multi-admin": "tsx scripts/test-multi-admin.ts",
     "test:admin-mfa": "tsx scripts/test-admin-mfa-bootstrap.ts",
+    "test:ai-clinical": "tsx scripts/test-ai-clinical-admin.ts",
     "import:articles": "tsx scripts/import-articles-from-markdown.ts",
     "import:article-seo": "tsx scripts/import-article-seo.ts",
     "cleanup:blog": "tsx scripts/cleanup-blog-quality.ts",

@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
   const response = NextResponse.json({ ok: true, next: "/admin/ai/knowledge" });
   response.cookies.set({
     name: ADMIN_COOKIE_NAME,
-    value: await createAdminSessionToken({ accountId: account.id, email: account.email, passwordHash: account.passwordHash, role: "admin" }),
+    value: await createAdminSessionToken({ accountId: account.id, email: account.email, passwordHash: account.passwordHash, role: account.role as "admin" | "clinical_admin" }),
     httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: ADMIN_SESSION_MAX_AGE,
   });
   response.cookies.delete(ADMIN_BOOTSTRAP_COOKIE_NAME);

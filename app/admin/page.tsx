@@ -1,8 +1,22 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 
 import { AdminCsrfField } from "@/components/admin/admin-csrf-field";
+import { ADMIN_COOKIE_NAME, authorizeAdminSession } from "@/src/lib/admin-auth";
 
 const adminSections = [
+  {
+    title: "AI · Диалоги",
+    text: "Чувствительные AI-диалоги и ответы human operator. Только clinical_admin.",
+    href: "/admin/ai/conversations",
+    clinical: true,
+  },
+  {
+    title: "AI · Требуют внимания",
+    text: "Safety alerts и запросы участия Александры. Только clinical_admin.",
+    href: "/admin/ai/attention",
+    clinical: true,
+  },
   {
     title: "AI · База знаний",
     text: "Загружать и активировать утверждённые материалы для AI-помощника.",
@@ -80,7 +94,10 @@ const adminSections = [
   },
 ];
 
-export default function AdminPage() {
+export default async function AdminPage() {
+  const token = (await cookies()).get(ADMIN_COOKIE_NAME)?.value;
+  const authorization = await authorizeAdminSession(token, ["admin", "clinical_admin"]);
+  const visibleSections = adminSections.filter((section) => !section.clinical || (authorization.authorized && authorization.session.role === "clinical_admin"));
   return (
     <section className="luneva-fade bg-[#fff8f6] px-6 py-24">
       <div className="mx-auto max-w-7xl">
@@ -128,7 +145,7 @@ export default function AdminPage() {
         </div>
 
         <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {adminSections.map((section) => (
+          {visibleSections.map((section) => (
             <Link
               key={section.title}
               href={section.href}

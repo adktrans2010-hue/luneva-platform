@@ -8,7 +8,7 @@ import {
 
 export async function requireAdminApiSession(
   request: Request,
-  allowedRoles: readonly AdminRole[] = ["admin"]
+  allowedRoles: readonly AdminRole[] = ["admin", "clinical_admin"]
 ) {
   const token = request.headers
     .get("cookie")

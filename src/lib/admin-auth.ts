@@ -3,7 +3,7 @@ export const ADMIN_SESSION_MAX_AGE = 60 * 60;
 export const ADMIN_BOOTSTRAP_COOKIE_NAME = "luneva_admin_bootstrap";
 export const ADMIN_BOOTSTRAP_MAX_AGE = 10 * 60;
 
-export const ADMIN_ROLES = ["admin", "editor", "assistant"] as const;
+export const ADMIN_ROLES = ["clinical_admin", "admin", "editor", "assistant"] as const;
 export type AdminRole = (typeof ADMIN_ROLES)[number];
 
 const ADMIN_SESSION_VERSION = 1;
@@ -177,7 +177,7 @@ export async function authorizeAdminBootstrap(token?: string): Promise<AdminBoot
 }
 
 export function isMfaRequiredForRole(role: AdminRole) {
-  return role === "admin";
+  return role === "admin" || role === "clinical_admin";
 }
 
 export async function createAdminSessionToken(options: {
@@ -256,7 +256,7 @@ async function readAdminSession(token?: string): Promise<AdminSession | null> {
 
 export async function authorizeAdminSession(
   token: string | undefined,
-  allowedRoles: readonly AdminRole[] = ["admin"]
+  allowedRoles: readonly AdminRole[] = ["admin", "clinical_admin"]
 ): Promise<AdminAuthorization> {
   const session = await readAdminSession(token);
   if (!session) return { authorized: false, reason: "unauthenticated" };
@@ -269,5 +269,5 @@ export async function authorizeAdminSession(
 }
 
 export async function isValidAdminSession(token?: string) {
-  return (await authorizeAdminSession(token, ["admin"])).authorized;
+  return (await authorizeAdminSession(token, ["admin", "clinical_admin"])).authorized;
 }

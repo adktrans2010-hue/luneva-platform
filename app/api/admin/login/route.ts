@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
 
   if (
     !settings?.isActive ||
-    settings.role !== "admin" ||
+    !["admin", "clinical_admin"].includes(settings.role) ||
     !settings.passwordHash ||
     !verifyPassword(password, settings.passwordHash)
   ) {
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
 
   const authStep = getAdminAuthStep({
     passwordAccepted: true,
-    mfaRequired: isMfaRequiredForRole("admin"),
+    mfaRequired: isMfaRequiredForRole(settings.role as "admin" | "clinical_admin"),
     mfaEnrolled: settings.totpEnabled,
     mustChangePassword: settings.mustChangePassword,
   });
@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
       accountId: settings.id,
       email: settings.email,
       passwordHash: sessionPasswordHash,
-      role: "admin",
+      role: settings.role as "admin" | "clinical_admin",
       mustChangePassword: false,
     }),
     httpOnly: true,
