@@ -46,6 +46,20 @@ const selectedRpp = [
   "pravilo-treh-marshi-herrin", "faq",
 ];
 
+// The public RPP pages intentionally reuse explanatory sections for navigation and
+// SEO.  A retrieval corpus must not repeat those paragraphs because repetition
+// distorts ranking and makes several sources appear to corroborate the same text.
+const seenRppParagraphs = new Set<string>();
+
+function uniqueRppParagraphs(paragraphs: readonly string[]) {
+  return paragraphs.filter((paragraph) => {
+    const key = paragraph.replace(/\s+/g, " ").trim();
+    if (!key || seenRppParagraphs.has(key)) return false;
+    seenRppParagraphs.add(key);
+    return true;
+  });
+}
+
 for (const slug of selectedRpp) {
   const page = rppPages[slug];
   if (!page || page.status !== "published") throw new Error(`RPP source is not published: ${slug}`);
@@ -55,7 +69,8 @@ for (const slug of selectedRpp) {
     if (block.type === "cta" || block.type === "image") return "";
     return block.text;
   }).filter(Boolean) ?? [];
-  const faq = page.faq?.map((item) => `### ${item.question}\n\n${item.answer}`) ?? [];
+  const faq = page.faq?.filter((item) => uniqueRppParagraphs([item.answer]).length > 0)
+    .map((item) => `### ${item.question}\n\n${item.answer}`) ?? [];
   documents.push({
     id: `rpp-${slug}`,
     title: page.title,
@@ -64,10 +79,10 @@ for (const slug of selectedRpp) {
     tags: ["РПП", slug, page.eyebrow],
     filename: `rpp-${slug}.md`,
     body: [
-      page.description,
-      ...getRppSections(page.sectionHeadings).map((item) => section(item.heading, item.paragraphs)),
-      ...(page.customParagraphs ?? []),
-      ...blocks,
+      ...uniqueRppParagraphs([page.description]),
+      ...getRppSections(page.sectionHeadings).map((item) => section(item.heading, uniqueRppParagraphs(item.paragraphs))),
+      ...uniqueRppParagraphs(page.customParagraphs ?? []),
+      ...uniqueRppParagraphs(blocks),
       ...(faq.length ? ["## Вопросы и ответы", ...faq] : []),
     ].filter(Boolean).join("\n\n"),
   });
