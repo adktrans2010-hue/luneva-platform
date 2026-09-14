@@ -15,6 +15,7 @@ import {
 } from "@/src/lib/consultation-products";
 import type { PromotionQuote } from "@/src/lib/consultation-promotions";
 import { createYooKassaPayment } from "@/src/lib/yookassa";
+import { isPaymentHoldExpired } from "@/src/lib/booking-holds";
 
 type AppointmentPaymentSource = "public_booking" | "account_booking" | "admin" | "telegram";
 
@@ -34,6 +35,10 @@ function canCreatePayment(appointment: AppointmentLike) {
 
   if (appointment.paymentStatus === "paid") {
     return "Запись уже оплачена.";
+  }
+
+  if (isPaymentHoldExpired(appointment)) {
+    return "Время резервирования истекло. Выберите, пожалуйста, свободное время заново.";
   }
 
   if (

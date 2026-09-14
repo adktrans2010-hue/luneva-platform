@@ -26,6 +26,11 @@ import { createOrReuseAppointmentPayment } from "@/src/lib/appointment-payments"
 import { isYooKassaConfigured } from "@/src/lib/yookassa";
 import { hasPaymentCustomerContact } from "@/src/lib/payment-contact";
 import { sanitizeAttributionPayload } from "@/src/lib/attribution";
+import {
+  expireStalePaymentHolds,
+  failAppointmentPaymentHold,
+  paymentHoldExpiresAt,
+} from "@/src/lib/booking-holds";
 
 const paymentMethods = new Set(["package", "online", "after_confirmation"]);
 
@@ -49,6 +54,8 @@ function safeAppointmentError(error: unknown) {
 }
 
 export async function POST(request: NextRequest) {
+  await expireStalePaymentHolds();
+
   const userId = await getUserIdFromSession(
     request.cookies.get(USER_COOKIE_NAME)?.value
   );
@@ -153,6 +160,8 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const holdExpiresAt = paymentMethod === "online" ? paymentHoldExpiresAt() : null;
+
   const createdAppointment = await db.transaction(async (tx) => {
     const lockKey = `${consultationFormat}:${consultationLocation}:${scheduledAt.toISOString()}`;
 
@@ -228,9 +237,10 @@ export async function POST(request: NextRequest) {
         preferredTime: `${appointmentDate} ${appointmentTime}`,
         message,
         scheduledAt,
-        status: "scheduled",
+        status: paymentMethod === "online" ? "awaiting_payment" : "scheduled",
         paymentMethod,
         paymentStatus: paymentMethod === "package" ? "paid" : paymentMethod === "online" ? "waiting" : "not_required",
+        holdExpiresAt,
         paymentNote:
           paymentMethod === "package"
             ? "Списана 1 консультация из оплаченного пакета."
@@ -246,7 +256,9 @@ export async function POST(request: NextRequest) {
       details:
         paymentMethod === "package"
           ? "Клиент записался и использовал 1 консультацию из пакета."
-          : "Клиент записался из личного кабинета.",
+          : paymentMethod === "online"
+            ? `Слот зарезервирован для оплаты до ${holdExpiresAt?.toLocaleString("ru-RU")}.`
+            : "Клиент записался из личного кабинета.",
     });
 
     return appointment;
@@ -277,14 +289,12 @@ export async function POST(request: NextRequest) {
         paymentLink: payment.paymentUrl,
       };
     } catch (paymentError) {
-      await db.insert(appointmentHistory).values({
-        appointmentId: createdAppointment.id,
-        action: "Оплата",
-        details:
-          paymentError instanceof Error
-            ? paymentError.message
-            : "Не удалось создать платеж ЮKassa.",
-      });
+      await failAppointmentPaymentHold(
+        createdAppointment.id,
+        paymentError instanceof Error
+          ? paymentError.message
+          : "Не удалось создать платеж ЮKassa."
+      );
     }
   }
 
@@ -315,7 +325,7 @@ export async function POST(request: NextRequest) {
   });
 
   return NextResponse.json(
-    { ...createdAppointment, paymentUrl },
+    { ...createdAppointment, paymentUrl, holdExpiresAt },
     { status: 201 }
   );
 }

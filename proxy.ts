@@ -179,7 +179,10 @@ export async function proxy(request: NextRequest) {
   }
 
   if (pathname.startsWith("/api/admin")) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Войдите в админку, чтобы выполнить это действие." },
+      { status: 401 }
+    );
   }
 
   const loginUrl = new URL("/admin/login", request.url);

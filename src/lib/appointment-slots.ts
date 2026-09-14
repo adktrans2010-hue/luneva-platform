@@ -6,6 +6,7 @@ import {
   appointmentRequests,
 } from "@/src/db/schema";
 import { normalizeConsultationFormat } from "@/src/lib/consultation-products";
+import { expireStalePaymentHolds } from "@/src/lib/booking-holds";
 
 function pad(value: number) {
   return String(value).padStart(2, "0");
@@ -30,6 +31,7 @@ export async function getAvailableAppointmentSlots(
   consultationFormat = "online",
   consultationLocation = "online"
 ) {
+  await expireStalePaymentHolds();
   const normalizedFormat = normalizeConsultationFormat(consultationFormat);
   const compatibleFormats =
     normalizedFormat === "in_person" ? ["in_person", "office"] : [normalizedFormat];

@@ -11,6 +11,7 @@ import {
   userConsultationPackages,
 } from "@/src/db/schema";
 import { getCurrentUser } from "@/src/lib/auth-user";
+import { expireStalePaymentHolds } from "@/src/lib/booking-holds";
 import AccountBookingForm from "@/components/AccountBookingForm";
 import AccountNotifications from "@/components/AccountNotifications";
 import LegalConsent from "@/components/legal/legal-consent";
@@ -189,6 +190,7 @@ function AppointmentCard({
 }
 
 export default async function AccountPage({ searchParams }: AccountPageProps) {
+  await expireStalePaymentHolds();
   const params = await searchParams;
   const user = await getCurrentUser();
 
@@ -212,6 +214,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
   const upcoming = futureAppointments.filter(
     (appointment) =>
       appointment.status !== "cancelled" &&
+      appointment.status !== "expired" &&
+      appointment.status !== "payment_conflict" &&
       appointment.status !== "completed" &&
       appointment.scheduledAt &&
       appointment.scheduledAt >= now
@@ -223,7 +227,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
       (appointment.scheduledAt && appointment.scheduledAt < now)
   );
   const cancelled = appointments.filter(
-    (appointment) => appointment.status === "cancelled"
+    (appointment) => appointment.status === "cancelled" || appointment.status === "expired"
   );
   const payments = appointments.filter(
     (appointment) => appointment.paymentStatus !== "not_required"

@@ -1,4 +1,5 @@
 import type { Certificate } from "@/src/lib/certificates";
+import { canonicalCertificateAsset } from "@/src/lib/certificate-assets";
 
 export type CertificatePreview = {
   id: string;
@@ -14,7 +15,7 @@ export function toCertificatePreviews(
     id: certificate.id,
     title: certificate.title,
     description: certificate.description ?? null,
-    image: certificate.image,
+    image: canonicalCertificateAsset(certificate.image),
   }));
 }
 

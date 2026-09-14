@@ -6,3 +6,7 @@ const pool = new Pool({
 });
 
 export const db = drizzle(pool);
+
+export async function closeDatabase() {
+  await pool.end();
+}

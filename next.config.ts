@@ -23,6 +23,9 @@ const contentSecurityPolicy = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   skipTrailingSlashRedirect: true,
+  experimental: {
+    proxyClientMaxBodySize: "27mb",
+  },
   async headers() {
     return [
       ...[

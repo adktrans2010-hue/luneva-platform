@@ -4,6 +4,15 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 
 import { adminFetch } from "@/src/lib/admin-fetch";
 
+const maxKnowledgeFileBytes = 25 * 1024 * 1024;
+
+function validateKnowledgeFile(form: HTMLFormElement) {
+  const file = new FormData(form).get("file");
+  if (file instanceof File && file.size > maxKnowledgeFileBytes) {
+    throw new Error("Файл слишком большой. Максимальный размер — 25 МБ.");
+  }
+}
+
 type KnowledgeDocument = {
   id: string;
   title: string;
@@ -62,6 +71,7 @@ export function AiKnowledgeManager() {
     setBusy("upload");
     setError("");
     try {
+      validateKnowledgeFile(form);
       const response = await adminFetch("/api/admin/ai/knowledge", {
         method: "POST",
         body: new FormData(form),
@@ -99,6 +109,7 @@ export function AiKnowledgeManager() {
     setBusy(id);
     setError("");
     try {
+      validateKnowledgeFile(form);
       const response = await adminFetch(`/api/admin/ai/knowledge/${id}/reprocess`, {
         method: "POST",
         body: new FormData(form),

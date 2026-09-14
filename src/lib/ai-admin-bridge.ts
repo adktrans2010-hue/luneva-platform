@@ -8,6 +8,20 @@ import {
 } from "@/src/lib/admin-security";
 
 const allowedActions = new Set(["activate", "archive", "reprocess"]);
+export const MAX_KNOWLEDGE_FILE_BYTES = 25 * 1024 * 1024;
+const MAX_KNOWLEDGE_MULTIPART_BYTES = 27 * 1024 * 1024;
+
+export function knowledgeUploadTooLarge(request: NextRequest) {
+  const contentLength = Number(request.headers.get("content-length") ?? "0");
+  return Number.isFinite(contentLength) && contentLength > MAX_KNOWLEDGE_MULTIPART_BYTES;
+}
+
+export function knowledgeUploadTooLargeResponse() {
+  return NextResponse.json(
+    { error: "Файл слишком большой. Максимальный размер — 25 МБ." },
+    { status: 413 }
+  );
+}
 
 function bridgeConfig() {
   const baseUrl = process.env.ALEXANDRA_BOT_API_URL?.trim().replace(/\/$/u, "");
@@ -17,7 +31,10 @@ function bridgeConfig() {
 }
 
 export async function authorizeKnowledgeRequest(request: NextRequest) {
-  const admin = await requireAdminApiSession(request, ["admin"]);
+  const admin = await requireAdminApiSession(request, [
+    "admin",
+    "clinical_admin",
+  ]);
   if (!admin.authorized) return admin;
 
   if (

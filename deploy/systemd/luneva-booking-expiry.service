@@ -1,0 +1,13 @@
+[Unit]
+Description=Expire unpaid Luneva booking holds
+After=network.target postgresql.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/var/www/luneva-platform
+EnvironmentFile=/etc/luneva-platform/booking-expiry.env
+ExecStart=/var/www/luneva-platform/node_modules/.bin/tsx /var/www/luneva-platform/scripts/expire-booking-holds.ts
+User=root
+NoNewPrivileges=true
+PrivateTmp=true
+

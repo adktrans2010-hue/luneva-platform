@@ -212,7 +212,8 @@ export async function POST(request: Request) {
       .select()
       .from(appointmentRequests)
       .where(eq(appointmentRequests.id, localPayment.appointmentId))
-      .limit(1);
+      .limit(1)
+      .for("update");
 
     if (!appointment) {
       await tx

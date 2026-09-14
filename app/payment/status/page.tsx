@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 
 import { db } from "@/src/db";
 import { appointmentRequests, yookassaPayments } from "@/src/db/schema";
+import { expireStalePaymentHolds } from "@/src/lib/booking-holds";
 import PaymentStatusAnalytics from "@/components/PaymentStatusAnalytics";
 
 export const dynamic = "force-dynamic";
@@ -120,6 +121,7 @@ async function getPayment(paymentId: string) {
 export default async function PaymentStatusPage({
   searchParams,
 }: PaymentStatusPageProps) {
+  await expireStalePaymentHolds();
   const params = await searchParams;
   const result = params.paymentId ? await getPayment(params.paymentId) : null;
 
@@ -157,7 +159,13 @@ export default async function PaymentStatusPage({
   }
 
   const { payment, appointment } = result;
-  const copy = getStatusCopy(payment.status);
+  const copy = appointment?.status === "expired"
+    ? {
+        title: "Время резервирования истекло",
+        text: "Выберите, пожалуйста, свободное время заново.",
+        tone: "waiting" as const,
+      }
+    : getStatusCopy(payment.status);
 
   return (
     <section className="bg-[#fff8f6] px-6 py-24">

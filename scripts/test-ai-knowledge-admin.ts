@@ -21,9 +21,23 @@ const manager = readFileSync(
 
 assert.match(collectionRoute, /authorizeKnowledgeRequest\(request\)/u);
 assert.match(actionRoute, /authorizeKnowledgeRequest\(request\)/u);
-assert.match(bridge, /requireAdminApiSession\(request, \["admin"\]\)/u);
+assert.match(
+  bridge,
+  /requireAdminApiSession\(request, \[\s*"admin",\s*"clinical_admin",\s*\]\)/u
+);
+const adminApi = readFileSync(join(root, "src/lib/admin-api.ts"), "utf8");
+const proxy = readFileSync(join(root, "proxy.ts"), "utf8");
+assert.match(adminApi, /Недостаточно прав для выполнения этого действия\./u);
+assert.match(adminApi, /Войдите в админку, чтобы выполнить это действие\./u);
+assert.match(
+  proxy,
+  /Войдите в админку, чтобы выполнить это действие\.[\s\S]*status: 401/u
+);
 assert.match(bridge, /hasValidRequestSource\(request\)/u);
 assert.match(bridge, /hasValidCsrfToken\(request\)/u);
+assert.match(bridge, /MAX_KNOWLEDGE_FILE_BYTES = 25 \* 1024 \* 1024/u);
+assert.match(collectionRoute, /knowledgeUploadTooLarge\(request\)/u);
+assert.match(actionRoute, /action === "reprocess" && knowledgeUploadTooLarge\(request\)/u);
 assert.match(bridge, /X-Site-Admin-Secret/u);
 assert.doesNotMatch(manager, /checksum|raw UUID|traceback/iu);
 for (const label of [
@@ -32,6 +46,7 @@ for (const label of [
   "В архив",
   "Обработать заново",
   "Ошибка обработки",
+  "Максимальный размер — 25 МБ",
 ]) {
   assert.match(manager, new RegExp(label, "u"));
 }

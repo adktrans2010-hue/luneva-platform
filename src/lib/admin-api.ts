@@ -26,7 +26,12 @@ export async function requireAdminApiSession(
   return {
     authorized: false as const,
     response: NextResponse.json(
-      { error: "Войдите в админку, чтобы выполнить это действие." },
+      {
+        error:
+          authorization.reason === "forbidden"
+            ? "Недостаточно прав для выполнения этого действия."
+            : "Войдите в админку, чтобы выполнить это действие.",
+      },
       { status: authorization.reason === "forbidden" ? 403 : 401 }
     ),
   };

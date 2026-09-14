@@ -3,9 +3,14 @@ import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 
 import { db } from "@/src/db";
-import { appointmentRequests, consultationProducts } from "@/src/db/schema";
+import { consultationProducts } from "@/src/db/schema";
 import { createOrReuseAppointmentPayment } from "@/src/lib/appointment-payments";
 import type { PromotionQuote } from "@/src/lib/consultation-promotions";
+import {
+  beginAppointmentPaymentHold,
+  expireStalePaymentHolds,
+  failAppointmentPaymentHold,
+} from "@/src/lib/booking-holds";
 
 function authorized(request: Request) {
   const expected = process.env.TELEGRAM_INTERNAL_API_SECRET ?? "";
@@ -22,9 +27,13 @@ export async function POST(request: Request) {
   if (!body?.appointment_id) {
     return NextResponse.json({ error: "Некорректная запись." }, { status: 400 });
   }
-  const [appointment] = await db.select().from(appointmentRequests).where(eq(appointmentRequests.id, body.appointment_id)).limit(1);
+  await expireStalePaymentHolds();
+  const appointment = await beginAppointmentPaymentHold(body.appointment_id);
   if (!appointment?.productId) {
-    return NextResponse.json({ error: "Запись не найдена." }, { status: 404 });
+    return NextResponse.json(
+      { error: "Время резервирования истекло. Выберите, пожалуйста, свободное время заново." },
+      { status: 410 }
+    );
   }
   const [product] = await db.select().from(consultationProducts).where(eq(consultationProducts.id, appointment.productId)).limit(1);
   if (!product) return NextResponse.json({ error: "Услуга не найдена." }, { status: 404 });
@@ -42,8 +51,19 @@ export async function POST(request: Request) {
   };
   try {
     const payment = await createOrReuseAppointmentPayment({ appointment, product, promotionQuote: quote, source: "telegram" });
-    return NextResponse.json({ payment_url: payment.paymentUrl, payment_status: payment.status, final_price: payment.amountRub, currency: "RUB", reused: payment.reused });
+    return NextResponse.json({
+      payment_url: payment.paymentUrl,
+      payment_status: payment.status,
+      payment_expires_at: appointment.holdExpiresAt?.toISOString() ?? null,
+      final_price: payment.amountRub,
+      currency: "RUB",
+      reused: payment.reused,
+    });
   } catch (error) {
+    await failAppointmentPaymentHold(
+      appointment.id,
+      "Не удалось создать ссылку оплаты; слот освобождён."
+    );
     return NextResponse.json({ error: error instanceof Error ? error.message : "Не удалось создать оплату." }, { status: 400 });
   }
 }

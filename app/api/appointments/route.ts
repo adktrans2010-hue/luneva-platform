@@ -25,6 +25,7 @@ import {
   USER_COOKIE_NAME,
 } from "@/src/lib/user-session";
 import { isYooKassaConfigured } from "@/src/lib/yookassa";
+import { expireStalePaymentHolds, paymentHoldExpiresAt } from "@/src/lib/booking-holds";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -52,11 +53,6 @@ function normalizePhone(value: unknown) {
   if (digits.length === 11 && digits.startsWith("7")) return `+${digits}`;
   if (digits.length === 10) return `+7${digits}`;
   return "";
-}
-
-function getHoldMinutes() {
-  const value = Number(process.env.PAYMENT_SLOT_HOLD_MINUTES ?? 15);
-  return Number.isFinite(value) && value >= 5 && value <= 30 ? value : 15;
 }
 
 function safeAppointmentError(error: unknown) {
@@ -104,6 +100,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  await expireStalePaymentHolds();
   let body: Record<string, unknown>;
 
   try {
@@ -240,7 +237,7 @@ export async function POST(request: Request) {
     .where(eq(users.email, email))
     .limit(1);
   const userId = sessionUserId ?? existingUser?.id ?? null;
-  const holdExpiresAt = new Date(Date.now() + getHoldMinutes() * 60 * 1000);
+  const holdExpiresAt = paymentHoldExpiresAt();
 
   const createdRequest = await db
     .transaction(async (tx) => {

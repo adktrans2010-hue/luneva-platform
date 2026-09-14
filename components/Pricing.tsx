@@ -27,12 +27,12 @@ export default async function Pricing() {
         <MobileCarousel
           label="Форматы консультаций"
           className="mt-12"
-          desktopGridClassName="md:grid-cols-2 md:gap-6 xl:grid-cols-4"
+          desktopGridClassName="md:grid-cols-2 md:gap-8 xl:mx-auto xl:max-w-5xl"
         >
           {items.map((item) => (
             <article
               key={item.id}
-              className="group flex min-h-[420px] flex-col justify-between rounded-[2rem] border border-[#ead7d1] bg-white px-8 py-10 text-center shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
+              className="group flex min-h-[420px] flex-col justify-between rounded-[2rem] border border-[#ead7d1] bg-white px-8 py-10 text-center shadow-sm transition hover:-translate-y-1 hover:shadow-xl md:h-full lg:px-10"
             >
               <div>
                 {item.badge && (
