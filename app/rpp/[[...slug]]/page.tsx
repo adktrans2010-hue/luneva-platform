@@ -7,9 +7,14 @@ import nodePath from "node:path";
 import type { ReactNode } from "react";
 
 import Breadcrumbs from "@/components/Breadcrumbs";
+import CertificateGallery from "@/components/CertificateGallery";
+import RppBookingLink from "@/components/rpp/RppBookingLink";
+import ServiceViewTracker from "@/components/ServiceViewTracker";
 import PageStructuredData from "@/components/seo/page-structured-data";
 import ConsultationCta from "@/components/sections/ConsultationCta";
+import { formatKopeks, getPublicConsultationProducts } from "@/src/lib/consultation-products";
 import { navigationItems } from "@/src/lib/navigation";
+import { getQualificationCertificateCards } from "@/src/lib/qualification-certificates";
 import { getRppSections, rppPages, type RppArticleBlock, type RppPageDefinition } from "@/src/lib/rpp-pages";
 
 type Props = { params: Promise<{ slug?: string[] }> };
@@ -37,6 +42,12 @@ const rppNavigation = navigationItems.find((item) => item.href === "/rpp");
 const rppLinkMap = new Map(rppNavigation?.groups?.flatMap((group) => group.links.map((link) => [link.href, link.label])) ?? []);
 
 const appointmentHref = "/contacts#booking";
+
+const rppLandingMetadata = {
+  title: "Психологическая помощь при сложных отношениях с едой | Александра Лунева",
+  description:
+    "Бережная психологическая работа с перееданием, ограничениями, чувством вины после еды и отношением к телу. Очно в Москве и онлайн.",
+};
 
 const situationCards: RppSituationCard[] = [
   {
@@ -158,14 +169,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const page = rppPages[key];
   if (!page) return {};
   const path = pagePath(key);
+  const title = key === "" ? rppLandingMetadata.title : (page.seoTitle ?? `${page.title} | Luneva Psy`);
+  const description = key === "" ? rppLandingMetadata.description : page.description;
   return {
-    title: page.seoTitle ?? `${page.title} | Luneva Psy`,
-    description: page.description,
+    title,
+    description,
     alternates: { canonical: `https://luneva-psy.ru${path}` },
     robots: page.status === "published" ? { index: true, follow: true } : { index: false, follow: false },
     openGraph: {
-      title: page.seoTitle ?? `${page.title} | Luneva Psy`,
-      description: page.description,
+      title,
+      description,
       url: `https://luneva-psy.ru${path}`,
       siteName: "Luneva Psy",
       locale: "ru_RU",
@@ -505,12 +518,20 @@ function RppSituationCard({ card }: { card: RppSituationCard }) {
         <ul className="mt-7 flex flex-wrap gap-2">
           {card.links.filter((link) => isPublishedHref(link.href)).map((link) => (
             <li key={link.href}>
-              <Link
-                href={link.href}
-                className="inline-flex rounded-full border border-[#e0b9b0] bg-white/70 px-4 py-2 text-sm text-[#8d443e] transition hover:border-[#c98778] hover:bg-[#fff8f6] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#9c544c]"
-              >
-                {link.label}
-              </Link>
+              {link.href === appointmentHref ? (
+                <RppBookingLink
+                  className="inline-flex rounded-full border border-[#e0b9b0] bg-white/70 px-4 py-2 text-sm text-[#8d443e] transition hover:border-[#c98778] hover:bg-[#fff8f6] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#9c544c]"
+                >
+                  {link.label}
+                </RppBookingLink>
+              ) : (
+                <Link
+                  href={link.href}
+                  className="inline-flex rounded-full border border-[#e0b9b0] bg-white/70 px-4 py-2 text-sm text-[#8d443e] transition hover:border-[#c98778] hover:bg-[#fff8f6] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#9c544c]"
+                >
+                  {link.label}
+                </Link>
+              )}
             </li>
           ))}
         </ul>
@@ -537,43 +558,215 @@ function MaterialLinkCard({ link }: { link: RppCardLink }) {
   );
 }
 
-function RppIndexPage() {
+const landingSituations = [
+  "Эпизоды переедания",
+  "Ощущение потери контроля рядом с едой",
+  "Жёсткие правила и ограничения в питании",
+  "Стыд или вина после еды",
+  "Постоянные мысли о еде, весе или «правильности» питания",
+  "Сложности с образом тела и принятием себя",
+];
+
+const workSteps = [
+  {
+    title: "Первая встреча и знакомство",
+    text: "Вы сможете спокойно рассказать, что происходит сейчас и чего ждёте от психологической работы.",
+  },
+  {
+    title: "Уточнение запроса",
+    text: "Вместе рассмотрим ситуации, чувства и привычные способы справляться с напряжением вокруг еды и тела.",
+  },
+  {
+    title: "Обсуждение формата",
+    text: "Согласуем подходящий формат, частоту встреч и организационные вопросы без заранее заданного сценария.",
+  },
+  {
+    title: "Работа в согласованном темпе",
+    text: "Будем регулярно сверяться с запросом и бережно выбирать дальнейшие шаги без обещаний сроков или результата.",
+  },
+];
+
+const landingFaq = [
+  {
+    question: "Можно ли обратиться, если диагноза нет?",
+    answer:
+      "Да. Для первой встречи не нужен установленный диагноз. Достаточно того, что отношения с едой или телом вызывают напряжение и отнимают много сил.",
+  },
+  {
+    question: "Можно ли обратиться из-за переедания или чувства потери контроля?",
+    answer:
+      "Да. На встрече можно спокойно обсудить, когда это происходит, что предшествует таким эпизодам и какая поддержка может быть полезна.",
+  },
+  {
+    question: "Можно работать онлайн или лучше очно?",
+    answer:
+      "Доступны оба формата. Выбор зависит от ваших обстоятельств и возможности организовать спокойное, конфиденциальное пространство для разговора.",
+  },
+  {
+    question: "Сколько длится встреча?",
+    answer: "Актуальная продолжительность указана ниже в блоке форматов и стоимости и автоматически берётся из действующего расписания услуг.",
+  },
+  {
+    question: "Нужна ли регулярная работа?",
+    answer:
+      "Это обсуждается индивидуально после знакомства и уточнения запроса. Решение о продолжении и частоте встреч принимается совместно.",
+  },
+  {
+    question: "Можно ли начать с одной встречи?",
+    answer:
+      "Да. Первая встреча помогает познакомиться, обсудить ситуацию и понять, подходит ли вам формат дальнейшей работы.",
+  },
+];
+
+async function RppIndexPage() {
   const visibleSections = sectionConfigs.map((section) => ({
     ...section,
     links: section.links.filter((link) => isPublishedHref(link.href)),
   }));
   const visiblePopular = popularMaterials.filter((link) => isPublishedHref(link.href));
+  const pricingItems = await getPublicConsultationProducts();
+  const rppCertificates =
+    getQualificationCertificateCards()
+      .find((card) => card.id === "eating-disorders")
+      ?.certificates.filter((certificate) =>
+        [
+          "Работа с РПП в гештальт-подходе",
+          "Терапия РПП детей и подростков",
+          "Диагностика и лечение РПП",
+        ].includes(certificate.title),
+      ) ?? [];
 
   return (
     <>
-      <div className="mt-12 rounded-[30px] border border-[#ead7d1] bg-white/68 px-6 py-9 shadow-[0_18px_55px_rgba(70,45,40,0.05)] sm:px-10 sm:py-12 lg:px-14">
-        <p className="text-sm uppercase tracking-[0.24em] text-[#c98778]">Расстройства пищевого поведения</p>
-        <h2 className="mt-5 max-w-5xl font-serif text-[38px] leading-[1.08] text-[#332725] sm:text-5xl lg:text-[64px]">
-          Когда еда, вес и тело начинают управлять жизнью
-        </h2>
-        <p className="mt-7 max-w-4xl text-lg leading-8 text-[#5f5552]">
-          Здесь собраны материалы о расстройствах пищевого поведения: первых признаках, причинах, переедании, анорексии,
-          булимии, отношении к телу и восстановлении. Можно начать с темы, которая сейчас ближе всего
-        </p>
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-          <a
-            href="#rpp-start"
-            className="inline-flex min-h-14 items-center justify-center rounded-[16px] bg-[#332a26] px-7 text-[15px] font-medium text-white shadow-lg shadow-[#332a26]/10 transition hover:bg-[#3d322e] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#9c544c]"
-          >
-            С чего начать
-          </a>
-          <Link
-            href={appointmentHref}
-            className="inline-flex min-h-14 items-center justify-center rounded-[16px] border border-[#d9aaa0] bg-white/35 px-7 text-[15px] font-medium text-[#9c544c] transition hover:bg-white/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#9c544c]"
-          >
-            Мне нужна помощь сейчас
-          </Link>
+      <ServiceViewTracker serviceType="eating_behavior" />
+      <section className="relative mt-8 overflow-hidden rounded-[32px] border border-[#ead7d1] bg-white/72 px-6 py-10 shadow-[0_18px_55px_rgba(70,45,40,0.06)] sm:px-10 sm:py-14 lg:min-h-[520px] lg:px-16 lg:py-20">
+        <LeafBranch />
+        <div className="relative z-10 max-w-4xl">
+          <p className="text-xs uppercase tracking-[0.2em] text-[#c98778] sm:text-sm sm:tracking-[0.24em]">
+            Психологическая помощь при сложных отношениях с едой
+          </p>
+          <h1 className="mt-5 font-serif text-[40px] leading-[1.06] text-[#332725] sm:text-5xl lg:text-[68px]">
+            Когда еда, контроль и отношение к телу забирают слишком много сил
+          </h1>
+          <p className="mt-7 max-w-3xl text-[17px] leading-8 text-[#5f5552] sm:text-xl">
+            Можно бережно разобраться, что поддерживает напряжение вокруг еды и тела, и обсудить подходящий формат
+            психологической работы.
+          </p>
         </div>
-      </div>
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <RppBookingLink
+            className="relative z-10 inline-flex min-h-14 items-center justify-center rounded-[16px] bg-[#332a26] px-7 text-[15px] font-medium text-white shadow-lg shadow-[#332a26]/10 transition hover:bg-[#3d322e] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#9c544c]"
+          >
+            Записаться на консультацию
+          </RppBookingLink>
+        </div>
+      </section>
 
-      <section id="rpp-start" className="scroll-mt-28 pt-20">
-        <p className="text-sm uppercase tracking-[0.22em] text-[#c98778]">Навигация по состоянию</p>
-        <h2 className="mt-3 font-serif text-[36px] leading-tight text-[#332725] sm:text-[46px]">С чего начать</h2>
+      <section className="pt-20">
+        <p className="text-sm uppercase tracking-[0.22em] text-[#c98778]">С чем можно обратиться</p>
+        <h2 className="mt-3 max-w-3xl font-serif text-[36px] leading-tight text-[#332725] sm:text-[46px]">
+          Ситуации, о которых можно говорить без стыда и оценки
+        </h2>
+        <div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {landingSituations.map((situation, index) => (
+            <article key={situation} className="rounded-[24px] border border-[#ead7d1] bg-white/78 p-6 shadow-[0_12px_34px_rgba(70,45,40,0.05)]">
+              <span className="text-sm font-medium text-[#c98778]">0{index + 1}</span>
+              <h3 className="mt-4 font-serif text-[25px] leading-snug text-[#332725]">{situation}</h3>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="pt-20">
+        <p className="text-sm uppercase tracking-[0.22em] text-[#c98778]">Как проходит работа</p>
+        <h2 className="mt-3 font-serif text-[36px] leading-tight text-[#332725] sm:text-[46px]">Спокойно и в согласованном темпе</h2>
+        <div className="mt-9 grid gap-5 md:grid-cols-2">
+          {workSteps.map((step, index) => (
+            <article key={step.title} className="rounded-[26px] border border-[#ead7d1] bg-[#fbf3ef] p-7 sm:p-8">
+              <span className="text-sm uppercase tracking-[0.18em] text-[#c98778]">Шаг {index + 1}</span>
+              <h3 className="mt-4 font-serif text-[28px] leading-tight text-[#332725]">{step.title}</h3>
+              <p className="mt-4 text-[16px] leading-7 text-[#5f5552]">{step.text}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-20 rounded-[30px] border border-[#ead7d1] bg-white/72 p-7 shadow-[0_18px_55px_rgba(70,45,40,0.05)] sm:p-10 lg:p-14">
+        <p className="text-sm uppercase tracking-[0.22em] text-[#c98778]">Почему Александра</p>
+        <div className="mt-4 grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+          <div>
+            <h2 className="font-serif text-[36px] leading-tight text-[#332725] sm:text-[46px]">Профильная подготовка и практический опыт</h2>
+            <p className="mt-6 text-lg leading-8 text-[#5f5552]">
+              Александра ведёт психологическую практику с 2019 года и провела более 2500 часов индивидуальных консультаций.
+              Она прошла профильную подготовку по работе с пищевым поведением и преподавала курс для психологов по теме РПП.
+            </p>
+            <Link href="/about" className="mt-7 inline-flex font-medium text-[#9c544c] hover:text-[#7f3f39]">
+              Подробнее об Александре →
+            </Link>
+          </div>
+          <div>
+            <h3 className="font-serif text-[27px] text-[#332725]">Профильные сертификаты</h3>
+            <div className="mt-6">
+              <CertificateGallery certificates={rppCertificates} />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {pricingItems.length > 0 ? (
+        <section className="pt-20">
+          <p className="text-sm uppercase tracking-[0.22em] text-[#c98778]">Формат и стоимость</p>
+          <h2 className="mt-3 font-serif text-[36px] leading-tight text-[#332725] sm:text-[46px]">Актуальные варианты консультаций</h2>
+          <div className="mt-9 grid gap-5 md:grid-cols-2">
+            {pricingItems.map((item) => (
+              <article key={item.id} className="flex flex-col justify-between rounded-[28px] border border-[#ead7d1] bg-white p-7 text-center shadow-sm sm:p-9">
+                <div>
+                  {item.badge ? <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#c98778]">{item.badge}</p> : null}
+                  <h3 className="mt-3 text-base font-semibold uppercase tracking-[0.12em] text-[#332725]">{item.name}</h3>
+                  <p className="mt-6 text-lg leading-8 text-[#5f5552]">
+                    {item.sessionsCount} консультаций, {item.durationMinutes} минут, стоимость{" "}
+                    <span className="font-semibold text-[#332725]">{formatKopeks(item.priceKopeks)} руб.</span>
+                  </p>
+                  {item.savingsKopeks ? <p className="mt-3 text-sm font-semibold text-[#c98778]">Экономия {formatKopeks(item.savingsKopeks)} руб.</p> : null}
+                </div>
+                <RppBookingLink className="mt-8 inline-flex min-h-14 items-center justify-center rounded-2xl bg-[#332725] px-7 font-semibold text-white transition hover:bg-[#4a3935]">
+                  Записаться на консультацию
+                </RppBookingLink>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      <section className="pt-20">
+        <p className="text-sm uppercase tracking-[0.22em] text-[#c98778]">Частые вопросы</p>
+        <h2 className="mt-3 font-serif text-[36px] leading-tight text-[#332725] sm:text-[46px]">Перед первой встречей</h2>
+        <div className="mt-9 grid gap-4">
+          {landingFaq.map((item) => (
+            <details key={item.question} className="group rounded-[22px] border border-[#ead7d1] bg-white/75 p-5 shadow-[0_10px_28px_rgba(70,45,40,0.04)]">
+              <summary className="cursor-pointer list-none font-serif text-[22px] leading-snug text-[#332725] marker:hidden">
+                <span className="flex items-start justify-between gap-5">
+                  {item.question}
+                  <span aria-hidden="true" className="text-[#c98778] transition group-open:rotate-45">+</span>
+                </span>
+              </summary>
+              <p className="mt-4 text-[16px] leading-8 text-[#5f5552]">{item.answer}</p>
+            </details>
+          ))}
+        </div>
+        <p className="mt-6 rounded-[20px] border border-[#ead7d1] bg-[#fbf3ef] px-6 py-5 text-sm leading-7 text-[#5f5552]">
+          Психологическая консультация не заменяет медицинскую диагностику. При резком ухудшении самочувствия или опасных физических симптомах важно обратиться за медицинской помощью.
+        </p>
+      </section>
+
+      <section id="rpp-start" className="scroll-mt-28 pt-24">
+        <p className="text-sm uppercase tracking-[0.22em] text-[#c98778]">Энциклопедия РПП</p>
+        <h2 className="mt-3 max-w-4xl font-serif text-[36px] leading-tight text-[#332725] sm:text-[46px]">
+          Материалы Александры
+        </h2>
+        <p className="mt-5 max-w-3xl text-lg leading-8 text-[#5f5552]">
+          Здесь сохранены существующие материалы о первых признаках, причинах, переедании, ограничениях, отношении к телу и безопасных способах получить помощь.
+        </p>
         <div className="mt-9 grid gap-5 md:grid-cols-2">
           {situationCards.map((card) => (
             <RppSituationCard key={card.title} card={card} />
@@ -620,26 +813,20 @@ function RppIndexPage() {
         </div>
       </section>
 
-      <section className="mt-16 overflow-hidden rounded-[30px] border border-[#ead7d1] bg-[#fbf3ef] px-7 py-10 shadow-[0_18px_55px_rgba(70,45,40,0.06)] sm:px-10 lg:px-14">
+      <section className="mt-20 overflow-hidden rounded-[30px] border border-[#ead7d1] bg-[#fbf3ef] px-7 py-10 shadow-[0_18px_55px_rgba(70,45,40,0.06)] sm:px-10 lg:px-14">
         <div className="max-w-4xl">
-          <h2 className="font-serif text-[34px] leading-tight text-[#332725] sm:text-[46px]">Необязательно сначала во всем разобраться</h2>
+          <h2 className="font-serif text-[34px] leading-tight text-[#332725] sm:text-[46px]">
+            Если отношения с едой и телом забирают много сил, можно начать с одной спокойной встречи.
+          </h2>
           <p className="mt-6 text-lg leading-8 text-[#5f5552]">
-            Если еда, вес или тело забирают слишком много сил, можно начать с разговора. Мы обсудим, что происходит и какая
-            помощь может подойти именно вам
+            На первой консультации можно познакомиться, обсудить текущую ситуацию и вместе определить подходящий формат дальнейшей работы.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link
-              href={appointmentHref}
+            <RppBookingLink
               className="inline-flex min-h-14 items-center justify-center rounded-[16px] bg-[#332a26] px-7 text-[15px] font-medium text-white shadow-lg shadow-[#332a26]/10 transition hover:bg-[#3d322e] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#9c544c]"
             >
               Записаться на консультацию
-            </Link>
-            <Link
-              href="/rpp/lechenie"
-              className="inline-flex min-h-14 items-center justify-center rounded-[16px] border border-[#d9aaa0] bg-white/35 px-7 text-[15px] font-medium text-[#9c544c] transition hover:bg-white/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#9c544c]"
-            >
-              Как проходит работа с РПП
-            </Link>
+            </RppBookingLink>
           </div>
         </div>
       </section>
@@ -670,11 +857,15 @@ export default async function RppPage({ params }: Props) {
       )}
       <div className="mx-auto max-w-6xl">
         <Breadcrumbs items={breadcrumbs.map((item, index) => ({ label: item.name, href: index < breadcrumbs.length - 1 ? item.path : undefined }))} />
-        <p className="text-sm uppercase tracking-[0.22em] text-[#c98778]">{page.eyebrow}</p>
-        <h1 className="mt-4 max-w-5xl font-serif text-4xl leading-[1.08] text-[#332725] sm:text-5xl lg:text-6xl">
-          {page.title}
-        </h1>
-        {key !== "" && <p className="mt-7 max-w-3xl text-lg leading-8 text-[#5f5552]">{page.description}</p>}
+        {key !== "" ? (
+          <>
+            <p className="text-sm uppercase tracking-[0.22em] text-[#c98778]">{page.eyebrow}</p>
+            <h1 className="mt-4 max-w-5xl font-serif text-4xl leading-[1.08] text-[#332725] sm:text-5xl lg:text-6xl">
+              {page.title}
+            </h1>
+            <p className="mt-7 max-w-3xl text-lg leading-8 text-[#5f5552]">{page.description}</p>
+          </>
+        ) : null}
 
         {page.status !== "published" ? (
           <div className="mt-14 border-l-2 border-[#c98778] py-4 pl-6">

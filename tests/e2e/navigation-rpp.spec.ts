@@ -135,6 +135,43 @@ test("published RPP pages and every visible menu link avoid 404 and 5xx", async 
   }
 });
 
+test("RPP landing keeps the encyclopedia, booking flow, SEO and profile evidence", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/rpp", { waitUntil: "networkidle" });
+
+  await expect(
+    page.getByRole("heading", {
+      level: 1,
+      name: "Когда еда, контроль и отношение к телу забирают слишком много сил",
+    }),
+  ).toBeVisible();
+  await expect(page).toHaveTitle(
+    "Психологическая помощь при сложных отношениях с едой | Александра Лунева",
+  );
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+    "href",
+    "https://luneva-psy.ru/rpp",
+  );
+  await expect(page.getByRole("link", { name: "Записаться на консультацию" }).first()).toHaveAttribute(
+    "href",
+    "/contacts#booking",
+  );
+  await expect(page.getByRole("heading", { name: "Материалы Александры" })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Переедание и эмоциональное питание/ }).first()).toHaveAttribute(
+    "href",
+    "/rpp/pereedanie",
+  );
+
+  const certificateButton = page.getByRole("button", {
+    name: /Работа с РПП в гештальт-подходе/,
+  });
+  await certificateButton.click();
+  const certificateDialog = page.getByRole("dialog", { name: "Дипломы и сертификаты" });
+  await expect(certificateDialog).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(certificateDialog).toHaveCount(0);
+});
+
 test("draft placeholders remain directly available and noindex", async ({ page }) => {
   for (const route of hiddenDrafts) {
     const response = await page.goto(route, { waitUntil: "domcontentloaded" });
@@ -176,6 +213,8 @@ for (const width of [320, 375, 768, 1024, 1280, 1440]) {
   test(`layout has no horizontal overflow at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: width < 768 ? 812 : 900 });
     await page.goto("/rpp", { waitUntil: "networkidle" });
+    const rejectCookies = page.getByRole("button", { name: "Отклонить" });
+    if (await rejectCookies.isVisible()) await rejectCookies.click();
     const hasOverflow = await page.evaluate(
       () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
     );
