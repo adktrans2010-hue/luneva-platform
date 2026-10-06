@@ -1,8 +1,8 @@
 "use client";
 
 import {
-  COOKIE_CONSENT_KEY,
-} from "@/components/CookieBanner";
+  hasAnalyticsConsent,
+} from "@/src/lib/cookie-consent";
 import {
   attributionKeys,
   type AttributionValues,
@@ -17,6 +17,14 @@ const SESSION_ID_STORAGE_KEY = "luneva_session_id";
 export type StoredAttribution = AttributionPayload;
 
 export type AnalyticsGoal =
+  | "view_service"
+  | "click_book"
+  | "booking_started"
+  | "booking_created"
+  | "payment_started"
+  | "help_bot_click"
+  // Legacy call sites remain typed during the migration, but trackGoal only
+  // transmits the conversion allowlist below to Yandex Metrika.
   | "booking_cta_click"
   | "booking_form_open"
   | "booking_submit"
@@ -47,11 +55,41 @@ export type AnalyticsGoal =
   | "review_filter_click"
   | "review_submit";
 
+export type SafeGoalParams = Partial<
+  Record<
+    | "service_type"
+    | "consultation_format"
+    | "booking_channel"
+    | "payment_status",
+    string
+  >
+>;
+
+const metrikaGoals = new Set<AnalyticsGoal>([
+  "view_service",
+  "click_book",
+  "booking_started",
+  "slot_selected",
+  "booking_created",
+  "payment_started",
+  "payment_success",
+  "telegram_click",
+  "help_bot_click",
+]);
+
+const safeGoalParamKeys = new Set<keyof SafeGoalParams>([
+  "service_type",
+  "consultation_format",
+  "booking_channel",
+  "payment_status",
+]);
+
 declare global {
   interface Window {
+    __lunevaMetrikaActive?: boolean;
     ym?: (
       counterId: number,
-      method: "init" | "hit" | "reachGoal",
+      method: "init" | "hit" | "reachGoal" | "destruct",
       targetOrOptions?: string | Record<string, unknown>,
       params?: Record<string, unknown>,
     ) => void;
@@ -63,7 +101,7 @@ function canUseBrowserStorage() {
 }
 
 function hasCookieConsent() {
-  return canUseBrowserStorage() && window.localStorage.getItem(COOKIE_CONSENT_KEY) === "accepted";
+  return canUseBrowserStorage() && hasAnalyticsConsent(window.localStorage);
 }
 
 export function getStoredId(key: string) {
@@ -152,6 +190,24 @@ function getMetrikaCounterId() {
   return Number.isInteger(id) && id > 0 ? id : null;
 }
 
+export function sanitizeGoalParams(params: Record<string, unknown>): SafeGoalParams {
+  const safe: SafeGoalParams = {};
+
+  for (const [key, rawValue] of Object.entries(params)) {
+    if (!safeGoalParamKeys.has(key as keyof SafeGoalParams)) continue;
+    if (typeof rawValue !== "string") continue;
+
+    const value = rawValue
+      .normalize("NFC")
+      .replace(/[^a-zA-Z0-9_-]/g, "")
+      .slice(0, 64);
+
+    if (value) safe[key as keyof SafeGoalParams] = value;
+  }
+
+  return safe;
+}
+
 function sentGoalKey(goal: AnalyticsGoal, dedupeKey?: string) {
   return `${goal}:${dedupeKey ?? "default"}`;
 }
@@ -192,15 +248,13 @@ export function trackGoal(
   options: { dedupeKey?: string; once?: boolean } = {},
 ) {
   if (!hasCookieConsent()) return;
+  if (!metrikaGoals.has(goal)) return;
 
   if (options.once && wasGoalSent(goal, options.dedupeKey)) {
     return;
   }
 
-  const payload = {
-    ...params,
-    attribution: getAttribution(),
-  };
+  const payload = sanitizeGoalParams(params);
   const counterId = getMetrikaCounterId();
 
   if (counterId && typeof window.ym === "function") {

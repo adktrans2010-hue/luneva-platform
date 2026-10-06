@@ -110,7 +110,15 @@ export default function AccountBookingForm({ packages }: AccountBookingFormProps
     if (formOpenedTracked) return;
 
     setFormOpenedTracked(true);
-    trackGoal("booking_form_open", { source: "account" }, { once: true });
+    trackGoal(
+      "booking_started",
+      {
+        service_type: paymentMethod === "package" ? "package" : "consultation",
+        consultation_format: consultationFormat,
+        booking_channel: "account",
+      },
+      { once: true },
+    );
   }
 
   async function submitAppointment(event: FormEvent<HTMLFormElement>) {
@@ -119,8 +127,6 @@ export default function AccountBookingForm({ packages }: AccountBookingFormProps
     setSent(false);
     setError(null);
     setPaymentUrl(null);
-    trackGoal("booking_submit", { source: "account" });
-
     const response = await fetch("/api/account/appointments", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -143,15 +149,25 @@ export default function AccountBookingForm({ packages }: AccountBookingFormProps
     };
 
     if (!response.ok) {
-      trackGoal("booking_error", { source: "account" });
       setError(data.error ?? "Не удалось создать запись.");
       setSending(false);
       return;
     }
 
-    trackGoal("booking_success", { source: "account" }, { once: true, dedupeKey: appointmentTime });
+    const safeParams = {
+      service_type: paymentMethod === "package" ? "package" : "consultation",
+      consultation_format: consultationFormat,
+      booking_channel: "account",
+    };
+    trackGoal("booking_created", safeParams, {
+      once: true,
+      dedupeKey: appointmentTime,
+    });
     if (data.paymentUrl) {
-      trackGoal("payment_created", { source: "account" }, { once: true, dedupeKey: data.paymentUrl });
+      trackGoal("payment_started", safeParams, {
+        once: true,
+        dedupeKey: data.paymentUrl,
+      });
     }
 
     setSent(true);
@@ -169,7 +185,7 @@ export default function AccountBookingForm({ packages }: AccountBookingFormProps
   }
 
   return (
-    <form onSubmit={submitAppointment} onFocusCapture={trackFormOpenOnce} className="grid gap-5">
+    <form onSubmit={submitAppointment} onFocusCapture={trackFormOpenOnce} className="ym-hide-content grid gap-5">
       <div className="rounded-2xl border border-[#ead7d1] bg-[#fff8f6] p-4">
         <p className="text-sm uppercase tracking-[0.18em] text-[#8a7a76]">
           Формат консультации
@@ -246,7 +262,11 @@ export default function AccountBookingForm({ packages }: AccountBookingFormProps
                 type="button"
                 onClick={() => {
                   setAppointmentTime(slot);
-                  trackGoal("slot_selected", { source: "account", slot });
+                  trackGoal("slot_selected", {
+                    service_type: paymentMethod === "package" ? "package" : "consultation",
+                    consultation_format: consultationFormat,
+                    booking_channel: "account",
+                  });
                 }}
                 className={
                   appointmentTime === slot
@@ -333,7 +353,7 @@ export default function AccountBookingForm({ packages }: AccountBookingFormProps
         value={message}
         onChange={(event) => setMessage(event.target.value)}
         rows={4}
-        className="rounded-2xl border border-[#ead7d1] px-4 py-3 outline-none transition focus:border-[#c98778]"
+        className="ym-disable-keys rounded-2xl border border-[#ead7d1] px-4 py-3 outline-none transition focus:border-[#c98778]"
         placeholder="Комментарий к записи, если нужно"
       />
 
@@ -355,7 +375,6 @@ export default function AccountBookingForm({ packages }: AccountBookingFormProps
           {paymentUrl && (
             <a
               href={paymentUrl}
-              onClick={() => trackGoal("payment_click", { source: "account" }, { once: true, dedupeKey: paymentUrl })}
               className="mt-3 inline-flex rounded-xl bg-[#332725] px-4 py-2 text-white"
             >
               Перейти к оплате

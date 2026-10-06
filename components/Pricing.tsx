@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import MobileCarousel from "@/components/MobileCarousel";
+import ServiceViewTracker from "@/components/ServiceViewTracker";
 import {
   formatKopeks,
   getPublicConsultationProducts,
@@ -34,6 +35,7 @@ export default async function Pricing() {
               key={item.id}
               className="group flex min-h-[420px] flex-col justify-between rounded-[2rem] border border-[#ead7d1] bg-white px-8 py-10 text-center shadow-sm transition hover:-translate-y-1 hover:shadow-xl md:h-full lg:px-10"
             >
+              <ServiceViewTracker serviceType={item.code} />
               <div>
                 {item.badge && (
                   <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-[#c98778]">

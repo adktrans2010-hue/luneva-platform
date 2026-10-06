@@ -20,6 +20,8 @@
     "test:admin-mfa": "tsx scripts/test-admin-mfa-bootstrap.ts",
     "test:ai-clinical": "tsx scripts/test-ai-clinical-admin.ts",
     "test:booking-holds": "tsx scripts/test-booking-holds.ts",
+    "test:yandex-metrika": "tsx scripts/test-yandex-metrika-analytics.ts",
+    "test:cookie-consent": "tsx scripts/test-cookie-consent.ts",
     "test:certificate-assets": "node scripts/test-certificate-assets.mjs",
     "bookings:expire": "tsx scripts/expire-booking-holds.ts",
     "import:articles": "tsx scripts/import-articles-from-markdown.ts",

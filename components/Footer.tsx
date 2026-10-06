@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import ContactIcons from "@/components/ContactIcons";
+import CookieSettingsButton from "@/components/CookieSettingsButton";
 import Logo from "@/components/Logo";
 import { footerNavigation } from "@/src/lib/navigation";
 
@@ -58,6 +59,7 @@ export default function Footer() {
               <Link href="/legal/privacy">Политика обработки персональных данных</Link>
               <Link href="/legal/consent">Согласие на обработку персональных данных</Link>
               <Link href="/legal/cookies">Политика использования Cookie</Link>
+              <CookieSettingsButton />
             </div>
           </div>
         </div>

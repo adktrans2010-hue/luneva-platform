@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 
 import {
   COOKIE_CONSENT_EVENT,
-  COOKIE_CONSENT_KEY,
-} from "@/components/CookieBanner";
+  hasAnalyticsConsent,
+} from "@/src/lib/cookie-consent";
 import {
   captureAttribution,
   getAttribution,
@@ -18,24 +18,33 @@ import {
 export default function AnalyticsTracker() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const previousPath = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!pathname || pathname.startsWith("/admin") || pathname.startsWith("/api")) {
+    if (
+      !pathname ||
+      !searchParams ||
+      pathname.startsWith("/admin") ||
+      pathname.startsWith("/api")
+    ) {
       return;
     }
 
     const trackPageView = () => {
-      if (window.localStorage.getItem(COOKIE_CONSENT_KEY) !== "accepted") {
+      if (!hasAnalyticsConsent(window.localStorage)) {
         return;
       }
 
       captureAttribution(searchParams);
 
-      const query = searchParams.toString();
-      const path = query ? `${pathname}?${query}` : pathname;
+      // Never send arbitrary query values (payment IDs, promo codes, or user
+      // input) to either analytics sink. UTM attribution is handled separately.
+      const path = pathname;
       const metrikaId = Number(process.env.NEXT_PUBLIC_YANDEX_METRIKA_ID);
 
       if (
+        previousPath.current !== null &&
+        previousPath.current !== path &&
         process.env.NODE_ENV === "production" &&
         Number.isInteger(metrikaId) &&
         metrikaId > 0 &&
@@ -43,6 +52,8 @@ export default function AnalyticsTracker() {
       ) {
         window.ym(metrikaId, "hit", path);
       }
+
+      previousPath.current = path;
 
       void fetch("/api/analytics", {
         method: "POST",
@@ -89,7 +100,10 @@ export default function AnalyticsTracker() {
       }
 
       if (href.includes("t.me") || href.includes("telegram")) {
-        trackGoal("telegram_click");
+        const isHelpBot = /lunevapsyhelp_bot/i.test(href);
+        trackGoal(isHelpBot ? "help_bot_click" : "telegram_click", {
+          booking_channel: "website",
+        });
         return;
       }
 
@@ -104,7 +118,11 @@ export default function AnalyticsTracker() {
       }
 
       if (href === "/contacts#booking" || href.endsWith("/contacts#booking")) {
-        trackGoal("booking_cta_click");
+        trackGoal(
+          "click_book",
+          { booking_channel: "website" },
+          { once: true },
+        );
       }
     }
 

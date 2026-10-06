@@ -9,13 +9,6 @@ type PaymentStatusAnalyticsProps = {
   status?: string | null;
 };
 
-const failedStatuses = new Set([
-  "cancelled",
-  "canceled",
-  "failed",
-  "validation_failed",
-]);
-
 export default function PaymentStatusAnalytics({
   paymentId,
   status,
@@ -24,13 +17,14 @@ export default function PaymentStatusAnalytics({
     if (!paymentId || !status) return;
 
     if (status === "paid") {
-      trackGoal("payment_success", {}, { once: true, dedupeKey: paymentId });
+      trackGoal(
+        "payment_success",
+        { payment_status: "paid", booking_channel: "website" },
+        { once: true, dedupeKey: paymentId },
+      );
       return;
     }
 
-    if (failedStatuses.has(status)) {
-      trackGoal("payment_failed", { status }, { once: true, dedupeKey: paymentId });
-    }
   }, [paymentId, status]);
 
   return null;

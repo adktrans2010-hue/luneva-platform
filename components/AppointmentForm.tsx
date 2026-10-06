@@ -188,15 +188,21 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
     if (formOpenedTracked) return;
 
     setFormOpenedTracked(true);
-    trackGoal("booking_form_open", {}, { once: true });
+    trackGoal(
+      "booking_started",
+      {
+        service_type: selectedProduct?.code ?? "consultation",
+        consultation_format: consultationFormat,
+        booking_channel: "website",
+      },
+      { once: true },
+    );
   }
 
   async function submitAppointment(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSending(true);
     setError(null);
-    trackGoal("booking_submit");
-
     const response = await fetch("/api/appointments", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -224,14 +230,24 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
     };
 
     if (!response.ok || !data.paymentUrl) {
-      trackGoal("booking_error");
       setError(data.error ?? "Не удалось создать оплату. Проверьте данные и попробуйте ещё раз.");
       setSending(false);
       return;
     }
 
-    trackGoal("booking_success", {}, { once: true, dedupeKey: appointmentTime });
-    trackGoal("payment_created", {}, { once: true, dedupeKey: data.paymentUrl });
+    const safeParams = {
+      service_type: selectedProduct?.code ?? "consultation",
+      consultation_format: consultationFormat,
+      booking_channel: "website",
+    };
+    trackGoal("booking_created", safeParams, {
+      once: true,
+      dedupeKey: appointmentTime,
+    });
+    trackGoal("payment_started", safeParams, {
+      once: true,
+      dedupeKey: data.paymentUrl,
+    });
     window.location.assign(data.paymentUrl);
   }
 
@@ -244,7 +260,7 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
   }
 
   return (
-    <form onSubmit={submitAppointment} onFocusCapture={trackFormOpenOnce} className="mt-8 grid gap-5">
+    <form onSubmit={submitAppointment} onFocusCapture={trackFormOpenOnce} className="ym-hide-content mt-8 grid gap-5">
       <input
         value={website}
         onChange={(event) => setWebsite(event.target.value)}
@@ -401,7 +417,11 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
                 type="button"
                 onClick={() => {
                   setAppointmentTime(slot);
-                  trackGoal("slot_selected", { slot });
+                  trackGoal("slot_selected", {
+                    service_type: selectedProduct.code,
+                    consultation_format: consultationFormat,
+                    booking_channel: "website",
+                  });
                 }}
                 className={
                   appointmentTime === slot
@@ -429,7 +449,7 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
             value={name}
             onChange={(event) => { event.target.setCustomValidity(""); setName(event.target.value); }}
             onInvalid={(event) => event.currentTarget.setCustomValidity("Введите имя")}
-            className="rounded-2xl border border-[#ead7d1] px-4 py-3 outline-none transition focus:border-[#c98778]"
+            className="ym-disable-keys rounded-2xl border border-[#ead7d1] px-4 py-3 outline-none transition focus:border-[#c98778]"
             placeholder="Ваше имя"
             required
           />
@@ -447,7 +467,7 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
             inputMode="tel"
             autoComplete="tel"
             pattern="[+0-9() -]{10,25}"
-            className="rounded-2xl border border-[#ead7d1] px-4 py-3 outline-none transition focus:border-[#c98778]"
+            className="ym-disable-keys rounded-2xl border border-[#ead7d1] px-4 py-3 outline-none transition focus:border-[#c98778]"
             placeholder="+7 999 123-45-67"
             required
           />
@@ -462,7 +482,7 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
             onChange={(event) => { event.target.setCustomValidity(""); setEmail(event.target.value); }}
             onInvalid={(event) => event.currentTarget.setCustomValidity("Укажите email")}
             type="email"
-            className="rounded-2xl border border-[#ead7d1] px-4 py-3 outline-none transition focus:border-[#c98778]"
+            className="ym-disable-keys rounded-2xl border border-[#ead7d1] px-4 py-3 outline-none transition focus:border-[#c98778]"
             placeholder="email@example.ru"
             required
           />

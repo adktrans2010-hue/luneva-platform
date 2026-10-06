@@ -76,7 +76,7 @@ export default function ReviewForm() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="ym-hide-content">
           <input
             value={website}
             onChange={(event) => setWebsite(event.target.value)}
@@ -92,14 +92,14 @@ export default function ReviewForm() {
               value={name}
               onChange={(event) => setName(event.target.value)}
               placeholder="Ваше имя (необязательно)"
-              className="rounded-xl border border-[#ead7d1] bg-white px-5 py-4 outline-none transition focus:border-[#c98778]"
+              className="ym-disable-keys rounded-xl border border-[#ead7d1] bg-white px-5 py-4 outline-none transition focus:border-[#c98778]"
             />
 
             <input
               value={age}
               onChange={(event) => setAge(event.target.value)}
               placeholder="Возраст (необязательно)"
-              className="rounded-xl border border-[#ead7d1] bg-white px-5 py-4 outline-none transition focus:border-[#c98778]"
+              className="ym-disable-keys rounded-xl border border-[#ead7d1] bg-white px-5 py-4 outline-none transition focus:border-[#c98778]"
             />
           </div>
 
@@ -109,7 +109,7 @@ export default function ReviewForm() {
             placeholder="Ваш отзыв"
             required
             rows={6}
-            className="mt-4 w-full rounded-xl border border-[#ead7d1] bg-white px-5 py-4 outline-none transition focus:border-[#c98778]"
+            className="ym-disable-keys mt-4 w-full rounded-xl border border-[#ead7d1] bg-white px-5 py-4 outline-none transition focus:border-[#c98778]"
           />
 
           <LegalConsent
