@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { AdminLoginForm } from "@/components/admin/admin-login-form";
 import { isGoogleAdminOAuthConfigured } from "@/src/lib/google-admin-oauth";
 
 type AdminLoginPageProps = {
@@ -64,76 +65,13 @@ export default async function AdminLoginPage({
           <span className="h-px flex-1 bg-[#ead7d1]" />
         </div>
 
-        <form
-          action="/api/admin/login"
-          method="post"
-          className="rounded-[2rem] border border-[#ead7d1] bg-white p-8 shadow-sm"
-        >
-          <input type="hidden" name="next" value={nextPath} />
+        {error && (
+          <p className="mb-4 rounded-2xl bg-[#fff3df] px-4 py-3 text-sm text-[#9a5a1f]">
+            {error}
+          </p>
+        )}
 
-          <label
-            htmlFor="admin-email"
-            className="block text-sm uppercase tracking-[0.18em] text-[#8a7a76]"
-          >
-            Email администратора
-          </label>
-
-          <input
-            id="admin-email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            className="mt-3 w-full rounded-2xl border border-[#ead7d1] px-4 py-3 text-[#332725] outline-none transition focus:border-[#c98778]"
-            required
-          />
-
-          <label
-            htmlFor="admin-password"
-            className="mt-5 block text-sm uppercase tracking-[0.18em] text-[#8a7a76]"
-          >
-            Пароль
-          </label>
-
-          <input
-            id="admin-password"
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            className="mt-3 w-full rounded-2xl border border-[#ead7d1] px-4 py-3 text-[#332725] outline-none transition focus:border-[#c98778]"
-            required
-          />
-
-          <label
-            htmlFor="admin-totp"
-            className="mt-5 block text-sm uppercase tracking-[0.18em] text-[#8a7a76]"
-          >
-            Код Google Authenticator
-          </label>
-
-          <input
-            id="admin-totp"
-            name="totpCode"
-            type="text"
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            pattern="[0-9]{6}"
-            placeholder="6 цифр, если 2FA включена"
-            className="mt-3 w-full rounded-2xl border border-[#ead7d1] px-4 py-3 text-[#332725] outline-none transition focus:border-[#c98778]"
-          />
-
-          {error && (
-            <p className="mt-4 rounded-2xl bg-[#fff3df] px-4 py-3 text-sm text-[#9a5a1f]">
-              {error}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            className="mt-6 w-full rounded-2xl bg-[#332725] px-5 py-3 text-white transition hover:bg-[#4a3935]"
-          >
-            Войти
-          </button>
-        </form>
+        <AdminLoginForm nextPath={nextPath} />
       </div>
     </section>
   );
