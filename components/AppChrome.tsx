@@ -14,6 +14,10 @@ export default function AppChrome({ children }: { children: React.ReactNode }) {
   const isAdmin = pathname?.startsWith("/admin");
 
   if (isAdmin) {
+    const isAdminAuthRoute = ["/admin/login", "/admin/password", "/admin/mfa-enroll"].includes(pathname);
+
+    if (!isAdminAuthRoute) return <main>{children}</main>;
+
     return (
       <>
         <header className="sticky top-0 z-50 border-b border-[#ead7d1] bg-[#fff8f6]/95 backdrop-blur-xl">

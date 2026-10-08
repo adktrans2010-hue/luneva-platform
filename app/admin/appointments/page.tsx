@@ -9,7 +9,7 @@ export default function AdminAppointmentsPage() {
             Luneva Admin
           </p>
 
-          <h1 className="font-serif text-6xl text-[#332725]">
+          <h1 className="font-serif text-4xl leading-[1.08] text-[#332725] sm:text-5xl lg:text-6xl">
             Заявки на консультацию
           </h1>
 
