@@ -8,6 +8,11 @@ type TelegramMessage = {
   chatId?: string | null;
 };
 
+type TelegramNotificationResult = {
+  ok: boolean;
+  reason: string | null;
+};
+
 type AppointmentLike = {
   id: string;
   name: string;
@@ -149,7 +154,7 @@ async function sendOwnerEmailNotification(subject: string, text: string) {
 }
 
 function combineNotificationResults(
-  telegramResult: Awaited<ReturnType<typeof sendTelegramMessage>>,
+  telegramResult: TelegramNotificationResult,
   emailResult: Awaited<ReturnType<typeof sendOwnerEmailNotification>>
 ) {
   const reasons = [
@@ -165,7 +170,7 @@ function combineNotificationResults(
 
 async function notifyOwner(subject: string, text: string) {
   const [telegramResult, emailResult] = await Promise.all([
-    sendTelegramMessage({ text }),
+    sendOwnerTelegramNotifications(text),
     sendOwnerEmailNotification(subject, text),
   ]);
 
@@ -173,17 +178,28 @@ async function notifyOwner(subject: string, text: string) {
 }
 
 export function isTelegramConfigured() {
-  return Boolean(process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_OWNER_CHAT_ID);
+  return Boolean(process.env.TELEGRAM_BOT_TOKEN && getOwnerChatIds().length > 0);
+}
+
+/**
+ * The plural variable is preferred and intentionally retains the legacy
+ * single-recipient variable as the fallback for existing deployments.
+ */
+export function getOwnerChatIds() {
+  const configured =
+    process.env.TELEGRAM_OWNER_CHAT_IDS ?? process.env.TELEGRAM_OWNER_CHAT_ID ?? "";
+
+  return [...new Set(configured.split(",").map((value) => value.trim()).filter(Boolean))];
 }
 
 export async function sendTelegramMessage({ text, chatId }: TelegramMessage) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
-  const targetChatId = chatId || process.env.TELEGRAM_OWNER_CHAT_ID;
+  const targetChatId = chatId || getOwnerChatIds()[0];
 
   if (!token || !targetChatId) {
     return {
       ok: false,
-      reason: "Telegram не настроен: добавьте TELEGRAM_BOT_TOKEN и TELEGRAM_OWNER_CHAT_ID.",
+      reason: "Telegram не настроен: добавьте TELEGRAM_BOT_TOKEN и получателя уведомлений.",
     };
   }
 
@@ -216,6 +232,32 @@ export async function sendTelegramMessage({ text, chatId }: TelegramMessage) {
           : "Не удалось отправить Telegram-уведомление.",
     };
   }
+}
+
+export async function sendOwnerTelegramNotifications(
+  text: string
+): Promise<TelegramNotificationResult> {
+  const recipients = getOwnerChatIds();
+
+  if (recipients.length === 0) {
+    return {
+      ok: false,
+      reason: "Telegram не настроен: добавьте TELEGRAM_OWNER_CHAT_ID или TELEGRAM_OWNER_CHAT_IDS.",
+    };
+  }
+
+  const results = await Promise.all(
+    recipients.map((chatId) => sendTelegramMessage({ text, chatId }))
+  );
+  const failures = results.filter((result) => !result.ok);
+
+  return {
+    ok: results.some((result) => result.ok),
+    reason:
+      failures.length > 0
+        ? `Не удалось доставить Telegram-уведомление ${failures.length} из ${results.length} получателей.`
+        : null,
+  };
 }
 
 export async function notifyOwnerNewAppointment(appointment: AppointmentLike) {
