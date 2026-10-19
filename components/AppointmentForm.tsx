@@ -20,6 +20,9 @@ type AppointmentFormProps = {
   products: PublicConsultationProduct[];
 };
 
+type AvailableDay = { date: string; slots: string[] };
+type QuickSlot = { date: string; time: string };
+
 const consultationFormats = [
   { value: "online", label: "Онлайн" },
   { value: "in_person", label: "Очно в кабинете" },
@@ -43,6 +46,15 @@ function toDateInputValue(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
+function formatBookingDate(date: string, withWeekday = false) {
+  const parsed = new Date(`${date}T12:00:00`);
+  return new Intl.DateTimeFormat("ru-RU", {
+    day: "numeric",
+    month: "short",
+    ...(withWeekday ? { weekday: "short" } : {}),
+  }).format(parsed).replace(".", "");
+}
+
 export default function AppointmentForm({ products }: AppointmentFormProps) {
   const minDate = useMemo(() => toDateInputValue(new Date()), []);
   const [formStartedAt] = useState(() => Date.now());
@@ -52,7 +64,9 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
   const [appointmentDate, setAppointmentDate] = useState(minDate);
   const [appointmentTime, setAppointmentTime] = useState("");
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+  const [availability, setAvailability] = useState<AvailableDay[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(true);
+  const [showAllNearest, setShowAllNearest] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -69,6 +83,9 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
     useState<PromotionQuoteState | null>(null);
   const [promoLoading, setPromoLoading] = useState(false);
   const promoRequestId = useRef(0);
+  const contactFieldsRef = useRef<HTMLDivElement>(null);
+  const appointmentDateRef = useRef(minDate);
+  const dateChosenByUserRef = useRef(false);
 
   const selectedProduct =
     products.find((product) => product.code === productCode) ?? products[0];
@@ -147,12 +164,19 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
     const controller = new AbortController();
 
     void fetch(
-      `/api/appointments/availability?date=${appointmentDate}&format=${consultationFormat}&location=${consultationLocation}`,
+      `/api/appointments/availability?date=${minDate}&rangeDays=30&format=${consultationFormat}&location=${consultationLocation}`,
       { signal: controller.signal }
     )
       .then((response) => response.json())
-      .then((data: { slots: string[] }) => {
-        setAvailableSlots(data.slots);
+      .then((data: { availability?: AvailableDay[] }) => {
+        const nextAvailability = data.availability ?? [];
+        setAvailability(nextAvailability);
+        const selectedDate = appointmentDateRef.current;
+        const selectedDay = nextAvailability.find((day) => day.date === selectedDate);
+        const nextDate = dateChosenByUserRef.current && selectedDay ? selectedDate : nextAvailability[0]?.date ?? minDate;
+        appointmentDateRef.current = nextDate;
+        setAppointmentDate(nextDate);
+        setAvailableSlots(nextAvailability.find((day) => day.date === nextDate)?.slots ?? []);
         setLoadingSlots(false);
       })
       .catch((fetchError: unknown) => {
@@ -160,12 +184,13 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
           return;
         }
 
+        setAvailability([]);
         setAvailableSlots([]);
         setLoadingSlots(false);
       });
 
     return () => controller.abort();
-  }, [appointmentDate, consultationFormat, consultationLocation]);
+  }, [consultationFormat, consultationLocation, productCode, minDate]);
 
   function resetSlots() {
     setAppointmentTime("");
@@ -176,12 +201,35 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
   function changeConsultationFormat(format: string) {
     setConsultationFormat(format);
     setConsultationLocation(format === "in_person" ? "moscow" : "online");
+    dateChosenByUserRef.current = false;
+    trackFormOpenOnce();
     resetSlots();
   }
 
   function changeAppointmentDate(date: string) {
+    const slots = availability.find((day) => day.date === date)?.slots ?? [];
+    if (slots.length === 0) return;
     setAppointmentDate(date);
-    resetSlots();
+    appointmentDateRef.current = date;
+    dateChosenByUserRef.current = true;
+    setAppointmentTime("");
+    setAvailableSlots(slots);
+    trackFormOpenOnce();
+  }
+
+  function selectSlot(date: string, time: string) {
+    setAppointmentDate(date);
+    setAvailableSlots(availability.find((day) => day.date === date)?.slots ?? []);
+    setAppointmentTime(time);
+    appointmentDateRef.current = date;
+    dateChosenByUserRef.current = true;
+    trackFormOpenOnce();
+    trackGoal("slot_selected", {
+      service_type: selectedProduct?.code ?? "consultation",
+      consultation_format: consultationFormat,
+      booking_channel: "website",
+    }, { once: true, dedupeKey: `${date}:${time}` });
+    window.setTimeout(() => contactFieldsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
   }
 
   function trackFormOpenOnce() {
@@ -198,6 +246,12 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
       { once: true },
     );
   }
+
+  const nearestSlots = useMemo<QuickSlot[]>(
+    () => availability.flatMap((day) => day.slots.map((time) => ({ date: day.date, time }))).slice(0, 12),
+    [availability]
+  );
+  const visibleNearestSlots = showAllNearest ? nearestSlots : nearestSlots.slice(0, 5);
 
   async function submitAppointment(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -281,7 +335,12 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
             <button
               key={product.id}
               type="button"
-              onClick={() => setProductCode(product.code)}
+              onClick={() => {
+                setProductCode(product.code);
+                dateChosenByUserRef.current = false;
+                trackFormOpenOnce();
+                resetSlots();
+              }}
               className={
                 productCode === product.code
                   ? "rounded-2xl bg-[#332725] px-4 py-3 text-left text-white"
@@ -378,6 +437,8 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
                 type="button"
                 onClick={() => {
                   setConsultationLocation(location.value);
+                  dateChosenByUserRef.current = false;
+                  trackFormOpenOnce();
                   resetSlots();
                 }}
                 className={
@@ -393,54 +454,49 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
         </div>
       )}
 
-      <input
-        value={appointmentDate}
-        onChange={(event) => changeAppointmentDate(event.target.value)}
-        type="date"
-        min={minDate}
-        className="rounded-2xl border border-[#ead7d1] px-4 py-3 outline-none transition focus:border-[#c98778]"
-        required
-      />
-
       <div className="rounded-2xl border border-[#ead7d1] bg-[#fff8f6] p-4">
-        <p className="text-sm uppercase tracking-[0.18em] text-[#8a7a76]">
-          Свободное время
-        </p>
-
-        {loadingSlots ? (
-          <p className="mt-3 text-[#5f5552]">Проверяю свободные окна...</p>
-        ) : availableSlots.length > 0 ? (
-          <div className="mt-4 flex flex-wrap gap-3">
-            {availableSlots.map((slot) => (
-              <button
-                key={slot}
-                type="button"
-                onClick={() => {
-                  setAppointmentTime(slot);
-                  trackGoal("slot_selected", {
-                    service_type: selectedProduct.code,
-                    consultation_format: consultationFormat,
-                    booking_channel: "website",
-                  });
-                }}
-                className={
-                  appointmentTime === slot
-                    ? "rounded-xl bg-[#332725] px-4 py-2 text-white"
-                    : "rounded-xl border border-[#332725] px-4 py-2 text-[#332725]"
-                }
-              >
-                {slot}
-              </button>
-            ))}
-          </div>
-        ) : (
-          <p className="mt-3 text-[#5f5552]">
-            На выбранную дату свободного времени пока нет.
-          </p>
-        )}
+        <p className="text-sm uppercase tracking-[0.18em] text-[#8a7a76]">Ближайшее свободное время</p>
+        {loadingSlots ? <p className="mt-3 text-[#5f5552]">Проверяю свободные окна...</p> : nearestSlots.length > 0 ? (
+          <>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {visibleNearestSlots.map((slot, index) => (
+                <button key={`${slot.date}:${slot.time}`} type="button" onClick={() => selectSlot(slot.date, slot.time)} className={`min-h-11 rounded-xl border px-3 py-2 text-sm transition ${appointmentDate === slot.date && appointmentTime === slot.time ? "border-[#332725] bg-[#332725] text-white" : "border-[#ead7d1] bg-white text-[#332725] hover:border-[#c98778]"} ${index >= 3 && !showAllNearest ? "hidden sm:inline-flex" : "inline-flex"}`}>
+                  {formatBookingDate(slot.date)} · {slot.time}
+                </button>
+              ))}
+            </div>
+            {nearestSlots.length > 5 && <button type="button" onClick={() => setShowAllNearest((value) => !value)} className="mt-3 text-sm font-medium text-[#332725] underline decoration-[#c98778] underline-offset-4">{showAllNearest ? "Скрыть" : "Показать ещё"}</button>}
+          </>
+        ) : <p className="mt-3 text-[#5f5552]">Свободных окон на ближайшие даты пока нет.</p>}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      {!loadingSlots && availability.length > 0 && (
+        <div className="rounded-2xl border border-[#ead7d1] bg-white p-4">
+          <p className="text-sm uppercase tracking-[0.18em] text-[#8a7a76]">Выберите день</p>
+          <div className="mt-3 grid grid-cols-7 gap-2">
+            {Array.from({ length: 30 }, (_, offset) => {
+              const date = new Date(`${minDate}T12:00:00`);
+              date.setDate(date.getDate() + offset);
+              const value = toDateInputValue(date);
+              const enabled = availability.some((day) => day.date === value);
+              const selected = appointmentDate === value;
+              return <button key={value} type="button" disabled={!enabled} onClick={() => changeAppointmentDate(value)} aria-pressed={selected} aria-label={`${formatBookingDate(value, true)}${enabled ? ", есть свободное время" : ", нет свободных окон"}`} className={selected ? "min-h-11 rounded-xl bg-[#332725] px-1 text-sm text-white" : enabled ? "min-h-11 rounded-xl border border-[#d9aa9e] bg-[#fff8f6] px-1 text-sm text-[#332725] hover:border-[#c98778]" : "min-h-11 rounded-xl bg-[#f3efed] px-1 text-sm text-[#a79c98]"}>{date.getDate()}</button>;
+            })}
+          </div>
+          <p className="mt-3 text-sm text-[#7a6d69]">Выбранный день: {formatBookingDate(appointmentDate, true)}</p>
+        </div>
+      )}
+
+      <div className="rounded-2xl border border-[#ead7d1] bg-[#fff8f6] p-4">
+        <p className="text-sm uppercase tracking-[0.18em] text-[#8a7a76]">Свободное время</p>
+        {loadingSlots ? <p className="mt-3 text-[#5f5552]">Проверяю свободные окна...</p> : availableSlots.length > 0 ? (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {availableSlots.map((slot) => <button key={slot} type="button" onClick={() => selectSlot(appointmentDate, slot)} className={appointmentTime === slot ? "min-h-11 rounded-xl bg-[#332725] px-4 py-2 text-white" : "min-h-11 rounded-xl border border-[#332725] bg-white px-4 py-2 text-[#332725]"}>{slot}</button>)}
+          </div>
+        ) : <p className="mt-3 text-[#5f5552]">На эту дату свободных окон нет. Выберите ближайший доступный день в календаре или одно из ближайших времён выше.</p>}
+      </div>
+
+      <div ref={contactFieldsRef} className="grid gap-4 scroll-mt-28 md:grid-cols-3">
         <label className="grid gap-2">
           <span className="text-sm uppercase tracking-[0.18em] text-[#8a7a76]">
             Имя
@@ -508,7 +564,7 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
           }
         </p>
         <p>
-          Дата и время: {appointmentDate}
+          Дата и время: {formatBookingDate(appointmentDate)}
           {appointmentTime ? `, ${appointmentTime}` : ""}
         </p>
         <p className="mt-3 text-lg font-semibold text-[#332725]">

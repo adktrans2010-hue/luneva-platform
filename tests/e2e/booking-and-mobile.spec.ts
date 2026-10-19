@@ -21,6 +21,16 @@ test.beforeEach(async ({ page }) => {
   });
 
   await page.route("**/api/appointments/availability**", async (route) => {
+    const url = new URL(route.request().url());
+    if (url.searchParams.has("rangeDays")) {
+      const today = new Date().toISOString().slice(0, 10);
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ availability: [{ date: today, slots: ["10:00", "12:00"] }] }),
+      });
+      return;
+    }
     await route.fulfill({
       status: 200,
       contentType: "application/json",
@@ -72,18 +82,10 @@ test("public booking path creates appointment with attribution and without exter
   await expect(form).toBeVisible();
 
   await form.getByPlaceholder("Ваше имя").fill("Test Client");
+  await form.getByPlaceholder("+7 999 123-45-67").fill("+7 999 123-45-67");
   await form.getByPlaceholder("email@example.ru").fill("test-client@example.test");
 
-  const date = new Date();
-  date.setDate(date.getDate() + 7);
-  await Promise.all([
-    page.waitForResponse((response) =>
-      response.url().includes("/api/appointments/availability"),
-    ),
-    form.locator('input[type="date"]').fill(date.toISOString().slice(0, 10)),
-  ]);
-
-  await form.getByRole("button", { name: "10:00" }).click();
+  await form.getByRole("button", { name: "10:00" }).first().click();
   await form.locator('input[name="legalConsent"]').check();
   const submit = form.getByRole("button", { name: "Оплатить и записаться" });
   await expect(submit).toBeEnabled();
