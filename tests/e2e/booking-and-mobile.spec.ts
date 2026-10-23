@@ -24,10 +24,20 @@ test.beforeEach(async ({ page }) => {
     const url = new URL(route.request().url());
     if (url.searchParams.has("rangeDays")) {
       const today = new Date().toISOString().slice(0, 10);
+      const nextAvailableDate = new Date();
+      nextAvailableDate.setDate(nextAvailableDate.getDate() + 1);
       await route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ availability: [{ date: today, slots: ["10:00", "12:00"] }] }),
+        body: JSON.stringify({
+          availability: [
+            { date: today, slots: ["10:00", "12:00"] },
+            {
+              date: nextAvailableDate.toISOString().slice(0, 10),
+              slots: ["14:00", "16:00"],
+            },
+          ],
+        }),
       });
       return;
     }
@@ -114,6 +124,55 @@ test("public booking path creates appointment with attribution and without exter
       yclid: "123456",
     },
   });
+});
+
+test("booking date picker stays compact and updates the slot grid", async ({ page }) => {
+  await page.goto("/contacts", { waitUntil: "domcontentloaded" });
+
+  const form = page.locator("form").last();
+  const dateControl = form.getByRole("button", { name: /Дата консультации/ });
+  const calendar = page.getByRole("dialog", { name: "Выбор даты консультации" });
+
+  await expect(dateControl).toBeVisible();
+  await expect(calendar).toBeHidden();
+
+  await dateControl.click();
+  await expect(calendar).toBeVisible();
+  await expect(calendar.locator("button:not([disabled])")).toHaveCount(2);
+  await expect(calendar.locator("button[disabled]").first()).toBeDisabled();
+  await expect(calendar.locator('button[aria-pressed="true"]')).toHaveCount(1);
+
+  await page.keyboard.press("Escape");
+  await expect(calendar).toBeHidden();
+  await expect(dateControl).toBeFocused();
+
+  await dateControl.click();
+  await form.getByText("Ближайшее свободное время").click();
+  await expect(calendar).toBeHidden();
+
+  await dateControl.click();
+  await calendar.locator("button:not([disabled])").nth(1).click();
+  await expect(calendar).toBeHidden();
+  await expect(form.getByRole("button", { name: "14:00", exact: true })).toBeVisible();
+  await expect(form.getByRole("button", { name: "16:00", exact: true })).toBeVisible();
+
+  await form.getByRole("button", { name: "14:00", exact: true }).click();
+  await expect(form).toContainText(/Дата и время: .*, 14:00/);
+
+  for (const viewport of [
+    { width: 390, height: 844 },
+    { width: 430, height: 932 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await dateControl.click();
+    await expect(calendar).toBeVisible();
+    const metrics = await page.evaluate(() => ({
+      scrollWidth: document.documentElement.scrollWidth,
+      clientWidth: document.documentElement.clientWidth,
+    }));
+    expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.clientWidth + 2);
+    await page.keyboard.press("Escape");
+  }
 });
 
 test("key public pages render without horizontal overflow on mobile and desktop", async ({

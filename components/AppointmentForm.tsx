@@ -55,6 +55,13 @@ function formatBookingDate(date: string, withWeekday = false) {
   }).format(parsed).replace(".", "");
 }
 
+function formatBookingDateLong(date: string) {
+  return new Intl.DateTimeFormat("ru-RU", {
+    day: "numeric",
+    month: "long",
+  }).format(new Date(`${date}T12:00:00`));
+}
+
 export default function AppointmentForm({ products }: AppointmentFormProps) {
   const minDate = useMemo(() => toDateInputValue(new Date()), []);
   const [formStartedAt] = useState(() => Date.now());
@@ -67,6 +74,7 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
   const [availability, setAvailability] = useState<AvailableDay[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(true);
   const [showAllNearest, setShowAllNearest] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -84,6 +92,8 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
   const [promoLoading, setPromoLoading] = useState(false);
   const promoRequestId = useRef(0);
   const contactFieldsRef = useRef<HTMLDivElement>(null);
+  const calendarButtonRef = useRef<HTMLButtonElement>(null);
+  const calendarPopoverRef = useRef<HTMLDivElement>(null);
   const appointmentDateRef = useRef(minDate);
   const dateChosenByUserRef = useRef(false);
 
@@ -192,6 +202,38 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
     return () => controller.abort();
   }, [consultationFormat, consultationLocation, productCode, minDate]);
 
+  useEffect(() => {
+    if (!calendarOpen) return;
+
+    function closeFromOutside(event: PointerEvent) {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (
+        calendarPopoverRef.current?.contains(target) ||
+        calendarButtonRef.current?.contains(target)
+      ) {
+        return;
+      }
+
+      setCalendarOpen(false);
+      window.setTimeout(() => calendarButtonRef.current?.focus(), 0);
+    }
+
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      setCalendarOpen(false);
+      window.setTimeout(() => calendarButtonRef.current?.focus(), 0);
+    }
+
+    document.addEventListener("pointerdown", closeFromOutside);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeFromOutside);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [calendarOpen]);
+
   function resetSlots() {
     setAppointmentTime("");
     setAvailableSlots([]);
@@ -214,6 +256,8 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
     dateChosenByUserRef.current = true;
     setAppointmentTime("");
     setAvailableSlots(slots);
+    setCalendarOpen(false);
+    window.setTimeout(() => calendarButtonRef.current?.focus(), 0);
     trackFormOpenOnce();
   }
 
@@ -252,6 +296,22 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
     [availability]
   );
   const visibleNearestSlots = showAllNearest ? nearestSlots : nearestSlots.slice(0, 5);
+  const availableDateSet = useMemo(
+    () => new Set(availability.map((day) => day.date)),
+    [availability]
+  );
+  const calendarDays = useMemo(
+    () =>
+      Array.from({ length: 30 }, (_, offset) => {
+        const date = new Date(`${minDate}T12:00:00`);
+        date.setDate(date.getDate() + offset);
+        return {
+          date: toDateInputValue(date),
+          label: date.getDate(),
+        };
+      }),
+    [minDate]
+  );
 
   async function submitAppointment(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -471,24 +531,86 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
       </div>
 
       {!loadingSlots && availability.length > 0 && (
-        <div className="rounded-2xl border border-[#ead7d1] bg-white p-4">
-          <p className="text-sm uppercase tracking-[0.18em] text-[#8a7a76]">Выберите день</p>
-          <div className="mt-3 grid grid-cols-7 gap-2">
-            {Array.from({ length: 30 }, (_, offset) => {
-              const date = new Date(`${minDate}T12:00:00`);
-              date.setDate(date.getDate() + offset);
-              const value = toDateInputValue(date);
-              const enabled = availability.some((day) => day.date === value);
-              const selected = appointmentDate === value;
-              return <button key={value} type="button" disabled={!enabled} onClick={() => changeAppointmentDate(value)} aria-pressed={selected} aria-label={`${formatBookingDate(value, true)}${enabled ? ", есть свободное время" : ", нет свободных окон"}`} className={selected ? "min-h-11 rounded-xl bg-[#332725] px-1 text-sm text-white" : enabled ? "min-h-11 rounded-xl border border-[#d9aa9e] bg-[#fff8f6] px-1 text-sm text-[#332725] hover:border-[#c98778]" : "min-h-11 rounded-xl bg-[#f3efed] px-1 text-sm text-[#a79c98]"}>{date.getDate()}</button>;
-            })}
-          </div>
-          <p className="mt-3 text-sm text-[#7a6d69]">Выбранный день: {formatBookingDate(appointmentDate, true)}</p>
+        <div className="relative">
+          <button
+            ref={calendarButtonRef}
+            type="button"
+            aria-controls="booking-date-popover"
+            aria-expanded={calendarOpen}
+            aria-haspopup="dialog"
+            onClick={() => setCalendarOpen((open) => !open)}
+            className="flex min-h-12 w-full items-center justify-between rounded-2xl border border-[#ead7d1] bg-white px-4 py-3 text-left text-[#332725] transition hover:border-[#c98778] focus:outline-none focus:ring-2 focus:ring-[#c98778]/40"
+          >
+            <span className="flex min-w-0 items-center gap-3">
+              <span aria-hidden="true" className="text-lg">📅</span>
+              <span className="grid gap-0.5">
+                <span className="text-xs uppercase tracking-[0.14em] text-[#8a7a76]">
+                  Дата консультации
+                </span>
+                <span className="truncate font-medium">
+                  {formatBookingDateLong(appointmentDate)}
+                </span>
+              </span>
+            </span>
+            <span aria-hidden="true" className="ml-3 text-sm text-[#8a7a76]">
+              {calendarOpen ? "▲" : "▼"}
+            </span>
+          </button>
+
+          {calendarOpen && (
+            <div
+              ref={calendarPopoverRef}
+              id="booking-date-popover"
+              role="dialog"
+              aria-label="Выбор даты консультации"
+              className="absolute left-0 z-20 mt-2 w-full rounded-2xl border border-[#ead7d1] bg-white p-4 shadow-lg sm:w-[22rem]"
+            >
+              <p className="text-sm uppercase tracking-[0.14em] text-[#8a7a76]">
+                Выберите доступный день
+              </p>
+              <div className="mt-3 grid grid-cols-7 gap-1.5">
+                {calendarDays.map(({ date, label }) => {
+                  const enabled = availableDateSet.has(date);
+                  const selected = appointmentDate === date;
+                  return (
+                    <button
+                      key={date}
+                      type="button"
+                      disabled={!enabled}
+                      onClick={() => changeAppointmentDate(date)}
+                      aria-pressed={selected}
+                      aria-label={`${formatBookingDate(date, true)}${enabled ? ", есть свободное время" : ", нет свободных окон"}`}
+                      className={
+                        selected
+                          ? "relative min-h-10 rounded-lg bg-[#332725] px-1 text-sm text-white"
+                          : enabled
+                            ? "relative min-h-10 rounded-lg border border-[#d9aa9e] bg-[#fff8f6] px-1 text-sm text-[#332725] hover:border-[#c98778]"
+                            : "min-h-10 rounded-lg bg-[#f3efed] px-1 text-sm text-[#a79c98]"
+                      }
+                    >
+                      {label}
+                      {enabled && !selected && (
+                        <span
+                          aria-hidden="true"
+                          className="absolute bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-[#c98778]"
+                        />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="mt-3 text-xs text-[#7a6d69]">
+                Светлые даты пока недоступны для записи.
+              </p>
+            </div>
+          )}
         </div>
       )}
 
       <div className="rounded-2xl border border-[#ead7d1] bg-[#fff8f6] p-4">
-        <p className="text-sm uppercase tracking-[0.18em] text-[#8a7a76]">Свободное время</p>
+        <p className="text-sm uppercase tracking-[0.18em] text-[#8a7a76]">
+          Свободное время на {formatBookingDateLong(appointmentDate)}
+        </p>
         {loadingSlots ? <p className="mt-3 text-[#5f5552]">Проверяю свободные окна...</p> : availableSlots.length > 0 ? (
           <div className="mt-3 flex flex-wrap gap-2">
             {availableSlots.map((slot) => <button key={slot} type="button" onClick={() => selectSlot(appointmentDate, slot)} className={appointmentTime === slot ? "min-h-11 rounded-xl bg-[#332725] px-4 py-2 text-white" : "min-h-11 rounded-xl border border-[#332725] bg-white px-4 py-2 text-[#332725]"}>{slot}</button>)}
