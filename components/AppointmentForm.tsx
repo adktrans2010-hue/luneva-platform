@@ -62,6 +62,28 @@ function formatBookingDateLong(date: string) {
   }).format(new Date(`${date}T12:00:00`));
 }
 
+function addDays(date: Date, days: number) {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
+function monthKey(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function monthStart(month: string) {
+  return new Date(`${month}-01T12:00:00`);
+}
+
+function shiftMonth(month: string, amount: number) {
+  const next = monthStart(month);
+  next.setMonth(next.getMonth() + amount);
+  return monthKey(next);
+}
+
+const weekdayLabels = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+
 export default function AppointmentForm({ products }: AppointmentFormProps) {
   const minDate = useMemo(() => toDateInputValue(new Date()), []);
   const [formStartedAt] = useState(() => Date.now());
@@ -75,6 +97,7 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
   const [loadingSlots, setLoadingSlots] = useState(true);
   const [showAllNearest, setShowAllNearest] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [calendarMonth, setCalendarMonth] = useState(() => minDate.slice(0, 7));
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -256,6 +279,7 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
     dateChosenByUserRef.current = true;
     setAppointmentTime("");
     setAvailableSlots(slots);
+    setCalendarMonth(date.slice(0, 7));
     setCalendarOpen(false);
     window.setTimeout(() => calendarButtonRef.current?.focus(), 0);
     trackFormOpenOnce();
@@ -300,18 +324,44 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
     () => new Set(availability.map((day) => day.date)),
     [availability]
   );
-  const calendarDays = useMemo(
-    () =>
-      Array.from({ length: 30 }, (_, offset) => {
-        const date = new Date(`${minDate}T12:00:00`);
-        date.setDate(date.getDate() + offset);
-        return {
-          date: toDateInputValue(date),
-          label: date.getDate(),
-        };
-      }),
-    [minDate]
+  const calendarHorizonStart = useMemo(() => new Date(`${minDate}T12:00:00`), [minDate]);
+  const calendarHorizonEnd = useMemo(
+    () => addDays(calendarHorizonStart, 29),
+    [calendarHorizonStart]
   );
+  const calendarMonthDate = useMemo(() => monthStart(calendarMonth), [calendarMonth]);
+  const calendarTitle = useMemo(
+    () => new Intl.DateTimeFormat("ru-RU", { month: "long", year: "numeric" }).format(calendarMonthDate).replace(" г.", ""),
+    [calendarMonthDate]
+  );
+  const calendarDays = useMemo(() => {
+    const firstWeekday = (calendarMonthDate.getDay() + 6) % 7;
+    const daysInMonth = new Date(
+      calendarMonthDate.getFullYear(),
+      calendarMonthDate.getMonth() + 1,
+      0
+    ).getDate();
+    const totalCells = Math.ceil((firstWeekday + daysInMonth) / 7) * 7;
+    const firstCell = addDays(calendarMonthDate, -firstWeekday);
+
+    return Array.from({ length: totalCells }, (_, offset) => {
+      const date = addDays(firstCell, offset);
+      const value = toDateInputValue(date);
+      return {
+        date: value,
+        label: date.getDate(),
+        outsideMonth: date.getMonth() !== calendarMonthDate.getMonth(),
+        past: date < calendarHorizonStart,
+      };
+    });
+  }, [calendarHorizonStart, calendarMonthDate]);
+  const canShowPreviousMonth = calendarMonthDate > monthStart(monthKey(calendarHorizonStart));
+  const canShowNextMonth = calendarMonthDate < monthStart(monthKey(calendarHorizonEnd));
+
+  function toggleCalendar() {
+    if (!calendarOpen) setCalendarMonth(appointmentDate.slice(0, 7));
+    setCalendarOpen((open) => !open);
+  }
 
   async function submitAppointment(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -538,7 +588,7 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
             aria-controls="booking-date-popover"
             aria-expanded={calendarOpen}
             aria-haspopup="dialog"
-            onClick={() => setCalendarOpen((open) => !open)}
+            onClick={toggleCalendar}
             className="flex min-h-12 w-full items-center justify-between rounded-2xl border border-[#ead7d1] bg-white px-4 py-3 text-left text-[#332725] transition hover:border-[#c98778] focus:outline-none focus:ring-2 focus:ring-[#c98778]/40"
           >
             <span className="flex min-w-0 items-center gap-3">
@@ -565,12 +615,35 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
               aria-label="Выбор даты консультации"
               className="absolute left-0 z-20 mt-2 w-full rounded-2xl border border-[#ead7d1] bg-white p-4 shadow-lg sm:w-[22rem]"
             >
-              <p className="text-sm uppercase tracking-[0.14em] text-[#8a7a76]">
-                Выберите доступный день
-              </p>
+              <div className="flex items-center justify-between gap-3">
+                <button
+                  type="button"
+                  aria-label="Предыдущий месяц"
+                  disabled={!canShowPreviousMonth}
+                  onClick={() => setCalendarMonth((month) => shiftMonth(month, -1))}
+                  className="grid size-9 place-items-center rounded-lg text-lg text-[#332725] transition hover:bg-[#fff8f6] disabled:cursor-not-allowed disabled:text-[#c9bfbc] disabled:hover:bg-transparent"
+                >
+                  ‹
+                </button>
+                <p className="text-center text-sm font-medium capitalize text-[#332725]">
+                  {calendarTitle}
+                </p>
+                <button
+                  type="button"
+                  aria-label="Следующий месяц"
+                  disabled={!canShowNextMonth}
+                  onClick={() => setCalendarMonth((month) => shiftMonth(month, 1))}
+                  className="grid size-9 place-items-center rounded-lg text-lg text-[#332725] transition hover:bg-[#fff8f6] disabled:cursor-not-allowed disabled:text-[#c9bfbc] disabled:hover:bg-transparent"
+                >
+                  ›
+                </button>
+              </div>
+              <div className="mt-3 grid grid-cols-7 gap-1.5 text-center text-[0.65rem] font-medium uppercase tracking-[0.08em] text-[#8a7a76]">
+                {weekdayLabels.map((weekday) => <span key={weekday}>{weekday}</span>)}
+              </div>
               <div className="mt-3 grid grid-cols-7 gap-1.5">
-                {calendarDays.map(({ date, label }) => {
-                  const enabled = availableDateSet.has(date);
+                {calendarDays.map(({ date, label, outsideMonth, past }) => {
+                  const enabled = !outsideMonth && !past && availableDateSet.has(date);
                   const selected = appointmentDate === date;
                   return (
                     <button
@@ -579,13 +652,17 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
                       disabled={!enabled}
                       onClick={() => changeAppointmentDate(date)}
                       aria-pressed={selected}
-                      aria-label={`${formatBookingDate(date, true)}${enabled ? ", есть свободное время" : ", нет свободных окон"}`}
+                      aria-label={`${formatBookingDate(date, true)}${enabled ? ", есть свободное время" : past ? ", прошедшая дата" : outsideMonth ? ", другой месяц" : ", нет свободных окон"}`}
                       className={
                         selected
                           ? "relative min-h-10 rounded-lg bg-[#332725] px-1 text-sm text-white"
                           : enabled
                             ? "relative min-h-10 rounded-lg border border-[#d9aa9e] bg-[#fff8f6] px-1 text-sm text-[#332725] hover:border-[#c98778]"
-                            : "min-h-10 rounded-lg bg-[#f3efed] px-1 text-sm text-[#a79c98]"
+                            : past
+                              ? "min-h-10 rounded-lg bg-[#f8f6f5] px-1 text-sm text-[#d0c7c4]"
+                              : outsideMonth
+                                ? "min-h-10 rounded-lg bg-transparent px-1 text-sm text-[#d8d0cd]"
+                                : "min-h-10 rounded-lg bg-[#f3efed] px-1 text-sm text-[#a79c98]"
                       }
                     >
                       {label}
@@ -599,9 +676,6 @@ export default function AppointmentForm({ products }: AppointmentFormProps) {
                   );
                 })}
               </div>
-              <p className="mt-3 text-xs text-[#7a6d69]">
-                Светлые даты пока недоступны для записи.
-              </p>
             </div>
           )}
         </div>

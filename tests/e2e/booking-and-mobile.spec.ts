@@ -26,6 +26,11 @@ test.beforeEach(async ({ page }) => {
       const today = new Date().toISOString().slice(0, 10);
       const nextAvailableDate = new Date();
       nextAvailableDate.setDate(nextAvailableDate.getDate() + 1);
+      const nextMonthAvailableDate = new Date(
+        nextAvailableDate.getFullYear(),
+        nextAvailableDate.getMonth() + 1,
+        2,
+      );
       await route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -35,6 +40,10 @@ test.beforeEach(async ({ page }) => {
             {
               date: nextAvailableDate.toISOString().slice(0, 10),
               slots: ["14:00", "16:00"],
+            },
+            {
+              date: nextMonthAvailableDate.toISOString().slice(0, 10),
+              slots: ["11:00"],
             },
           ],
         }),
@@ -138,9 +147,22 @@ test("booking date picker stays compact and updates the slot grid", async ({ pag
 
   await dateControl.click();
   await expect(calendar).toBeVisible();
-  await expect(calendar.locator("button:not([disabled])")).toHaveCount(2);
-  await expect(calendar.locator("button[disabled]").first()).toBeDisabled();
+  await expect(calendar.getByText("Пн", { exact: true })).toBeVisible();
+  await expect(calendar.getByText("Вс", { exact: true })).toBeVisible();
+  await expect(calendar.getByText(String(new Date().getFullYear()))).toBeVisible();
+  await expect(calendar.locator('button[aria-pressed="false"]:not([disabled])')).toHaveCount(1);
+  await expect(calendar.locator('button[aria-pressed][disabled]').first()).toBeDisabled();
   await expect(calendar.locator('button[aria-pressed="true"]')).toHaveCount(1);
+
+  const currentMonthTitle = await calendar.getByText(String(new Date().getFullYear())).innerText();
+  const nextMonth = calendar.getByRole("button", { name: "Следующий месяц" });
+  await expect(nextMonth).toBeEnabled();
+  await nextMonth.click();
+  await expect(calendar.getByText(String(new Date().getFullYear()))).not.toHaveText(currentMonthTitle);
+  await expect(calendar.getByRole("button", { name: "Предыдущий месяц" })).toBeEnabled();
+  await expect(nextMonth).toBeDisabled();
+  await expect(calendar.locator('button[aria-pressed="false"]:not([disabled])')).toHaveCount(1);
+  await calendar.getByRole("button", { name: "Предыдущий месяц" }).click();
 
   await page.keyboard.press("Escape");
   await expect(calendar).toBeHidden();
@@ -151,7 +173,7 @@ test("booking date picker stays compact and updates the slot grid", async ({ pag
   await expect(calendar).toBeHidden();
 
   await dateControl.click();
-  await calendar.locator("button:not([disabled])").nth(1).click();
+  await calendar.locator('button[aria-pressed="false"]:not([disabled])').click();
   await expect(calendar).toBeHidden();
   await expect(form.getByRole("button", { name: "14:00", exact: true })).toBeVisible();
   await expect(form.getByRole("button", { name: "16:00", exact: true })).toBeVisible();
