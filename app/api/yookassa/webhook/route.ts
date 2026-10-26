@@ -9,7 +9,10 @@ import {
   userConsultationPackages,
   yookassaPayments,
 } from "@/src/db/schema";
-import { notifyOwnerPayment } from "@/src/lib/telegram";
+import {
+  notifyOwnerPayment,
+  notifyTelegramClientPaidAppointment,
+} from "@/src/lib/telegram";
 import { sendPaidAppointmentInvitation } from "@/src/lib/account-invitations";
 import { syncRefund } from "@/src/lib/yookassa-refunds";
 import {
@@ -34,6 +37,15 @@ type YooKassaNotification = {
 
 function jsonOk() {
   return NextResponse.json({ success: true });
+}
+
+function notificationResultForHistory<
+  T extends { ok: boolean; reason?: string | null },
+>(result: PromiseSettledResult<T>) {
+  if (result.status === "fulfilled") {
+    return { ok: result.value.ok, reason: result.value.reason ?? null };
+  }
+  return { ok: false, reason: "Не удалось доставить уведомление." };
 }
 
 export async function POST(request: Request) {
@@ -342,13 +354,21 @@ export async function POST(request: Request) {
   });
 
   if (updatedAppointment && nextPaymentStatus === "paid" && !localPayment.notifiedAt) {
-    const [notificationResult, invitationResult] = await Promise.all([
+    const notifications = await Promise.allSettled([
       notifyOwnerPayment(updatedAppointment),
       sendPaidAppointmentInvitation({
         appointment: updatedAppointment,
         paymentId: localPayment.id,
+        serviceName: localPayment.productNameSnapshot ?? "Консультация",
+      }),
+      notifyTelegramClientPaidAppointment({
+        appointment: updatedAppointment,
+        serviceName: localPayment.productNameSnapshot ?? "Консультация",
       }),
     ]);
+    const notificationResult = notificationResultForHistory(notifications[0]);
+    const invitationResult = notificationResultForHistory(notifications[1]);
+    const clientTelegramResult = notificationResultForHistory(notifications[2]);
 
     await db.transaction(async (tx) => {
       await tx
@@ -374,10 +394,25 @@ export async function POST(request: Request) {
         appointmentId: localPayment.appointmentId,
         action: "Email",
         details: invitationResult.ok
-          ? "Клиенту отправлена одноразовая ссылка для входа в личный кабинет."
+          ? "Клиенту отправлено подтверждение оплаченной записи."
           : invitationResult.reason,
       });
+
+      await tx.insert(appointmentHistory).values({
+        appointmentId: localPayment.appointmentId,
+        action: "Telegram клиенту",
+        details: clientTelegramResult.ok
+          ? "Клиенту отправлено подтверждение оплаченной записи."
+          : clientTelegramResult.reason,
+      });
     });
+
+    if (!invitationResult.ok || !clientTelegramResult.ok) {
+      console.warn("paid_appointment_client_notification_failed", {
+        emailSent: invitationResult.ok,
+        telegramSent: clientTelegramResult.ok,
+      });
+    }
   }
 
   console.info("yookassa_webhook_processed", {

@@ -5,6 +5,7 @@ type SendMailOptions = {
   to: string;
   subject: string;
   text: string;
+  html?: string;
 };
 
 type MailSocket = Socket | TLSSocket;
@@ -78,7 +79,7 @@ export function isEmailConfigured() {
   return Boolean(config.host && config.user && config.password);
 }
 
-export async function sendMail({ to, subject, text }: SendMailOptions) {
+export async function sendMail({ to, subject, text, html }: SendMailOptions) {
   const config = getSmtpConfig();
 
   if (!isEmailConfigured()) {
@@ -101,15 +102,36 @@ export async function sendMail({ to, subject, text }: SendMailOptions) {
     await command(socket, `RCPT TO:<${to}>`);
     await command(socket, "DATA", true);
 
+    const body = html
+      ? [
+          `Content-Type: multipart/alternative; boundary="luneva-boundary"`,
+          "",
+          "--luneva-boundary",
+          "Content-Type: text/plain; charset=UTF-8",
+          "Content-Transfer-Encoding: 8bit",
+          "",
+          escapeEmailBody(text),
+          "--luneva-boundary",
+          "Content-Type: text/html; charset=UTF-8",
+          "Content-Transfer-Encoding: 8bit",
+          "",
+          escapeEmailBody(html),
+          "--luneva-boundary--",
+        ].join("\r\n")
+      : [
+          "Content-Type: text/plain; charset=UTF-8",
+          "Content-Transfer-Encoding: 8bit",
+          "",
+          escapeEmailBody(text),
+        ].join("\r\n");
+
     const message = [
       `From: ${encodeHeader("Luneva Psy")} <${config.from}>`,
       `To: <${to}>`,
       `Subject: ${encodeHeader(subject)}`,
       "MIME-Version: 1.0",
-      "Content-Type: text/plain; charset=UTF-8",
-      "Content-Transfer-Encoding: 8bit",
       "",
-      escapeEmailBody(text),
+      body,
       ".",
     ].join("\r\n");
 

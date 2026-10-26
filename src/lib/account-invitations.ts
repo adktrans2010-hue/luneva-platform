@@ -8,6 +8,11 @@ import {
   users,
 } from "@/src/db/schema";
 import { isEmailConfigured, sendMail } from "@/src/lib/email";
+import {
+  createPaidAppointmentConfirmation,
+  renderPaidAppointmentEmailHtml,
+  renderPaidAppointmentTelegram,
+} from "@/src/lib/paid-appointment-confirmation";
 
 const invitationTtlDays = 7;
 
@@ -81,9 +86,11 @@ export async function createAccountInvitation({
 export async function sendPaidAppointmentInvitation({
   appointment,
   paymentId,
+  serviceName,
 }: {
   appointment: typeof appointmentRequests.$inferSelect;
   paymentId: string;
+  serviceName: string;
 }) {
   const email = normalizeEmail(
     appointment.normalizedEmail || appointment.contact || ""
@@ -117,24 +124,23 @@ export async function sendPaidAppointmentInvitation({
     userId: existingUser?.id ?? appointment.userId,
   });
 
+  const confirmation = createPaidAppointmentConfirmation(appointment, serviceName);
+  const text = [
+    "Здравствуйте!",
+    "",
+    renderPaidAppointmentTelegram(confirmation),
+    "",
+    "Чтобы открыть личный кабинет и установить пароль, перейдите по одноразовой ссылке:",
+    invitation.url,
+    "",
+    "Ссылка действует 7 дней и может быть использована один раз.",
+  ].join("\n");
+
   await sendMail({
     to: email,
-    subject: "Оплата прошла, запись подтверждена",
-    text: [
-      "Здравствуйте!",
-      "",
-      "Оплата прошла, ваша консультация подтверждена.",
-      appointment.scheduledAt
-        ? `Дата и время: ${appointment.scheduledAt.toLocaleString("ru-RU")}`
-        : "Дата и время будут уточнены.",
-      "",
-      "Чтобы открыть личный кабинет и сразу установить пароль, перейдите по одноразовой ссылке:",
-      invitation.url,
-      "",
-      "Ссылка действует 7 дней и может быть использована один раз.",
-      "",
-      "С уважением, Александра Лунева",
-    ].join("\n"),
+    subject: "Ваша консультация оплачена и подтверждена",
+    text,
+    html: renderPaidAppointmentEmailHtml(confirmation, invitation.url),
   });
 
   return { ok: true as const, invitationId: invitation.invitation.id };

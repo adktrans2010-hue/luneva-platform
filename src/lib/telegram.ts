@@ -2,6 +2,10 @@ import { isEmailConfigured, sendMail } from "@/src/lib/email";
 import { getAdminSettings } from "@/src/lib/admin-settings";
 import { SITE_CONTACTS, getOwnerNotificationEmail } from "@/src/lib/site-contacts";
 import { getConsultationPlaceLabel } from "@/src/lib/consultation-locations";
+import {
+  createPaidAppointmentConfirmation,
+  renderPaidAppointmentTelegram,
+} from "@/src/lib/paid-appointment-confirmation";
 
 type TelegramMessage = {
   text: string;
@@ -283,6 +287,29 @@ export async function notifyOwnerPayment(appointment: AppointmentLike) {
   ].join("\n");
 
   return notifyOwner("Оплата по записи", text);
+}
+
+function telegramChatIdFromAttribution(attribution: unknown) {
+  if (!attribution || typeof attribution !== "object") return null;
+  const value = (attribution as { telegram_user_id?: unknown }).telegram_user_id;
+  const chatId = typeof value === "number" || typeof value === "string" ? String(value) : "";
+  return /^-?\d+$/.test(chatId) ? chatId : null;
+}
+
+export async function notifyTelegramClientPaidAppointment({
+  appointment,
+  serviceName,
+}: {
+  appointment: AppointmentLike & { attribution?: unknown };
+  serviceName: string;
+}) {
+  const chatId = telegramChatIdFromAttribution(appointment.attribution);
+  if (!chatId) return { ok: false, reason: "У записи нет Telegram-получателя." };
+  const confirmation = createPaidAppointmentConfirmation(appointment, serviceName);
+  return sendTelegramMessage({
+    chatId,
+    text: renderPaidAppointmentTelegram(confirmation),
+  });
 }
 
 export async function notifyOwnerPaymentRefund({

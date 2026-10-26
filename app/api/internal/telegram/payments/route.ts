@@ -10,6 +10,7 @@ import {
   beginAppointmentPaymentHold,
   expireStalePaymentHolds,
   failAppointmentPaymentHold,
+  getPaymentHoldMinutes,
 } from "@/src/lib/booking-holds";
 
 function authorized(request: Request) {
@@ -55,6 +56,7 @@ export async function POST(request: Request) {
       payment_url: payment.paymentUrl,
       payment_status: payment.status,
       payment_expires_at: appointment.holdExpiresAt?.toISOString() ?? null,
+      payment_hold_minutes: getPaymentHoldMinutes(),
       final_price: payment.amountRub,
       currency: "RUB",
       reused: payment.reused,
