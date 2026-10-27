@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 
 export const canonicalSiteOrigin = "https://luneva-psy.ru";
@@ -7,10 +8,11 @@ export const canonicalSiteOrigin = "https://luneva-psy.ru";
 // Override stale build-shell values without modifying credential-bearing env files.
 export function buildSiteCanonical({ env = process.env, run = spawnSync } = {}) {
   const buildEnv = { ...env, NEXT_PUBLIC_SITE_URL: canonicalSiteOrigin };
-  const npmCli = env.npm_execpath;
-  const result = npmCli
-    ? run(process.execPath, [npmCli, "run", "build", "--", "--webpack"], { env: buildEnv, stdio: "inherit" })
-    : run("npm", ["run", "build", "--", "--webpack"], { env: buildEnv, stdio: "inherit" });
+  // Do not inherit npm_execpath from a long-running PM2 process: on this host
+  // that wrapper aborts after Next has completed its build. Invoke the project's
+  // pinned Next CLI directly instead.
+  const nextCli = join(process.cwd(), "node_modules", "next", "dist", "bin", "next");
+  const result = run(process.execPath, [nextCli, "build", "--webpack"], { env: buildEnv, stdio: "inherit" });
   if (result.error || result.signal || result.status !== 0) {
     throw new Error("Canonical site build failed; do not activate this release.");
   }

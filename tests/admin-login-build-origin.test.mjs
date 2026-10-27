@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { join } from "node:path";
 import test from "node:test";
 import { buildSiteCanonical, canonicalSiteOrigin } from "../deploy/build-site-canonical.mjs";
 
@@ -9,8 +10,12 @@ for (const staleOrigin of [undefined, "https://luneva-osy.ru", "http://localhost
     let calls = 0;
     buildSiteCanonical({ env, run: (command, args, options) => {
       calls += 1;
-      assert.equal(command, "npm");
-      assert.deepEqual(args, ["run", "build", "--", "--webpack"]);
+      assert.equal(command, process.execPath);
+      assert.deepEqual(args, [
+        join(process.cwd(), "node_modules", "next", "dist", "bin", "next"),
+        "build",
+        "--webpack",
+      ]);
       assert.equal(options.env.NEXT_PUBLIC_SITE_URL, canonicalSiteOrigin);
       assert.equal(options.env.NEXT_PUBLIC_YANDEX_METRIKA_ID, env.NEXT_PUBLIC_YANDEX_METRIKA_ID);
       for (const path of ["/admin", "/admin/appointments", "/admin/login?error=totp"]) {
