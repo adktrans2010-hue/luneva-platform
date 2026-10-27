@@ -692,16 +692,16 @@ async function RppIndexPage() {
       </section>
 
       <section className="mt-20 rounded-[30px] border border-[#ead7d1] bg-white/72 p-7 shadow-[0_18px_55px_rgba(70,45,40,0.05)] sm:p-10 lg:p-14">
-        <p className="text-sm uppercase tracking-[0.22em] text-[#c98778]">Почему Александра</p>
+        <p className="text-sm uppercase tracking-[0.22em] text-[#c98778]">Обо мне</p>
         <div className="mt-4 grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
           <div>
             <h2 className="font-serif text-[36px] leading-tight text-[#332725] sm:text-[46px]">Профильная подготовка и практический опыт</h2>
             <p className="mt-6 text-lg leading-8 text-[#5f5552]">
-              Александра ведёт психологическую практику с 2019 года и провела более 2500 часов индивидуальных консультаций.
-              Она прошла профильную подготовку по работе с пищевым поведением и преподавала курс для психологов по теме РПП.
+              Я веду психологическую практику с 2019 года и провела более 2500 часов индивидуальных консультаций.
+              В моей подготовке есть профильное обучение работе с пищевым поведением, а также опыт преподавания курса для психологов по теме РПП.
             </p>
             <Link href="/about" className="mt-7 inline-flex font-medium text-[#9c544c] hover:text-[#7f3f39]">
-              Подробнее об Александре →
+              Подробнее обо мне →
             </Link>
           </div>
           <div>
@@ -762,10 +762,10 @@ async function RppIndexPage() {
       <section id="rpp-start" className="scroll-mt-28 pt-24">
         <p className="text-sm uppercase tracking-[0.22em] text-[#c98778]">Энциклопедия РПП</p>
         <h2 className="mt-3 max-w-4xl font-serif text-[36px] leading-tight text-[#332725] sm:text-[46px]">
-          Материалы Александры
+          Материалы, которые я собрала
         </h2>
         <p className="mt-5 max-w-3xl text-lg leading-8 text-[#5f5552]">
-          Здесь сохранены существующие материалы о первых признаках, причинах, переедании, ограничениях, отношении к телу и безопасных способах получить помощь.
+          Здесь я собрала материалы о первых признаках, причинах, переедании, ограничениях, отношении к телу и безопасных способах получить помощь.
         </p>
         <div className="mt-9 grid gap-5 md:grid-cols-2">
           {situationCards.map((card) => (
