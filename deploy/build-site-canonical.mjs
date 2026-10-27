@@ -14,10 +14,17 @@ export function buildSiteCanonical({ env = process.env, run = spawnSync } = {}) 
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  let exitCode = 0;
   try {
     buildSiteCanonical();
   } catch {
     console.error("Canonical site build failed; active release must remain unchanged.");
-    process.exitCode = 1;
+    exitCode = 1;
   }
+
+  // On the production host, ordinary Node shutdown after a completed
+  // spawnSync build can abort even though Next itself exited successfully.
+  // The build result is already checked above, so exit without running the
+  // problematic parent-process teardown path.
+  process.reallyExit(exitCode);
 }
