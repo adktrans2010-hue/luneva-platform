@@ -9,8 +9,8 @@ export function buildSiteCanonical({ env = process.env, run = spawnSync } = {}) 
   const buildEnv = { ...env, NEXT_PUBLIC_SITE_URL: canonicalSiteOrigin };
   const npmCli = env.npm_execpath;
   const result = npmCli
-    ? run(process.execPath, [npmCli, "run", "build"], { env: buildEnv, stdio: "inherit" })
-    : run("npm", ["run", "build"], { env: buildEnv, stdio: "inherit" });
+    ? run(process.execPath, [npmCli, "run", "build", "--", "--webpack"], { env: buildEnv, stdio: "inherit" })
+    : run("npm", ["run", "build", "--", "--webpack"], { env: buildEnv, stdio: "inherit" });
   if (result.error || result.signal || result.status !== 0) {
     throw new Error("Canonical site build failed; do not activate this release.");
   }

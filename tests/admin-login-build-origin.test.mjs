@@ -10,7 +10,7 @@ for (const staleOrigin of [undefined, "https://luneva-osy.ru", "http://localhost
     buildSiteCanonical({ env, run: (command, args, options) => {
       calls += 1;
       assert.equal(command, "npm");
-      assert.deepEqual(args, ["run", "build"]);
+      assert.deepEqual(args, ["run", "build", "--", "--webpack"]);
       assert.equal(options.env.NEXT_PUBLIC_SITE_URL, canonicalSiteOrigin);
       assert.equal(options.env.NEXT_PUBLIC_YANDEX_METRIKA_ID, env.NEXT_PUBLIC_YANDEX_METRIKA_ID);
       for (const path of ["/admin", "/admin/appointments", "/admin/login?error=totp"]) {
