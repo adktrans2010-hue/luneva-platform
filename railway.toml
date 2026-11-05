@@ -1,5 +1,5 @@
 [build]
-buildCommand = "npm run build"
+buildCommand = "npm run db:migrate && npm run db:seed:emergency-public && npm run build"
 
 [deploy]
 startCommand = "npm run start"
