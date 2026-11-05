@@ -8,6 +8,7 @@ import {
   type PublicConsultationProduct,
 } from "@/src/lib/consultation-product-shared";
 import { getAttribution, trackGoal } from "@/src/lib/client-analytics";
+import { SITE_CONTACTS } from "@/src/lib/site-contacts";
 import {
   createPromotionQuoteRequestKey,
   createPromotionQuoteFallback,
@@ -18,6 +19,7 @@ import {
 
 type AppointmentFormProps = {
   products: PublicConsultationProduct[];
+  emergencyBookingDisabled?: boolean;
 };
 
 type AvailableDay = { date: string; slots: string[] };
@@ -84,7 +86,43 @@ function shiftMonth(month: string, amount: number) {
 
 const weekdayLabels = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
 
-export default function AppointmentForm({ products }: AppointmentFormProps) {
+export default function AppointmentForm({
+  products,
+  emergencyBookingDisabled = false,
+}: AppointmentFormProps) {
+  if (emergencyBookingDisabled) {
+    return (
+      <div className="mt-8 rounded-2xl border border-[#ead7d1] bg-[#fff3df] p-5 text-[#5f5552]">
+        <p className="font-medium text-[#332725]">
+          Онлайн-запись временно недоступна из-за технических работ.
+        </p>
+        <p className="mt-2">
+          Пожалуйста, свяжитесь с Александрой напрямую.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <a
+            href={SITE_CONTACTS.whatsappHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-xl bg-[#332725] px-4 py-2 text-sm font-medium text-white"
+          >
+            Написать в WhatsApp
+          </a>
+          <a
+            href={SITE_CONTACTS.emailHref}
+            className="rounded-xl border border-[#332725] px-4 py-2 text-sm font-medium text-[#332725]"
+          >
+            Написать письмо
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  return <BookingForm products={products} />;
+}
+
+function BookingForm({ products }: Pick<AppointmentFormProps, "products">) {
   const minDate = useMemo(() => toDateInputValue(new Date()), []);
   const [formStartedAt] = useState(() => Date.now());
   const [productCode, setProductCode] = useState(products[0]?.code ?? "");

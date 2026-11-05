@@ -12,6 +12,10 @@ import {
   failAppointmentPaymentHold,
   getPaymentHoldMinutes,
 } from "@/src/lib/booking-holds";
+import {
+  EMERGENCY_BOOKING_MESSAGE,
+  isEmergencyBookingDisabled,
+} from "@/src/lib/emergency-booking";
 
 function authorized(request: Request) {
   const expected = process.env.TELEGRAM_INTERNAL_API_SECRET ?? "";
@@ -21,6 +25,10 @@ function authorized(request: Request) {
 }
 
 export async function POST(request: Request) {
+  if (isEmergencyBookingDisabled()) {
+    return NextResponse.json({ error: EMERGENCY_BOOKING_MESSAGE }, { status: 503 });
+  }
+
   if (!authorized(request)) {
     return NextResponse.json({ error: "Сервис недоступен." }, { status: 401 });
   }

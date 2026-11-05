@@ -31,6 +31,10 @@ import {
   failAppointmentPaymentHold,
   paymentHoldExpiresAt,
 } from "@/src/lib/booking-holds";
+import {
+  EMERGENCY_BOOKING_MESSAGE,
+  isEmergencyBookingDisabled,
+} from "@/src/lib/emergency-booking";
 
 const paymentMethods = new Set(["package", "online", "after_confirmation"]);
 
@@ -54,6 +58,10 @@ function safeAppointmentError(error: unknown) {
 }
 
 export async function POST(request: NextRequest) {
+  if (isEmergencyBookingDisabled()) {
+    return NextResponse.json({ error: EMERGENCY_BOOKING_MESSAGE }, { status: 503 });
+  }
+
   await expireStalePaymentHolds();
 
   const userId = await getUserIdFromSession(

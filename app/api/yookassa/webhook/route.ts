@@ -21,6 +21,7 @@ import {
   mapYooKassaPaymentStatus,
   parseYooKassaAmountKopeks,
 } from "@/src/lib/yookassa";
+import { isEmergencyBookingDisabled } from "@/src/lib/emergency-booking";
 
 type YooKassaNotification = {
   event?: string;
@@ -49,6 +50,10 @@ function notificationResultForHistory<
 }
 
 export async function POST(request: Request) {
+  if (isEmergencyBookingDisabled()) {
+    return NextResponse.json({ error: "Платежи временно недоступны." }, { status: 503 });
+  }
+
   const startedAt = Date.now();
   let notification: YooKassaNotification;
 

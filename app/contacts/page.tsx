@@ -5,6 +5,7 @@ import PageStructuredData from "@/components/seo/page-structured-data";
 import { getPublicConsultationProducts } from "@/src/lib/consultation-products";
 import { getSeoPage, seoToMetadata } from "@/src/lib/seo";
 import { SITE_CONTACTS } from "@/src/lib/site-contacts";
+import { isEmergencyBookingDisabled } from "@/src/lib/emergency-booking";
 
 export const dynamic = "force-dynamic";
 
@@ -50,6 +51,7 @@ const addresses = [
 
 export default async function ContactsPage() {
   const products = await getPublicConsultationProducts();
+  const emergencyBookingDisabled = isEmergencyBookingDisabled();
 
   return (
     <section className="luneva-fade bg-[#fff8f6] px-6 py-24">
@@ -141,7 +143,10 @@ export default async function ContactsPage() {
             минут. Если оплата не поступит, резерв автоматически снимается.
           </p>
 
-          <AppointmentForm products={products} />
+          <AppointmentForm
+            products={products}
+            emergencyBookingDisabled={emergencyBookingDisabled}
+          />
         </div>
 
         <div className="mt-16 rounded-[2rem] border border-[#ead7d1] bg-white p-8 shadow-sm md:p-10">

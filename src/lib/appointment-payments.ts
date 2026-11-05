@@ -16,6 +16,10 @@ import {
 import type { PromotionQuote } from "@/src/lib/consultation-promotions";
 import { createYooKassaPayment } from "@/src/lib/yookassa";
 import { isPaymentHoldExpired } from "@/src/lib/booking-holds";
+import {
+  EMERGENCY_BOOKING_MESSAGE,
+  isEmergencyBookingDisabled,
+} from "@/src/lib/emergency-booking";
 
 type AppointmentPaymentSource = "public_booking" | "account_booking" | "admin" | "telegram";
 
@@ -65,6 +69,10 @@ export async function createOrReuseAppointmentPayment({
   preferredFormat?: string;
   source: AppointmentPaymentSource;
 }) {
+  if (isEmergencyBookingDisabled()) {
+    throw new Error(EMERGENCY_BOOKING_MESSAGE);
+  }
+
   const blockedReason = canCreatePayment(appointment);
 
   if (blockedReason) {

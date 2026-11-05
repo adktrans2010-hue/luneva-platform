@@ -26,6 +26,10 @@ import {
 } from "@/src/lib/user-session";
 import { isYooKassaConfigured } from "@/src/lib/yookassa";
 import { expireStalePaymentHolds, paymentHoldExpiresAt } from "@/src/lib/booking-holds";
+import {
+  EMERGENCY_BOOKING_MESSAGE,
+  isEmergencyBookingDisabled,
+} from "@/src/lib/emergency-booking";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -100,6 +104,10 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  if (isEmergencyBookingDisabled()) {
+    return NextResponse.json({ error: EMERGENCY_BOOKING_MESSAGE }, { status: 503 });
+  }
+
   await expireStalePaymentHolds();
   let body: Record<string, unknown>;
 
