@@ -1140,6 +1140,17 @@
       "canonicalSuggestion": "https://luneva-psy.ru/blog/detoks-diety-i-mify-o-detoksikacii",
       "isLikelyDuplicate": false,
       "codexAction": "fill_seo_fields_only"
+    },
+    {
+      "url": "https://luneva-psy.ru/blog/ya-dzheyn-dou",
+      "slug": "ya-dzheyn-dou",
+      "category": "Травма и ПТСР",
+      "h1": "Я - Джейн Доу: почему женщины говорят о насилии и как бережно быть рядом",
+      "seoTitle": "Я — Джейн Доу: флешмоб, насилие, поддержка и помощь",
+      "seoDescription": "Что означает флешмоб «Я — Джейн Доу», почему женщины рассказывают о пережитом насилии, как поддержать человека, помочь себе и куда обращаться за помощью.",
+      "sourceChecked": true,
+      "isLikelyDuplicate": false,
+      "codexAction": "restore_canonical_article"
     }
   ]
 }

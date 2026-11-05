@@ -30,13 +30,13 @@
     "kompulsivnoe-pereedanie-priznaki-i-pomosch",
     "kompulsiya-navyazchivye-deystviya-ili-povedenie-vse-my-znaem-chto-nashe-povedeni"
   ],
-  "externalOnlyPublishedEvidence": [
+  "additionalPublishedEvidence": [
     {
       "slug": "ya-dzheyn-dou",
       "url": "https://luneva-psy.ru/blog/ya-dzheyn-dou",
       "status": "confirmed_published",
-      "bodyRecovered": false,
-      "report": "JANE_DOE_BODY_MISSING.md"
+      "bodyRecovered": true,
+      "asset": "articles_markdown/26-ya-dzheyn-dou.md"
     }
   ]
 }
