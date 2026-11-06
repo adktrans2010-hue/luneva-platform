@@ -9,7 +9,9 @@ Code, commands, paths and commits below were checked locally against site `f3efd
 and publisher recovery `a6572ca`. Railway names, domains, DNS, token rotation and the
 latest live queue checkpoint are **owner-supplied acceptance facts in the 2026-11-06
 runbook specification**, not a live inspection performed while writing this document.
-External orchestration must revalidate them before treating this as a current live baseline.
+The owner subsequently supplied the live Railway baseline below on 2026-11-06.
+These are dated external validation results, not a new live inspection by this documentation task.
+Revalidate them before a future recovery; deployment IDs are not permanent configuration.
 No secrets belong in this document. All commands below are future operator instructions,
 not evidence that deployment, DB restore, DNS changes or publication were performed.
 
@@ -18,7 +20,7 @@ not evidence that deployment, DB restore, DNS changes or publication were perfor
 | Component | Project / environment | Service / source |
 | --- | --- | --- |
 | Site | `luneva-platform-recovery` / `production` | `web`; `adktrans2010-hue/luneva-platform`, branch `recovery/railway-emergency-20261105` |
-| Site DB | same site project/environment | separate PostgreSQL service; actual service name must be checked in Railway |
+| Site DB | same site project/environment | `Postgres`, separate from publisher DB |
 | Publisher worker | `alexandra-publisher-recovery` / `production` | `alexandra-publisher` |
 | Publisher read-only API | same publisher project/environment | `publisher-admin-api` |
 | Publisher DB | same publisher project/environment | `Postgres`, separate from site DB |
@@ -31,6 +33,19 @@ Publisher API domain: `https://publisher-admin-api-production.up.railway.app`.
 Browser → authenticated site BFF → publisher-admin-api → publisher DB.
 Worker → same publisher DB → Telegram. Never move the publisher queue into site PostgreSQL.
 Worker and API are distinct processes/services, not two commands in one container.
+
+### Live topology checkpoint — 2026-11-06, supplied by owner
+
+| Project | Service | Deployment status |
+| --- | --- | --- |
+| luneva-platform-recovery | web | SUCCESS |
+| luneva-platform-recovery | Postgres | SUCCESS |
+| alexandra-publisher-recovery | alexandra-publisher | SUCCESS |
+| alexandra-publisher-recovery | publisher-admin-api | SUCCESS |
+| alexandra-publisher-recovery | Postgres | SUCCESS |
+
+Staged changes: **none** at this checkpoint. This does not assert every functional
+acceptance checkbox below is complete or record deployment IDs as durable settings.
 
 ## 3. Site environment inventory
 
@@ -58,13 +73,23 @@ Worker names confirmed in `apps/api/app/config.py` and `apps/api/app/publisher.p
 
 - `DATABASE_URL`
 - `TELEGRAM_BOT_TOKEN`
-- **`TELEGRAM_PUBLIC_CHANNEL_ID`**, not `TELEGRAM_CHANNEL_ID`
+- `TELEGRAM_PUBLIC_CHANNEL_ID`
 - `TELEGRAM_CHANNEL_PUBLISHER_ENABLED`
 - `TELEGRAM_CHANNEL_PUBLISHER_POLL_SECONDS`
 - `TELEGRAM_CHANNEL_PUBLISHER_TIMEZONE`
 - `CHANNEL_POST_MEDIA_DIR`
 - `PUBLISHER_HEALTH_FILE`
-- `LOG_LEVEL` (optional), `TZ` (optional process timezone; not the scheduling authority)
+- `LOG_LEVEL` (optional code setting)
+
+Channel and publisher timezone use `TELEGRAM_PUBLIC_CHANNEL_ID` and
+`TELEGRAM_CHANNEL_PUBLISHER_TIMEZONE` respectively; do not substitute generic channel/timezone names.
+
+Additional worker variables confirmed present by the owner's live Railway inventory:
+`SMTP_HOST`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_FROM`.
+These are **not required for Telegram channel publishing or queue restoration**:
+`apps/api/app/publisher.py` sends through Telegram HTTP transport, and the publisher
+configuration/scheduling path does not consume SMTP settings. Presence in the environment
+does not make them a recovery prerequisite. This documentation update does not remove them.
 
 API names: `DATABASE_URL`, `PUBLISHER_ADMIN_API_TOKEN`, `PORT`.
 API must use the publisher DB, not site DB; it needs no Telegram token.
@@ -168,6 +193,13 @@ First login: `/admin/login` → `/admin/password` → `/admin/mfa-enroll` → `/
 
 After successful login: change temporary password, complete MFA, remove temporary password
 env and return bootstrap guard to false. Keep the ordinary login/MFA workflow intact.
+
+**Explicit temporary-password cleanup:** `RECOVERY_CLINICAL_ADMIN_TEMP_PASSWORD` may exist
+only during the emergency bootstrap/onboarding window. After the first successful login,
+password change and MFA enrollment, delete it from the Railway **web environment**.
+Before that first login it may temporarily remain, but
+`RECOVERY_CLINICAL_ADMIN_BOOTSTRAP` **must already be false** after the bootstrap command.
+Do not keep the guard enabled while waiting for the user to finish onboarding.
 Without env-password mode, bootstrap uses SMTP and removes the new account on delivery failure.
 Owner reported Railway → smtp.yandex.ru TCP timeouts on 465 and 587; SMTP authentication
 was not reached. SMTP is therefore not a guaranteed recovery delivery path.
@@ -213,12 +245,12 @@ Canonical schedule: Wednesday / Friday / Sunday, **11:00 Europe/Moscow**.
 
 ## 10. Publication checkpoint versus saved dataset — critical
 
-Owner-confirmed live acceptance checkpoint supplied for this runbook:
+Owner-confirmed live Railway acceptance checkpoint, reaffirmed 2026-11-06:
 
 - Post 1: published 01.11.2026, Telegram message ID 322.
 - Post 2: manually published 05.11.2026 20:28 MSK; message ID unknown/null.
 - Post 3: published automatically after Railway recovery; exact ID/time not supplied.
-- Latest supplied queue: published 3, approved/unpublished 17, past_due 0.
+- Latest supplied queue: `published=3`, `approved_unpublished=17`, `past_due=0`.
 - Next: `recovery:telegram-series-2026-11:04`, 08.11.2026 11:00 MSK.
 
 This is a dated checkpoint, not a permanent assertion; the automatic worker advances it.
