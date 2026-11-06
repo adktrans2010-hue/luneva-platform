@@ -246,6 +246,20 @@
       "when": 1786636800000,
       "tag": "0034_ludmila_promotions",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1787788800000,
+      "tag": "0035_multi_admin_accounts",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1787788800001,
+      "tag": "0036_admin_mfa_enrollment",
+      "breakpoints": true
     }
   ]
 }
