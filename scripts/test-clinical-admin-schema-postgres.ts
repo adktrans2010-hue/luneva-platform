@@ -7,21 +7,24 @@ import path from "node:path";
 import { Pool } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
+import { verifyPassword } from "@/src/lib/password";
 
 async function main() {
   const url = process.env.CLINICAL_SCHEMA_TEST_DATABASE_URL;
   assert.ok(url, "CLINICAL_SCHEMA_TEST_DATABASE_URL required");
   const target = new URL(url);
   assert.equal(target.hostname, "127.0.0.1");
-  assert.match(target.pathname, /^\/clinical_schema_(fresh|legacy)_test(?:_diagnostics)?$/u);
+  assert.match(target.pathname, /^\/clinical_schema_(fresh|legacy)_test(?:_diagnostics|_envpassword)?$/u);
   const legacy = target.pathname.includes("legacy");
   const pool = new Pool({ connectionString: url });
   const database = drizzle(pool);
   const temporary = await mkdtemp(path.join(tmpdir(), "clinical-schema-"));
   let delivered = 0;
   let authFailure = true;
+  let connections = 0;
   const capturedPasswords: string[] = [];
   const smtp = createServer((socket) => {
+    connections += 1;
     let stage = 0;
     let body = "";
     socket.write("220 localhost ESMTP\r\n");
@@ -76,13 +79,14 @@ async function main() {
     await new Promise<void>((resolve) => smtp.listen(0, "127.0.0.1", resolve));
     const address = smtp.address();
     assert.ok(address && typeof address !== "string");
-    const bootstrap = (expectedCode = 0, port = address.port) => new Promise<string>((resolve, reject) => {
+    const bootstrap = (expectedCode = 0, overrides: Record<string, string | undefined> = {}) => new Promise<string>((resolve, reject) => {
       let output = "";
       const child = spawn(process.execPath, ["--import", "tsx", "scripts/bootstrap-clinical-admin-recovery.ts"], {
         env: { ...process.env, DATABASE_URL: url, RECOVERY_CLINICAL_ADMIN_BOOTSTRAP: "true",
           RECOVERY_CLINICAL_ADMIN_EMAIL: "qa.clinical@local.test", RECOVERY_CLINICAL_ADMIN_ALLOW_ROLE_UPDATE: "false",
-          ADMIN_ACCEPTANCE_BASE_URL: "https://qa.local.test", SMTP_HOST: "127.0.0.1", SMTP_PORT: String(port),
-          SMTP_USER: "diagnostic-user", SMTP_PASSWORD: "diagnostic-password", SMTP_FROM: "qa@local.test", SMTP_SECURE: "false" },
+          ADMIN_ACCEPTANCE_BASE_URL: "https://qa.local.test", SMTP_HOST: "127.0.0.1", SMTP_PORT: String(address.port),
+          RECOVERY_CLINICAL_ADMIN_TEMP_PASSWORD: undefined,
+          SMTP_USER: "diagnostic-user", SMTP_PASSWORD: "diagnostic-password", SMTP_FROM: "qa@local.test", SMTP_SECURE: "false", ...overrides },
         stdio: ["ignore", "pipe", "pipe"],
       });
       child.stdout.on("data", (chunk) => { output += chunk.toString(); });
@@ -127,6 +131,43 @@ async function main() {
     assert.ok(!repeatOutput.includes("smtp-start"));
     assert.deepEqual((await pool.query("SELECT * FROM admin_settings WHERE email='qa.clinical@local.test'")).rows, before);
     assert.equal(delivered, 1);
+    const envPassword = "synthetic-env-password-only";
+    const envOptions = { RECOVERY_CLINICAL_ADMIN_EMAIL: "env.clinical@local.test", RECOVERY_CLINICAL_ADMIN_TEMP_PASSWORD: envPassword, ADMIN_ACCEPTANCE_BASE_URL: "" };
+    capturedPasswords.push(envPassword);
+    const connectionCountBefore = connections;
+    for (const overrides of [
+      { ...envOptions, RECOVERY_CLINICAL_ADMIN_BOOTSTRAP: "false" },
+      { ...envOptions, RECOVERY_CLINICAL_ADMIN_TEMP_PASSWORD: "short" },
+    ]) {
+      const rejected = await bootstrap(1, overrides);
+      assertSafe(rejected);
+      assert.ok(!rejected.includes("account-created"));
+      assert.equal((await pool.query("SELECT count(*)::int AS count FROM admin_settings WHERE email='env.clinical@local.test'")).rows[0].count, 0);
+    }
+    const envOutput = await bootstrap(0, envOptions);
+    assertSafe(envOutput);
+    assert.ok(envOutput.includes("BOOTSTRAP DELIVERY MODE: secure-env-password"));
+    assert.ok(envOutput.includes("BOOTSTRAP STAGE: committed"));
+    assert.ok(!envOutput.includes("smtp-start"));
+    const envRows = (await pool.query("SELECT * FROM admin_settings WHERE email='env.clinical@local.test'")).rows;
+    assert.equal(envRows.length, 1);
+    const account = envRows[0];
+    assert.equal(account.role, "clinical_admin");
+    assert.equal(account.is_active, true);
+    assert.equal(account.must_change_password, true);
+    assert.equal(account.totp_enabled, false);
+    assert.equal(account.totp_secret, null);
+    assert.ok(verifyPassword(envPassword, account.password_hash));
+    assert.ok(!JSON.stringify(account).includes(envPassword));
+    assertSafe(await bootstrap(0, { ...envOptions, RECOVERY_CLINICAL_ADMIN_TEMP_PASSWORD: "different-synthetic-password" }));
+    assert.deepEqual((await pool.query("SELECT * FROM admin_settings WHERE email='env.clinical@local.test'")).rows, envRows);
+    await pool.query("INSERT INTO admin_settings(id,email,password_hash,role) VALUES ('ordinary-env','ordinary@local.test','synthetic-legacy-hash','admin')");
+    const ordinaryBefore = (await pool.query("SELECT * FROM admin_settings WHERE id='ordinary-env'")).rows;
+    assertSafe(await bootstrap(1, { ...envOptions, RECOVERY_CLINICAL_ADMIN_EMAIL: "ordinary@local.test" }));
+    assert.deepEqual((await pool.query("SELECT * FROM admin_settings WHERE id='ordinary-env'")).rows, ordinaryBefore);
+    assert.equal(connections, connectionCountBefore);
+    assert.equal(delivered, 1);
+    console.log("Env-password: guard + length + creation + valid hash + flags + zero SMTP connections + idempotency + ordinary admin guard: PASS");
     console.log(`${legacy ? "LEGACY" : "FRESH"} DB + real bootstrap + SMTP diagnostics/auth/connection failures + rollback + no secret leakage + idempotency: PASS`);
   } finally {
     smtp.close();

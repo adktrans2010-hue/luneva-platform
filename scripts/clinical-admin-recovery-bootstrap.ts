@@ -1,6 +1,7 @@
 export type RecoveryClinicalAdminBootstrapConfig = {
   email: string;
   allowRoleUpdate: boolean;
+  temporaryPassword?: string;
 };
 
 type Environment = Readonly<Record<string, string | undefined>>;
@@ -17,8 +18,14 @@ export function getRecoveryClinicalAdminBootstrapConfig(
     throw new Error("RECOVERY_CLINICAL_ADMIN_EMAIL must be a valid email address");
   }
 
+  const temporaryPassword = environment.RECOVERY_CLINICAL_ADMIN_TEMP_PASSWORD;
+  if (temporaryPassword !== undefined && [...temporaryPassword].length < 16) {
+    throw new Error("Recovery temporary password must contain at least 16 characters");
+  }
+
   return {
     email,
+    temporaryPassword,
     allowRoleUpdate: environment.RECOVERY_CLINICAL_ADMIN_ALLOW_ROLE_UPDATE === "true",
   };
 }

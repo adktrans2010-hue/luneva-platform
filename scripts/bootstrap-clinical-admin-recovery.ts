@@ -57,15 +57,18 @@ async function main() {
     return;
   }
 
-  console.log(smtpPresence(process.env));
-  if (!isEmailConfigured()) throw new Error("Email delivery is not configured");
-
+  const deliveryMode = config.temporaryPassword !== undefined ? "secure-env-password" : "email";
+  console.log(`BOOTSTRAP DELIVERY MODE: ${deliveryMode}`);
   const acceptanceBaseUrl = process.env.ADMIN_ACCEPTANCE_BASE_URL?.replace(/\/$/u, "");
-  if (!acceptanceBaseUrl || !/^https:\/\//u.test(acceptanceBaseUrl)) {
-    throw new Error("A HTTPS ADMIN_ACCEPTANCE_BASE_URL is required for new clinical administrator delivery");
+  if (deliveryMode === "email") {
+    console.log(smtpPresence(process.env));
+    if (!isEmailConfigured()) throw new Error("Email delivery is not configured");
+    if (!acceptanceBaseUrl || !/^https:\/\//u.test(acceptanceBaseUrl)) {
+      throw new Error("A HTTPS ADMIN_ACCEPTANCE_BASE_URL is required for new clinical administrator delivery");
+    }
   }
 
-  const temporaryPassword = randomBytes(24).toString("base64url");
+  const temporaryPassword = config.temporaryPassword ?? randomBytes(24).toString("base64url");
   const passwordHash = hashPassword(temporaryPassword);
   diagnosticSecrets.push(temporaryPassword, passwordHash);
   const id = `clinical-admin-${randomBytes(12).toString("hex")}`;
@@ -76,30 +79,33 @@ async function main() {
     role: "clinical_admin",
     isActive: true,
     mustChangePassword: true,
+    totpEnabled: false,
   });
   console.log("BOOTSTRAP STAGE: account-created");
 
   let emailSent = false;
   try {
-    console.log("BOOTSTRAP STAGE: smtp-start");
-    try {
-      await sendMail({
-        to: config.email,
-        subject: "Доступ clinical administrator Luneva Psy",
-        text: [
-          "Для вас создана учётная запись clinical administrator Luneva Psy.",
-          `Логин: ${config.email}`,
-          `Временный пароль: ${temporaryPassword}`,
-          "После первого входа установите новый пароль, затем подключите MFA.",
-          `Страница входа: ${acceptanceBaseUrl}/admin/login`,
-        ].join("\n"),
-      });
-    } catch (error) {
-      for (const line of smtpFailureLines(error, bootstrapRedactor(process.env, diagnosticSecrets))) console.error(line);
-      throw new Error("Bootstrap email delivery failed; see safe SMTP diagnostics");
+    if (deliveryMode === "email") {
+      console.log("BOOTSTRAP STAGE: smtp-start");
+      try {
+        await sendMail({
+          to: config.email,
+          subject: "Доступ clinical administrator Luneva Psy",
+          text: [
+            "Для вас создана учётная запись clinical administrator Luneva Psy.",
+            `Логин: ${config.email}`,
+            `Временный пароль: ${temporaryPassword}`,
+            "После первого входа установите новый пароль, затем подключите MFA.",
+            `Страница входа: ${acceptanceBaseUrl}/admin/login`,
+          ].join("\n"),
+        });
+      } catch (error) {
+        for (const line of smtpFailureLines(error, bootstrapRedactor(process.env, diagnosticSecrets))) console.error(line);
+        throw new Error("Bootstrap email delivery failed; see safe SMTP diagnostics");
+      }
+      emailSent = true;
+      console.log("BOOTSTRAP STAGE: smtp-sent");
     }
-    emailSent = true;
-    console.log("BOOTSTRAP STAGE: smtp-sent");
     await db.insert(loginAuditLogs).values({
       actorType: "clinical_admin_recovery",
       email: config.email,
@@ -110,12 +116,12 @@ async function main() {
     });
   } catch (error) {
     await db.delete(adminSettings).where(eq(adminSettings.id, id));
-    if (!emailSent) console.log("BOOTSTRAP STAGE: rollback-after-email-failure");
+    if (deliveryMode === "email" && !emailSent) console.log("BOOTSTRAP STAGE: rollback-after-email-failure");
     throw error;
   }
 
   console.log("BOOTSTRAP STAGE: committed");
-  console.log("CLINICAL_ADMIN_RECOVERY=CREATED role=clinical_admin active=true must_change_password=true email_delivery=sent");
+  console.log(`CLINICAL_ADMIN_RECOVERY=CREATED role=clinical_admin active=true must_change_password=true email_delivery=${emailSent ? "sent" : "skipped"}`);
 }
 
 main().catch((error) => {
