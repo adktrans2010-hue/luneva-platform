@@ -13,12 +13,14 @@ async function main() {
   assert.ok(url, "CLINICAL_SCHEMA_TEST_DATABASE_URL required");
   const target = new URL(url);
   assert.equal(target.hostname, "127.0.0.1");
-  assert.match(target.pathname, /^\/clinical_schema_(fresh|legacy)_test$/u);
+  assert.match(target.pathname, /^\/clinical_schema_(fresh|legacy)_test(?:_diagnostics)?$/u);
   const legacy = target.pathname.includes("legacy");
   const pool = new Pool({ connectionString: url });
   const database = drizzle(pool);
   const temporary = await mkdtemp(path.join(tmpdir(), "clinical-schema-"));
   let delivered = 0;
+  let authFailure = true;
+  const capturedPasswords: string[] = [];
   const smtp = createServer((socket) => {
     let stage = 0;
     let body = "";
@@ -29,6 +31,9 @@ async function main() {
         body += incoming;
         if (body.endsWith("\r\n.\r\n")) {
           delivered += 1;
+          const temporaryPassword = body.match(/Временный пароль: ([^\r\n]+)/u)?.[1];
+          assert.ok(temporaryPassword);
+          capturedPasswords.push(temporaryPassword);
           body = "";
           stage = 0;
           socket.write("250 accepted\r\n");
@@ -39,7 +44,7 @@ async function main() {
         if (line.startsWith("EHLO")) socket.write("250 localhost\r\n");
         else if (line === "AUTH LOGIN") { stage = 1; socket.write("334 username\r\n"); }
         else if (stage === 1) { stage = 2; socket.write("334 password\r\n"); }
-        else if (stage === 2) { stage = 0; socket.write("235 authenticated\r\n"); }
+        else if (stage === 2) { stage = 0; socket.write(authFailure ? `535 authentication failed password=diagnostic-password ${line}\r\n` : "235 authenticated\r\n"); }
         else if (line === "DATA") { stage = 3; socket.write("354 continue\r\n"); }
         else if (line === "QUIT") socket.end("221 goodbye\r\n");
         else socket.write("250 OK\r\n");
@@ -71,19 +76,44 @@ async function main() {
     await new Promise<void>((resolve) => smtp.listen(0, "127.0.0.1", resolve));
     const address = smtp.address();
     assert.ok(address && typeof address !== "string");
-    const bootstrap = () => new Promise<void>((resolve, reject) => {
+    const bootstrap = (expectedCode = 0, port = address.port) => new Promise<string>((resolve, reject) => {
+      let output = "";
       const child = spawn(process.execPath, ["--import", "tsx", "scripts/bootstrap-clinical-admin-recovery.ts"], {
         env: { ...process.env, DATABASE_URL: url, RECOVERY_CLINICAL_ADMIN_BOOTSTRAP: "true",
           RECOVERY_CLINICAL_ADMIN_EMAIL: "qa.clinical@local.test", RECOVERY_CLINICAL_ADMIN_ALLOW_ROLE_UPDATE: "false",
-          ADMIN_ACCEPTANCE_BASE_URL: "https://qa.local.test", SMTP_HOST: "127.0.0.1", SMTP_PORT: String(address.port),
-          SMTP_USER: "qa", SMTP_PASSWORD: "qa", SMTP_FROM: "qa@local.test", SMTP_SECURE: "false" },
-        stdio: "ignore",
+          ADMIN_ACCEPTANCE_BASE_URL: "https://qa.local.test", SMTP_HOST: "127.0.0.1", SMTP_PORT: String(port),
+          SMTP_USER: "diagnostic-user", SMTP_PASSWORD: "diagnostic-password", SMTP_FROM: "qa@local.test", SMTP_SECURE: "false" },
+        stdio: ["ignore", "pipe", "pipe"],
       });
+      child.stdout.on("data", (chunk) => { output += chunk.toString(); });
+      child.stderr.on("data", (chunk) => { output += chunk.toString(); });
       const timer = setTimeout(() => { child.kill(); reject(new Error("Bootstrap timed out")); }, 30000);
       child.on("error", reject);
-      child.on("exit", (code) => { clearTimeout(timer); if (code === 0) resolve(); else reject(new Error("Bootstrap failed")); });
+      child.on("exit", (code) => { clearTimeout(timer); if (code === expectedCode) resolve(output); else reject(new Error("Unexpected bootstrap exit")); });
     });
-    await bootstrap();
+    const assertSafe = (output: string) => {
+      for (const secret of ["diagnostic-password", "diagnostic-user", "qa@local.test", ...capturedPasswords]) {
+        assert.ok(!output.includes(secret), "Secret leaked");
+        assert.ok(!output.includes(Buffer.from(secret).toString("base64")), "Encoded secret leaked");
+      }
+    };
+    const authOutput = await bootstrap(1);
+    assertSafe(authOutput);
+    assert.ok(authOutput.includes("BOOTSTRAP SMTP FAILURE"));
+    assert.ok(authOutput.includes("535 authentication failed"));
+    assert.ok(authOutput.includes("rollback-after-email-failure"));
+    assert.equal((await pool.query("SELECT count(*)::int AS count FROM admin_settings WHERE email='qa.clinical@local.test'")).rows[0].count, 0);
+    await new Promise<void>((resolve) => smtp.close(() => resolve()));
+    const connectionOutput = await bootstrap(1);
+    assertSafe(connectionOutput);
+    assert.ok(connectionOutput.includes("ECONNREFUSED"));
+    assert.ok(connectionOutput.includes("rollback-after-email-failure"));
+    assert.equal((await pool.query("SELECT count(*)::int AS count FROM admin_settings WHERE email='qa.clinical@local.test'")).rows[0].count, 0);
+    authFailure = false;
+    await new Promise<void>((resolve) => smtp.listen(address.port, "127.0.0.1", resolve));
+    const successOutput = await bootstrap();
+    assertSafe(successOutput);
+    for (const stage of ["guard-ok", "db-ready", "account-created", "smtp-start", "smtp-sent", "committed"]) assert.ok(successOutput.includes(`BOOTSTRAP STAGE: ${stage}`));
     const before = (await pool.query("SELECT * FROM admin_settings WHERE email='qa.clinical@local.test'")).rows;
     assert.equal(before.length, 1);
     assert.equal(before[0].role, "clinical_admin");
@@ -92,10 +122,12 @@ async function main() {
     assert.equal(before[0].totp_enabled, false);
     assert.equal(before[0].totp_secret, null);
     assert.ok(before[0].password_hash);
-    await bootstrap();
+    const repeatOutput = await bootstrap();
+    assertSafe(repeatOutput);
+    assert.ok(!repeatOutput.includes("smtp-start"));
     assert.deepEqual((await pool.query("SELECT * FROM admin_settings WHERE email='qa.clinical@local.test'")).rows, before);
     assert.equal(delivered, 1);
-    console.log(`${legacy ? "LEGACY" : "FRESH"} DB + real bootstrap + local SMTP + idempotency: PASS`);
+    console.log(`${legacy ? "LEGACY" : "FRESH"} DB + real bootstrap + SMTP diagnostics/auth/connection failures + rollback + no secret leakage + idempotency: PASS`);
   } finally {
     smtp.close();
     await pool.end();
