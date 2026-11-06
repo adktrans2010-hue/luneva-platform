@@ -21,6 +21,7 @@ function NavigationIcon({ icon }: { icon: AdminNavigationIcon }) {
     megaphone: "m3 11 14-6v14L3 13v-2Zm14 1 3 3m-3-7 3-3M7 15l1 5h3l-1-4",
     funnel: "M4 5h16l-6 7v5l-4 2v-7L4 5Z",
     document: "M7 3h7l4 4v14H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm6 0v5h5M8 13h8m-8 4h8",
+    telegram: "m3 10 18-7-4 18-6-6-4 3v-5l10-7-8 8-6-4Z",
     video: "M4 6h11a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Zm13 4 5-3v10l-5-3",
     review: "M12 3 15 9l6 .9-4.3 4.2 1 5.9-5.7-3-5.7 3 1-5.9L3 9.9 9 9l3-6Z",
     help: "M9.1 9a3 3 0 1 1 5.5 1.7c-.9.7-1.6 1.2-1.6 2.6M12 17h.01M4 12a8 8 0 1 0 16 0 8 8 0 0 0-16 0Z",

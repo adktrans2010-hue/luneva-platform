@@ -10,6 +10,7 @@ export type AdminNavigationIcon =
   | "megaphone"
   | "funnel"
   | "document"
+  | "telegram"
   | "video"
   | "review"
   | "help"
@@ -69,6 +70,7 @@ export const adminNavigation: readonly AdminNavigationGroup[] = [
   {
     label: "Контент",
     items: [
+      { label: "Telegram", href: "/admin/telegram", icon: "telegram", roles: standardRoles },
       { label: "Статьи", href: "/admin/blog", icon: "document", roles: standardRoles },
       { label: "Видео", href: "/admin/videos", icon: "video", roles: standardRoles },
       { label: "Отзывы", href: "/admin/reviews", icon: "review", roles: standardRoles },
