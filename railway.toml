@@ -1,14 +1,9 @@
 [build]
-buildCommand = "npm run db:migrate && npm run db:seed:emergency-public && npm run build"
+buildCommand = "npm run build"
 
 [deploy]
 startCommand = "npm run start"
-preDeployCommand = [
-  "npm run db:migrate",
-  "npm run db:seed:emergency-public",
-  "npm run db:seed:articles:recovery",
-  "npm run db:restore:article-statuses"
-]
+preDeployCommand = []
 healthcheckPath = "/"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 5

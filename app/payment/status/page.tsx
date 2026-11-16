@@ -121,9 +121,15 @@ async function getPayment(paymentId: string) {
 export default async function PaymentStatusPage({
   searchParams,
 }: PaymentStatusPageProps) {
-  await expireStalePaymentHolds();
   const params = await searchParams;
-  const result = params.paymentId ? await getPayment(params.paymentId) : null;
+  const paymentId = typeof params.paymentId === "string"
+    && uuidPattern.test(params.paymentId)
+    ? params.paymentId
+    : null;
+  if (paymentId) {
+    await expireStalePaymentHolds();
+  }
+  const result = paymentId ? await getPayment(paymentId) : null;
 
   if (!result) {
     return (
