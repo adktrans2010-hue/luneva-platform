@@ -12,28 +12,23 @@ import {
   failAppointmentPaymentHold,
   getPaymentHoldMinutes,
 } from "@/src/lib/booking-holds";
-import {
-  EMERGENCY_BOOKING_MESSAGE,
-  isEmergencyBookingDisabled,
-} from "@/src/lib/emergency-booking";
 
 function authorized(request: Request) {
   const expected = process.env.TELEGRAM_INTERNAL_API_SECRET ?? "";
   const supplied = request.headers.get("x-telegram-internal-secret") ?? "";
-  if (!expected || expected.length !== supplied.length) return false;
-  return timingSafeEqual(Buffer.from(expected), Buffer.from(supplied));
+  const expectedBytes = Buffer.from(expected);
+  const suppliedBytes = Buffer.from(supplied);
+  if (!expected || expectedBytes.length !== suppliedBytes.length) return false;
+  return timingSafeEqual(expectedBytes, suppliedBytes);
 }
 
 export async function POST(request: Request) {
-  if (isEmergencyBookingDisabled()) {
-    return NextResponse.json({ error: EMERGENCY_BOOKING_MESSAGE }, { status: 503 });
-  }
-
   if (!authorized(request)) {
     return NextResponse.json({ error: "Сервис недоступен." }, { status: 401 });
   }
   const body = (await request.json().catch(() => null)) as { appointment_id?: string } | null;
-  if (!body?.appointment_id) {
+  if (typeof body?.appointment_id !== "string" ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.appointment_id)) {
     return NextResponse.json({ error: "Некорректная запись." }, { status: 400 });
   }
   await expireStalePaymentHolds();
@@ -69,11 +64,11 @@ export async function POST(request: Request) {
       currency: "RUB",
       reused: payment.reused,
     });
-  } catch (error) {
+  } catch {
     await failAppointmentPaymentHold(
       appointment.id,
       "Не удалось создать ссылку оплаты; слот освобождён."
     );
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Не удалось создать оплату." }, { status: 400 });
+    return NextResponse.json({ error: "Не удалось создать оплату." }, { status: 400 });
   }
 }
