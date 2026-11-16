@@ -1,0 +1,66 @@
+[
+  {
+    "slug": "chto-takoe-geshtalt-terapiya-prostymi-slovami",
+    "category": "UNRESOLVED",
+    "published": true,
+    "created_at": "2026-07-24T10:20:04.61005",
+    "updated_at": "2026-07-24T10:41:45.66",
+    "excerpt_strategy": "DERIVE_FROM_EXISTING_PUBLIC_BODY"
+  },
+  {
+    "slug": "kompulsii-navyazchivye-deystviya-i-detskiy-opyt",
+    "category": "UNRESOLVED",
+    "published": true,
+    "created_at": "2026-07-08T20:56:36.981692",
+    "updated_at": "2026-07-12T18:52:38.55",
+    "excerpt_strategy": "DERIVE_FROM_EXISTING_PUBLIC_BODY"
+  },
+  {
+    "slug": "psihologicheskaya-travma-kogda-proshloe-prodolzhaet-zhit-v-nastoyaschem",
+    "category": "UNRESOLVED",
+    "published": true,
+    "created_at": "2026-07-24T11:04:51.08039",
+    "updated_at": "2026-07-24T11:04:55.944",
+    "excerpt_strategy": "DERIVE_FROM_EXISTING_PUBLIC_BODY"
+  },
+  {
+    "slug": "pereedanie-prichiny-i-priznaki",
+    "category": "UNRESOLVED",
+    "published": true,
+    "created_at": "2026-07-08T20:56:36.980096",
+    "updated_at": "2026-07-12T18:52:38.551",
+    "excerpt_strategy": "DERIVE_FROM_EXISTING_PUBLIC_BODY"
+  },
+  {
+    "slug": "pochemu-razmer-talii-vazhnee-cifry-na-vesah-chto-stoit-znat-o-zdorove-i-otnoshenii-k-telu",
+    "category": "UNRESOLVED",
+    "published": true,
+    "created_at": "2026-08-20T14:35:48.297923",
+    "updated_at": "2026-08-20T14:36:17.766",
+    "excerpt_strategy": "DERIVE_FROM_EXISTING_PUBLIC_BODY"
+  },
+  {
+    "slug": "kak-preodolevat-trudnosti-bez-self-harm",
+    "category": "UNRESOLVED",
+    "published": true,
+    "created_at": "2026-07-08T20:56:36.972853",
+    "updated_at": "2026-07-12T18:52:38.556",
+    "excerpt_strategy": "DERIVE_FROM_EXISTING_PUBLIC_BODY"
+  },
+  {
+    "slug": "kak-pomoch-cheloveku-kotoryy-sovershaet-self-harm",
+    "category": "UNRESOLVED",
+    "published": true,
+    "created_at": "2026-07-08T20:56:36.975052",
+    "updated_at": "2026-07-15T08:01:04.516509",
+    "excerpt_strategy": "DERIVE_FROM_EXISTING_PUBLIC_BODY"
+  },
+  {
+    "slug": "self-harm-chto-vazhno-znat",
+    "category": "UNRESOLVED",
+    "published": true,
+    "created_at": "2026-07-08T20:56:36.969262",
+    "updated_at": "2026-07-15T08:01:04.517751",
+    "excerpt_strategy": "DERIVE_FROM_EXISTING_PUBLIC_BODY"
+  }
+]
