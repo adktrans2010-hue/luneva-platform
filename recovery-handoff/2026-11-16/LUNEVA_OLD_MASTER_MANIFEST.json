@@ -1,0 +1,24 @@
+{
+  "bestOldSourcePath": "var/www/luneva-platform-releases/20260822-certificates-navigation",
+  "sourceReason": "complete public routes, payment/telegram endpoints, content tooling and public assets",
+  "articles": {
+    "pages": 0,
+    "articlesPublished": 28,
+    "articles": 41,
+    "reviews": 19
+  },
+  "pages": {
+    "total": 25
+  },
+  "media": {
+    "extractionCaveat": "some non-ASCII member names were not extracted",
+    "ready": true,
+    "total": 67,
+    "referencedSkippedMembers": 0
+  },
+  "bot": {
+    "schemaParity": "EXACT",
+    "sourceSchemaHead": "20260827_0008",
+    "dbSchemaHead": "20260827_0008"
+  }
+}
