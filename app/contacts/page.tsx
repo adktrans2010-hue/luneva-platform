@@ -38,14 +38,14 @@ const addresses = [
   {
     title: "Москва",
     address: "Москва, Кожевнический проезд, дом 4/5, строение 5",
-    map:
-      "https://yandex.ru/map-widget/v1/?text=%D0%9C%D0%BE%D1%81%D0%BA%D0%B2%D0%B0%2C%20%D0%9A%D0%BE%D0%B6%D0%B5%D0%B2%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B9%20%D0%BF%D1%80%D0%BE%D0%B5%D0%B7%D0%B4%2C%20%D0%B4%D0%BE%D0%BC%204%2F5%2C%20%D1%81%D1%82%D1%80%D0%BE%D0%B5%D0%BD%D0%B8%D0%B5%205&z=16",
+    mapHref:
+      "https://yandex.ru/maps/?text=%D0%9C%D0%BE%D1%81%D0%BA%D0%B2%D0%B0%2C%20%D0%9A%D0%BE%D0%B6%D0%B5%D0%B2%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B9%20%D0%BF%D1%80%D0%BE%D0%B5%D0%B7%D0%B4%2C%20%D0%B4%D0%BE%D0%BC%204%2F5%2C%20%D1%81%D1%82%D1%80%D0%BE%D0%B5%D0%BD%D0%B8%D0%B5%205",
   },
   {
     title: "Видное",
     address: "Московская область, город Видное, Калиновая 1, «Соседский центр»",
-    map:
-      "https://yandex.ru/map-widget/v1/?text=%D0%9C%D0%BE%D1%81%D0%BA%D0%BE%D0%B2%D1%81%D0%BA%D0%B0%D1%8F%20%D0%BE%D0%B1%D0%BB%D0%B0%D1%81%D1%82%D1%8C%2C%20%D0%92%D0%B8%D0%B4%D0%BD%D0%BE%D0%B5%2C%20%D0%9A%D0%B0%D0%BB%D0%B8%D0%BD%D0%BE%D0%B2%D0%B0%D1%8F%201%2C%20%D0%A1%D0%BE%D1%81%D0%B5%D0%B4%D1%81%D0%BA%D0%B8%D0%B9%20%D1%86%D0%B5%D0%BD%D1%82%D1%80&z=16",
+    mapHref:
+      "https://yandex.ru/maps/?text=%D0%9C%D0%BE%D1%81%D0%BA%D0%BE%D0%B2%D1%81%D0%BA%D0%B0%D1%8F%20%D0%BE%D0%B1%D0%BB%D0%B0%D1%81%D1%82%D1%8C%2C%20%D0%92%D0%B8%D0%B4%D0%BD%D0%BE%D0%B5%2C%20%D0%9A%D0%B0%D0%BB%D0%B8%D0%BD%D0%BE%D0%B2%D0%B0%D1%8F%201%2C%20%D0%A1%D0%BE%D1%81%D0%B5%D0%B4%D1%81%D0%BA%D0%B8%D0%B9%20%D1%86%D0%B5%D0%BD%D1%82%D1%80",
   },
 ];
 
@@ -122,12 +122,16 @@ export default async function ContactsPage() {
                 </p>
               </div>
 
-              <iframe
-                title={`Яндекс Карта: ${place.title}`}
-                src={place.map}
-                className="h-80 w-full border-0"
-                loading="lazy"
-              />
+              <div className="border-t border-[#ead7d1] bg-[#fff8f6] p-8 md:p-10">
+                <a
+                  href={place.mapHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center rounded-2xl bg-[#332725] px-6 py-3 text-white transition hover:bg-[#4a3935] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#332725]"
+                >
+                  Открыть в Яндекс Картах
+                </a>
+              </div>
             </div>
           ))}
         </div>
