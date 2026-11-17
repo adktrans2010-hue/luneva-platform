@@ -69,7 +69,7 @@ export async function createOrReuseAppointmentPayment({
   preferredFormat?: string;
   source: AppointmentPaymentSource;
 }) {
-  if (isEmergencyBookingDisabled()) {
+  if (isEmergencyBookingDisabled() && source !== "telegram") {
     throw new Error(EMERGENCY_BOOKING_MESSAGE);
   }
 
