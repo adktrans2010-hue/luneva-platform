@@ -6,6 +6,7 @@ export type AccessAppointment = {
  consultationLocation?: string | null; scheduledAt: Date | string | null;
  meetingUrl?: string | null; meetingAvailableFrom?: Date | string | null;
  officeAddress?: string | null; officeMapUrl?: string | null;
+ telemostConferenceId?: string | null; telemostSyncStatus?: string | null; telemostLastError?: string | null;
 };
 export function validTelemostUrl(value: string) {
  try { const u = new URL(value); return u.protocol === "https:" && u.hostname === "telemost.yandex.ru" && !u.username && !u.password && !u.port; } catch { return false; }
@@ -28,6 +29,6 @@ export function consultationAccess(a: AccessAppointment, duration: number | null
  return { state, availableFrom: Number.isFinite(from) ? new Date(from).toISOString() : null, endsAt: Number.isFinite(until) ? new Date(until).toISOString() : null, joinUrl: joinPath(a.id) };
 }
 export const moscowDateTime = formatMoscowDateTime;
-export function withoutMeetingUrl<T extends { meetingUrl?: string | null }>(a: T) {
- const safe = { ...a }; delete safe.meetingUrl; return safe;
+export function withoutMeetingUrl<T extends { meetingUrl?: string | null; telemostConferenceId?: string | null }>(a: T) {
+ const safe = { ...a }; delete safe.meetingUrl; delete safe.telemostConferenceId; return safe;
 }

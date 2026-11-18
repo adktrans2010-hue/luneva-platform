@@ -380,6 +380,10 @@ export const consultationPromotions = pgTable(
 
 export const appointmentRequests = pgTable("appointment_requests", {
   meetingUrl: text("meeting_url"),
+  telemostConferenceId: text("telemost_conference_id"),
+  telemostCreatedAt: timestamp("telemost_created_at"),
+  telemostSyncStatus: text("telemost_sync_status"),
+  telemostLastError: text("telemost_last_error"),
   meetingAvailableFrom: timestamp("meeting_available_from"),
   officeAddress: text("office_address"),
   officeMapUrl: text("office_map_url"),

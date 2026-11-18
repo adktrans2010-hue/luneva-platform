@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { ensureTelemostForAppointment } from "@/src/lib/appointment-telemost";
 import { and, eq } from "drizzle-orm";
 
 import { db } from "@/src/db";
@@ -358,6 +359,12 @@ export async function POST(request: Request) {
     return [nextAppointment];
   });
 
+  // Start only for a new paid transition, after the payment transaction committed.
+  // Email delivery runs independently; provider failure cannot undo the payment.
+  const telemostTask = updatedAppointment?.status === "confirmed" &&
+    nextPaymentStatus === "paid" && localPayment.status !== "paid"
+    ? ensureTelemostForAppointment(updatedAppointment.id) : Promise.resolve();
+
   if (updatedAppointment && nextPaymentStatus === "paid" && !localPayment.notifiedAt) {
     const notifications = await Promise.allSettled([
       notifyOwnerPayment(updatedAppointment),
@@ -430,5 +437,6 @@ export async function POST(request: Request) {
     httpStatus: 200,
   });
 
+  await telemostTask;
   return jsonOk();
 }

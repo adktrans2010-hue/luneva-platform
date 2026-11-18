@@ -16,6 +16,9 @@ type AppointmentHistoryEntry = {
 };
 
 type Appointment = {
+  telemostConferenceId: string | null;
+  telemostSyncStatus: string | null;
+  telemostLastError: string | null;
   meetingUrl: string | null;
   meetingAvailableFrom: string | null;
   officeAddress: string | null;

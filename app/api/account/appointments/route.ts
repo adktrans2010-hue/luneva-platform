@@ -18,6 +18,7 @@ import {
   USER_COOKIE_NAME,
 } from "@/src/lib/user-session";
 import { notifyOwnerNewAppointment } from "@/src/lib/telegram";
+import { ensureTelemostForAppointment } from "@/src/lib/appointment-telemost";
 import { createClientNotification } from "@/src/lib/client-notifications";
 import {
   getConsultationPlaceLabel,
@@ -280,6 +281,9 @@ export async function POST(request: NextRequest) {
   }
 
   let appointmentForNotification = createdAppointment;
+  if (createdAppointment.status === "scheduled" && paymentMethod !== "online") {
+    await ensureTelemostForAppointment(createdAppointment.id);
+  }
   let paymentUrl: string | null = null;
 
   if (paymentMethod === "online" && isYooKassaConfigured()) {

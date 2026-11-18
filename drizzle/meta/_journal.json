@@ -267,6 +267,13 @@
       "when": 1794960000000,
       "tag": "0039_consultation_access",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1795046400000,
+      "tag": "0040_telemost_auto",
+      "breakpoints": true
     }
   ]
 }

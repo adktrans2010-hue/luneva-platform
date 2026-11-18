@@ -1,5 +1,6 @@
 import { parseAppointmentInput, formatMoscowDateTime } from "@/src/lib/appointment-time";
 import { NextResponse } from "next/server";
+import { ensureTelemostForAppointment } from "@/src/lib/appointment-telemost";
 import { eq } from "drizzle-orm";
 
 import { db } from "@/src/db";
@@ -174,6 +175,10 @@ export async function PATCH(request: Request, { params }: AppointmentParams) {
     .returning();
 
   const previousTime = currentRequest.scheduledAt?.toISOString() ?? "";
+  if (!["confirmed", "scheduled"].includes(currentRequest.status) &&
+      ["confirmed", "scheduled"].includes(updatedRequest.status)) {
+    await ensureTelemostForAppointment(updatedRequest.id);
+  }
   const nextTime = updatedRequest.scheduledAt?.toISOString() ?? "";
   const statusChanged = currentRequest.status !== updatedRequest.status;
   const timeChanged = previousTime !== nextTime;
