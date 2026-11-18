@@ -20,4 +20,3 @@ process.env.EMERGENCY_BOOKING_DISABLED='false';
  vm.runInThisContext(require('module').wrap(built.outputFiles[0].text))(target.exports,require,target,__filename,__dirname);
  await target.exports.run();
 })().catch(e=>{console.error(e);process.exitCode=1});
-
