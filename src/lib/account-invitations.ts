@@ -99,7 +99,8 @@ export async function sendPaidAppointmentInvitation({
   if (!email || !email.includes("@") || !isEmailConfigured()) {
     return {
       ok: false as const,
-      reason: !email
+      skipped: !email || !email.includes("@"),
+      reason: !email || !email.includes("@")
         ? "У записи нет email клиента."
         : "Email не настроен на сервере.",
     };

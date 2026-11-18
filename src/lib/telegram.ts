@@ -1,4 +1,7 @@
 import { isEmailConfigured, sendMail } from "@/src/lib/email";
+import { eq } from "drizzle-orm";
+import { db } from "@/src/db";
+import { consultationProducts } from "@/src/db/schema";
 import { getAdminSettings } from "@/src/lib/admin-settings";
 import { SITE_CONTACTS, getOwnerNotificationEmail } from "@/src/lib/site-contacts";
 import { getConsultationPlaceLabel } from "@/src/lib/consultation-locations";
@@ -25,6 +28,7 @@ type AppointmentLike = {
   paymentAmount?: number | null;
   paymentLink?: string | null;
   paymentNote?: string | null;
+  productId?: string | null;
 };
 
 type ClientLike = {
@@ -127,6 +131,7 @@ async function getOwnerEmail() {
 
 async function sendOwnerEmailNotification(subject: string, text: string) {
   if (!isEmailConfigured()) {
+    console.warn("owner_email_failed", { code: "EMAIL_NOT_CONFIGURED" });
     return {
       ok: false,
       reason: "Email не настроен: добавьте SMTP_HOST, SMTP_USER и SMTP_PASSWORD.",
@@ -140,8 +145,10 @@ async function sendOwnerEmailNotification(subject: string, text: string) {
       text: stripTelegramHtml(text),
     });
 
+    console.info("owner_email_sent");
     return { ok: true, reason: null };
   } catch (error) {
+    console.warn("owner_email_failed", { code: "EMAIL_SEND_FAILED" });
     return {
       ok: false,
       reason:
@@ -172,6 +179,9 @@ async function notifyOwner(subject: string, text: string) {
     sendTelegramMessage({ text }),
     sendOwnerEmailNotification(subject, text),
   ]);
+
+  if (telegramResult.ok) console.info("owner_telegram_sent");
+  else console.warn("owner_telegram_failed");
 
   return combineNotificationResults(telegramResult, emailResult);
 }
@@ -225,6 +235,7 @@ export async function sendTelegramMessage({ text, chatId }: TelegramMessage) {
 export async function notifyOwnerNewAppointment(appointment: AppointmentLike) {
   const text = [
     "<b>Новая запись на консультацию</b>",
+    await appointmentServiceLine(appointment),
     ...formatAppointmentLines(appointment),
   ].join("\n");
 
@@ -283,10 +294,18 @@ export async function notifyOwnerAppointmentEvent({
 export async function notifyOwnerPayment(appointment: AppointmentLike) {
   const text = [
     "<b>Оплата по записи</b>",
+    await appointmentServiceLine(appointment),
     ...formatAppointmentLines(appointment),
   ].join("\n");
 
   return notifyOwner("Оплата по записи", text);
+}
+
+async function appointmentServiceLine(appointment: AppointmentLike) {
+  if (!appointment.productId) return "Услуга: консультация (не указана в записи)";
+  const [product] = await db.select({ name: consultationProducts.name })
+    .from(consultationProducts).where(eq(consultationProducts.id, appointment.productId)).limit(1);
+  return `Услуга: ${escapeHtml(product?.name || "Консультация")}`;
 }
 
 function telegramChatIdFromAttribution(attribution: unknown) {
@@ -304,7 +323,7 @@ export async function notifyTelegramClientPaidAppointment({
   serviceName: string;
 }) {
   const chatId = telegramChatIdFromAttribution(appointment.attribution);
-  if (!chatId) return { ok: false, reason: "У записи нет Telegram-получателя." };
+  if (!chatId) return { ok: false, skipped: true, reason: "У записи нет Telegram-получателя." };
   const confirmation = createPaidAppointmentConfirmation(appointment, serviceName);
   return sendTelegramMessage({
     chatId,

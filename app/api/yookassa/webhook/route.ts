@@ -41,12 +41,12 @@ function jsonOk() {
 }
 
 function notificationResultForHistory<
-  T extends { ok: boolean; reason?: string | null },
+  T extends { ok: boolean; reason?: string | null; skipped?: boolean },
 >(result: PromiseSettledResult<T>) {
   if (result.status === "fulfilled") {
-    return { ok: result.value.ok, reason: result.value.reason ?? null };
+    return { ok: result.value.ok, skipped: result.value.skipped === true, reason: result.value.reason ?? null };
   }
-  return { ok: false, reason: "Не удалось доставить уведомление." };
+  return { ok: false, skipped: false, reason: "Не удалось доставить уведомление." };
 }
 
 export async function POST(request: Request) {
@@ -412,12 +412,12 @@ export async function POST(request: Request) {
       });
     });
 
-    if (!invitationResult.ok || !clientTelegramResult.ok) {
-      console.warn("paid_appointment_client_notification_failed", {
-        emailSent: invitationResult.ok,
-        telegramSent: clientTelegramResult.ok,
-      });
-    }
+    if (invitationResult.skipped) console.info("client_email_skipped_no_address");
+    else if (invitationResult.ok) console.info("client_email_sent");
+    else console.warn("client_email_failed");
+    if (clientTelegramResult.skipped) console.info("client_telegram_skipped_no_recipient");
+    else if (clientTelegramResult.ok) console.info("client_telegram_sent");
+    else console.warn("client_telegram_failed");
   }
 
   console.info("yookassa_webhook_processed", {
