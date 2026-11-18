@@ -1,3 +1,4 @@
+import { joinPath, officeDetails, moscowDateTime, type AccessAppointment } from "./consultation-access";
 type ConfirmationAppointment = {
   scheduledAt: Date | null;
   consultationFormat: string;
@@ -78,13 +79,22 @@ export function renderPaidAppointmentTelegram(
 
 export function renderPaidAppointmentEmailHtml(
   confirmation: PaidAppointmentConfirmation,
-  accountUrl?: string
+  accountUrl?: string,
+  appointment?: AccessAppointment
 ) {
+  const access = appointment ? consultationEmailAccess(appointment) : null;
+  const accessHtml = access ? `<h2>${escapeHtml(access.title)}</h2><p>${escapeHtml(access.message)}</p>${access.url ? `<p><a href="${escapeHtml(access.url)}">${escapeHtml(access.label)}</a></p>` : ""}` : "";
   const row = (label: string, value: string) =>
     `<tr><td style="padding:8px 0;color:#8a7a76">${escapeHtml(label)}</td><td style="padding:8px 0;text-align:right;color:#332725;font-weight:600">${escapeHtml(value)}</td></tr>`;
   const account = accountUrl
     ? `<p style="margin:24px 0 0"><a href="${escapeHtml(accountUrl)}" style="color:#9c544c">Открыть личный кабинет</a></p>`
     : "";
 
-  return `<!doctype html><html lang="ru"><body style="margin:0;background:#fff8f6;color:#332725;font-family:Arial,sans-serif"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:24px 12px"><tr><td align="center"><table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width:600px;width:100%;background:#fffdfc;border:1px solid #ead7d1;border-radius:20px"><tr><td style="padding:36px 32px"><p style="margin:0 0 16px;color:#9c544c;letter-spacing:1.5px;font-size:12px">LUNEVA PSY</p><h1 style="margin:0 0 16px;font-size:26px;line-height:1.25">Ваша консультация подтверждена</h1><p style="margin:0 0 24px;line-height:1.55">Здравствуйте!</p><p style="margin:0 0 24px;line-height:1.55">Оплата получена, ваша запись подтверждена.</p><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-top:1px solid #ead7d1;border-bottom:1px solid #ead7d1">${row("Дата", confirmation.date)}${row("Время", confirmation.time)}${row("Формат встречи", confirmation.format)}${row("Услуга", confirmation.service)}</table><p style="margin:24px 0 0;line-height:1.55">В ближайшее время Александра свяжется с вами и уточнит детали встречи.</p><p style="margin:16px 0 0;line-height:1.55">Если планы изменятся, информацию о записи можно посмотреть в личном кабинете или связаться с Александрой.</p>${account}<p style="margin:24px 0 0;line-height:1.55">До встречи!<br>Александра Лунева</p></td></tr></table></td></tr></table></body></html>`;
+  return `<!doctype html><html lang="ru"><body style="margin:0;background:#fff8f6;color:#332725;font-family:Arial,sans-serif"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:24px 12px"><tr><td align="center"><table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width:600px;width:100%;background:#fffdfc;border:1px solid #ead7d1;border-radius:20px"><tr><td style="padding:36px 32px"><p style="margin:0 0 16px;color:#9c544c;letter-spacing:1.5px;font-size:12px">LUNEVA PSY</p><h1 style="margin:0 0 16px;font-size:26px;line-height:1.25">Ваша консультация подтверждена</h1><p style="margin:0 0 24px;line-height:1.55">Здравствуйте!</p><p style="margin:0 0 24px;line-height:1.55">Оплата получена, ваша запись подтверждена.</p><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-top:1px solid #ead7d1;border-bottom:1px solid #ead7d1">${row("Дата", confirmation.date)}${row("Время", confirmation.time)}${row("Формат встречи", confirmation.format)}${row("Услуга", confirmation.service)}</table><p style="margin:24px 0 0;line-height:1.55">В ближайшее время Александра свяжется с вами и уточнит детали встречи.</p><p style="margin:16px 0 0;line-height:1.55">Если планы изменятся, информацию о записи можно посмотреть в личном кабинете или связаться с Александрой.</p>${accessHtml}${account}<p style="margin:24px 0 0;line-height:1.55">До встречи!<br>Александра Лунева</p></td></tr></table></td></tr></table></body></html>`;
+}
+
+export function consultationEmailAccess(a: AccessAppointment) {
+ if (["cancelled","expired","payment_conflict","completed"].includes(a.status)) return null;
+ if(a.consultationFormat==="online")return {title:"Онлайн-консультация",message:a.meetingAvailableFrom?`Ссылка на встречу станет доступна ${moscowDateTime(a.meetingAvailableFrom)} МСК.`:"Ссылка на встречу будет доступна за 30 минут до начала.",label:"Открыть консультацию",url:`https://luneva-psy.ru${joinPath(a.id)}`};
+ const office=officeDetails(a);return {title:"Адрес встречи",message:office.address||"Точный адрес Александра направит после подтверждения.",label:"Открыть в Яндекс Картах",url:office.mapUrl};
 }

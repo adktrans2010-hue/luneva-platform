@@ -1,3 +1,4 @@
+import { withoutMeetingUrl } from "@/src/lib/consultation-access";
 import { NextRequest, NextResponse } from "next/server";
 import { and, eq, isNull, ne, sql } from "drizzle-orm";
 
@@ -333,7 +334,7 @@ export async function POST(request: NextRequest) {
   });
 
   return NextResponse.json(
-    { ...createdAppointment, paymentUrl, holdExpiresAt },
+    { ...withoutMeetingUrl(createdAppointment), paymentUrl, holdExpiresAt },
     { status: 201 }
   );
 }

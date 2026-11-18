@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
     return savedUser;
   });
 
-  const response = NextResponse.redirect(publicUrl(request, "/account"), {
+  const response = NextResponse.redirect(publicUrl(request, invitation.appointmentId ? `/account/appointments/${invitation.appointmentId}/join` : "/account"), {
     status: 303,
   });
 

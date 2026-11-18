@@ -1,3 +1,5 @@
+import { consultationAccess } from "@/src/lib/consultation-access";
+import { appointmentDuration } from "@/src/lib/consultation-access-server";
 import { NextResponse } from "next/server";
 import { desc } from "drizzle-orm";
 
@@ -31,7 +33,7 @@ export async function GET() {
     .orderBy(desc(yookassaRefunds.createdAt));
 
   return NextResponse.json(
-    data.map((appointment) => {
+    await Promise.all(data.map(async (appointment) => {
       const appointmentPayments = payments.filter(
         (payment) => payment.appointmentId === appointment.id
       );
@@ -54,6 +56,7 @@ export async function GET() {
 
       return {
         ...appointment,
+        accessState: consultationAccess(appointment, await appointmentDuration(appointment)).state,
         paymentSummary: payment
           ? {
               id: payment.id,
@@ -75,6 +78,6 @@ export async function GET() {
           (entry) => entry.appointmentId === appointment.id
         ),
       };
-    })
+    }))
   );
 }

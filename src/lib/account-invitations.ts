@@ -10,6 +10,7 @@ import {
 import { isEmailConfigured, sendMail } from "@/src/lib/email";
 import {
   createPaidAppointmentConfirmation,
+  consultationEmailAccess,
   renderPaidAppointmentEmailHtml,
   renderPaidAppointmentTelegram,
 } from "@/src/lib/paid-appointment-confirmation";
@@ -126,11 +127,13 @@ export async function sendPaidAppointmentInvitation({
   });
 
   const confirmation = createPaidAppointmentConfirmation(appointment, serviceName);
+  const access = consultationEmailAccess(appointment);
   const text = [
     "Здравствуйте!",
     "",
     renderPaidAppointmentTelegram(confirmation),
     "",
+    ...(access ? [access.title, access.message, access.url || "", ""] : []),
     "Чтобы открыть личный кабинет и установить пароль, перейдите по одноразовой ссылке:",
     invitation.url,
     "",
@@ -141,7 +144,7 @@ export async function sendPaidAppointmentInvitation({
     to: email,
     subject: "Ваша консультация оплачена и подтверждена",
     text,
-    html: renderPaidAppointmentEmailHtml(confirmation, invitation.url),
+    html: renderPaidAppointmentEmailHtml(confirmation, invitation.url, appointment),
   });
 
   return { ok: true as const, invitationId: invitation.invitation.id };

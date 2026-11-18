@@ -379,6 +379,10 @@ export const consultationPromotions = pgTable(
 );
 
 export const appointmentRequests = pgTable("appointment_requests", {
+  meetingUrl: text("meeting_url"),
+  meetingAvailableFrom: timestamp("meeting_available_from"),
+  officeAddress: text("office_address"),
+  officeMapUrl: text("office_map_url"),
   id: uuid("id").defaultRandom().primaryKey(),
 
   userId: uuid("user_id").references(() => users.id, {

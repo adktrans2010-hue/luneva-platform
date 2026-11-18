@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import AdminConsultationAccess from "@/components/AdminConsultationAccess";
 import { adminFetch } from "@/src/lib/admin-fetch";
 
 type AppointmentStatus = "new" | "scheduled" | "completed" | "cancelled";
@@ -14,6 +15,10 @@ type AppointmentHistoryEntry = {
 };
 
 type Appointment = {
+  meetingUrl: string | null;
+  meetingAvailableFrom: string | null;
+  officeAddress: string | null;
+  officeMapUrl: string | null;
   id: string;
   name: string;
   contact: string;
@@ -883,6 +888,7 @@ function AppointmentList({
                 </select>
               )}
 
+              <AdminConsultationAccess key={appointment.id} appointment={appointment}/>
               <select
                 value={appointment.paymentStatus}
                 onChange={(event) =>

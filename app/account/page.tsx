@@ -1,3 +1,5 @@
+import ConsultationAccess from "@/components/ConsultationAccess";
+import { appointmentDuration } from "@/src/lib/consultation-access-server";
 import Link from "next/link";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
@@ -252,6 +254,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
   const defaultDurationMinutes = publicProducts.find(
     (product) => product.code === consultationProductCodes.singleSession,
   )?.durationMinutes;
+  const nearestAccessDuration = nearest ? await appointmentDuration(nearest) : null;
   const nearestDurationMinutes = nearest?.productId
     ? durationByProductId.get(nearest.productId) ?? defaultDurationMinutes
     : defaultDurationMinutes;
@@ -336,11 +339,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                     ? ` · ${nearestDurationMinutes} минут`
                     : ""}
                 </p>
-                <p className="mt-2 text-[#ead7d1]">
-                  {nearest.consultationFormat === "office"
-                    ? getConsultationAddress(nearest.consultationLocation)
-                    : "Ссылка на онлайн-встречу будет направлена отдельно."}
-                </p>
+                <ConsultationAccess appointment={nearest} duration={nearestAccessDuration}/>
                 <p className="mt-4 text-lg">
                   {paymentStatusLabels[nearest.paymentStatus] ??
                     nearest.paymentStatus}
@@ -349,7 +348,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                 <div className="mt-8 flex flex-wrap gap-3">
                   {nearest.consultationFormat === "online" && (
                     <Link
-                      href="/contacts"
+                      href={`/account/appointments/${nearest.id}/join`}
                       className="rounded-2xl bg-white px-6 py-3 text-[#332725]"
                     >
                       Подключиться
