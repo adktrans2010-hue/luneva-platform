@@ -1,3 +1,4 @@
+import { formatMoscowDateTime } from "./appointment-time";
 import { getConsultationAddress } from "./consultation-locations";
 export const ACTIVATION_OFFSET_MINUTES = 30;
 export type AccessAppointment = {
@@ -26,7 +27,7 @@ export function consultationAccess(a: AccessAppointment, duration: number | null
  const state = blocked ? "disabled" : a.consultationFormat !== "online" ? "office" : !a.meetingUrl || !validTelemostUrl(a.meetingUrl) ? "missing" : !Number.isFinite(from) || !Number.isFinite(until) ? "unavailable" : now.getTime() > until ? "ended" : now.getTime() < from ? "waiting" : "active";
  return { state, availableFrom: Number.isFinite(from) ? new Date(from).toISOString() : null, endsAt: Number.isFinite(until) ? new Date(until).toISOString() : null, joinUrl: joinPath(a.id) };
 }
-export function moscowDateTime(value: string | Date) { return new Intl.DateTimeFormat("ru-RU", {timeZone:"Europe/Moscow",dateStyle:"long",timeStyle:"short"}).format(new Date(value)); }
+export const moscowDateTime = formatMoscowDateTime;
 export function withoutMeetingUrl<T extends { meetingUrl?: string | null }>(a: T) {
  const safe = { ...a }; delete safe.meetingUrl; return safe;
 }

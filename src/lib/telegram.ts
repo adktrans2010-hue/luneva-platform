@@ -1,3 +1,4 @@
+import { APPOINTMENT_TIME_ZONE } from "@/src/lib/appointment-time";
 import { isEmailConfigured, sendMail } from "@/src/lib/email";
 import { eq } from "drizzle-orm";
 import { db } from "@/src/db";
@@ -79,6 +80,7 @@ function formatDateTime(value: Date | null) {
   if (!value) return "не назначено";
 
   return new Intl.DateTimeFormat("ru-RU", {
+    timeZone: APPOINTMENT_TIME_ZONE,
     day: "2-digit",
     month: "2-digit",
     year: "numeric",

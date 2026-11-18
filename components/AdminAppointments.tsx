@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import { moscowDateInput, moscowDateTimeInput, formatMoscowDateTime, parseMoscowAppointmentDate, APPOINTMENT_TIME_ZONE } from "@/src/lib/appointment-time";
 import AdminConsultationAccess from "@/components/AdminConsultationAccess";
 import { adminFetch } from "@/src/lib/admin-fetch";
 
@@ -150,39 +151,9 @@ const notificationStatusLabels: Record<string, string> = {
   failed: "Ошибка",
 };
 
-function toDateInputValue(date: Date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-}
-
-function toDateTimeInputValue(value: string | null) {
-  if (!value) return "";
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) return "";
-
-  const day = toDateInputValue(date);
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-
-  return `${day}T${hours}:${minutes}`;
-}
-
-function formatDateTime(value: string | null) {
-  if (!value) return "Не назначено";
-
-  return new Intl.DateTimeFormat("ru-RU", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(value));
-}
+const toDateInputValue = moscowDateInput;
+function toDateTimeInputValue(value: string | null) { return value ? moscowDateTimeInput(value) : ""; }
+function formatDateTime(value: string | null) { return value ? formatMoscowDateTime(value) : "Не назначено"; }
 
 function formatRubFromKopeks(value: number) {
   return `${(value / 100).toLocaleString("ru-RU")} руб.`;
@@ -634,7 +605,8 @@ export default function AdminAppointments() {
           <div className="mt-8 grid gap-6 lg:grid-cols-[360px_1fr]">
             <div className="rounded-[2rem] border border-[#ead7d1] bg-white p-6 shadow-sm">
               <h3 className="text-xl font-medium text-[#332725]">
-                {new Date(`${selectedDate}T00:00:00`).toLocaleDateString("ru-RU", {
+                {parseMoscowAppointmentDate(selectedDate, "12:00")!.toLocaleDateString("ru-RU", {
+                  timeZone: APPOINTMENT_TIME_ZONE,
                   day: "numeric",
                   month: "long",
                   year: "numeric",

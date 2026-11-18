@@ -1,3 +1,4 @@
+import { parseAppointmentInput, formatMoscowDateTime } from "@/src/lib/appointment-time";
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 
@@ -85,9 +86,9 @@ function readDate(value: unknown) {
     return null;
   }
 
-  const date = new Date(text);
+  const date = parseAppointmentInput(text);
 
-  if (Number.isNaN(date.getTime())) {
+  if (!date) {
     return undefined;
   }
 
@@ -194,7 +195,7 @@ export async function PATCH(request: Request, { params }: AppointmentParams) {
       action,
       details: `${action}: ${
         updatedRequest.scheduledAt
-          ? updatedRequest.scheduledAt.toLocaleString("ru-RU")
+          ? formatMoscowDateTime(updatedRequest.scheduledAt)
           : "без даты"
       }`,
     });

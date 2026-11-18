@@ -1,4 +1,5 @@
 "use client";
+import { moscowDateInput, APPOINTMENT_TIME_ZONE } from "@/src/lib/appointment-time";
 
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -40,17 +41,11 @@ function campaignPromoFromUrl() {
   return new URLSearchParams(window.location.search).get("promo")?.trim() ?? "";
 }
 
-function toDateInputValue(date: Date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-}
+const toDateInputValue = moscowDateInput;
 
 function formatBookingDate(date: string, withWeekday = false) {
-  const parsed = new Date(`${date}T12:00:00`);
-  return new Intl.DateTimeFormat("ru-RU", {
+  const parsed = new Date(`${date}T12:00:00Z`);
+  return new Intl.DateTimeFormat("ru-RU", { timeZone: APPOINTMENT_TIME_ZONE,
     day: "numeric",
     month: "short",
     ...(withWeekday ? { weekday: "short" } : {}),
@@ -58,29 +53,29 @@ function formatBookingDate(date: string, withWeekday = false) {
 }
 
 function formatBookingDateLong(date: string) {
-  return new Intl.DateTimeFormat("ru-RU", {
+  return new Intl.DateTimeFormat("ru-RU", { timeZone: APPOINTMENT_TIME_ZONE,
     day: "numeric",
     month: "long",
-  }).format(new Date(`${date}T12:00:00`));
+  }).format(new Date(`${date}T12:00:00Z`));
 }
 
 function addDays(date: Date, days: number) {
   const next = new Date(date);
-  next.setDate(next.getDate() + days);
+  next.setUTCDate(next.getUTCDate() + days);
   return next;
 }
 
 function monthKey(date: Date) {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
 }
 
 function monthStart(month: string) {
-  return new Date(`${month}-01T12:00:00`);
+  return new Date(`${month}-01T12:00:00Z`);
 }
 
 function shiftMonth(month: string, amount: number) {
   const next = monthStart(month);
-  next.setMonth(next.getMonth() + amount);
+  next.setUTCMonth(next.getUTCMonth() + amount);
   return monthKey(next);
 }
 
@@ -362,23 +357,23 @@ function BookingForm({ products }: Pick<AppointmentFormProps, "products">) {
     () => new Set(availability.map((day) => day.date)),
     [availability]
   );
-  const calendarHorizonStart = useMemo(() => new Date(`${minDate}T12:00:00`), [minDate]);
+  const calendarHorizonStart = useMemo(() => new Date(`${minDate}T12:00:00Z`), [minDate]);
   const calendarHorizonEnd = useMemo(
     () => addDays(calendarHorizonStart, 29),
     [calendarHorizonStart]
   );
   const calendarMonthDate = useMemo(() => monthStart(calendarMonth), [calendarMonth]);
   const calendarTitle = useMemo(
-    () => new Intl.DateTimeFormat("ru-RU", { month: "long", year: "numeric" }).format(calendarMonthDate).replace(" г.", ""),
+    () => new Intl.DateTimeFormat("ru-RU", { timeZone: APPOINTMENT_TIME_ZONE, month: "long", year: "numeric" }).format(calendarMonthDate).replace(" г.", ""),
     [calendarMonthDate]
   );
   const calendarDays = useMemo(() => {
-    const firstWeekday = (calendarMonthDate.getDay() + 6) % 7;
-    const daysInMonth = new Date(
-      calendarMonthDate.getFullYear(),
-      calendarMonthDate.getMonth() + 1,
+    const firstWeekday = (calendarMonthDate.getUTCDay() + 6) % 7;
+    const daysInMonth = new Date(Date.UTC(
+      calendarMonthDate.getUTCFullYear(),
+      calendarMonthDate.getUTCMonth() + 1,
       0
-    ).getDate();
+    )).getUTCDate();
     const totalCells = Math.ceil((firstWeekday + daysInMonth) / 7) * 7;
     const firstCell = addDays(calendarMonthDate, -firstWeekday);
 
@@ -387,8 +382,8 @@ function BookingForm({ products }: Pick<AppointmentFormProps, "products">) {
       const value = toDateInputValue(date);
       return {
         date: value,
-        label: date.getDate(),
-        outsideMonth: date.getMonth() !== calendarMonthDate.getMonth(),
+        label: date.getUTCDate(),
+        outsideMonth: date.getUTCMonth() !== calendarMonthDate.getUTCMonth(),
         past: date < calendarHorizonStart,
       };
     });

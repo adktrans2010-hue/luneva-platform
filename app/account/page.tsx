@@ -1,3 +1,4 @@
+import { APPOINTMENT_TIME_ZONE } from "@/src/lib/appointment-time";
 import ConsultationAccess from "@/components/ConsultationAccess";
 import { appointmentDuration } from "@/src/lib/consultation-access-server";
 import Link from "next/link";
@@ -82,6 +83,7 @@ function formatDateTime(value: Date | null) {
   if (!value) return "Дата уточняется";
 
   return new Intl.DateTimeFormat("ru-RU", {
+    timeZone: APPOINTMENT_TIME_ZONE,
     day: "numeric",
     month: "long",
     year: "numeric",
@@ -94,6 +96,7 @@ function formatShortDate(value: Date | null) {
   if (!value) return "Дата уточняется";
 
   return new Intl.DateTimeFormat("ru-RU", {
+    timeZone: APPOINTMENT_TIME_ZONE,
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -118,6 +121,7 @@ function buildCalendarLink(appointment: {
   const location = getConsultationAddress(appointment.consultationLocation);
   const params = new URLSearchParams({
     action: "TEMPLATE",
+    ctz: APPOINTMENT_TIME_ZONE,
     text: "Консультация с Александрой Луневой",
     dates: `${formatGoogleDate(start)}/${formatGoogleDate(end)}`,
     details: "Психологическая консультация. Детали встречи будут направлены отдельно.",

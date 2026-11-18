@@ -1,3 +1,4 @@
+import { formatMoscowDate, formatMoscowTime } from "./appointment-time";
 import { joinPath, officeDetails, moscowDateTime, type AccessAppointment } from "./consultation-access";
 type ConfirmationAppointment = {
   scheduledAt: Date | null;
@@ -36,22 +37,10 @@ export function createPaidAppointmentConfirmation(
   serviceName: string
 ): PaidAppointmentConfirmation {
   const scheduledAt = appointment.scheduledAt;
-  const formatter = new Intl.DateTimeFormat("ru-RU", {
-    timeZone: "Europe/Moscow",
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  });
-  const timeFormatter = new Intl.DateTimeFormat("ru-RU", {
-    timeZone: "Europe/Moscow",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
 
   return {
-    date: scheduledAt ? formatter.format(scheduledAt) : "будет уточнена",
-    time: scheduledAt ? timeFormatter.format(scheduledAt) : "будет уточнено",
+    date: scheduledAt ? formatMoscowDate(scheduledAt) : "будет уточнена",
+    time: scheduledAt ? formatMoscowTime(scheduledAt) : "будет уточнено",
     format: formatConsultationFormat(
       appointment.consultationFormat,
       appointment.consultationLocation

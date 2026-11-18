@@ -1,4 +1,5 @@
 "use client";
+import { moscowDateInput } from "@/src/lib/appointment-time";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
@@ -27,13 +28,7 @@ const officeLocations = [
   { value: "vidnoye", label: "Видное" },
 ];
 
-function toDateInputValue(date: Date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-}
+const toDateInputValue = moscowDateInput;
 
 export default function AccountBookingForm({ packages }: AccountBookingFormProps) {
   const minDate = useMemo(() => toDateInputValue(new Date()), []);

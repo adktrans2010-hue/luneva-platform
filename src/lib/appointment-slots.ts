@@ -1,3 +1,4 @@
+import { parseMoscowAppointmentDate, formatMoscowTime, moscowDateInput, addCalendarDays } from "./appointment-time";
 import { and, eq, gte, inArray, lte, lt, ne } from "drizzle-orm";
 
 import { db } from "@/src/db";
@@ -8,23 +9,8 @@ import {
 import { normalizeConsultationFormat } from "@/src/lib/consultation-products";
 import { expireStalePaymentHolds } from "@/src/lib/booking-holds";
 
-function pad(value: number) {
-  return String(value).padStart(2, "0");
-}
-
-export function formatSlotTime(date: Date) {
-  return `${pad(date.getHours())}:${pad(date.getMinutes())}`;
-}
-
-export function createSlotDate(date: string, time: string) {
-  const slotDate = new Date(`${date}T${time}:00`);
-
-  if (Number.isNaN(slotDate.getTime())) {
-    return null;
-  }
-
-  return slotDate;
-}
+export const formatSlotTime = formatMoscowTime;
+export const createSlotDate = parseMoscowAppointmentDate;
 
 export type AvailableAppointmentDay = {
   date: string;
@@ -57,16 +43,11 @@ export async function getAvailableAppointmentDays(
   consultationLocation = "online"
 ): Promise<AvailableAppointmentDay[]> {
   await expireStalePaymentHolds();
-  const start = new Date(`${startDate}T00:00:00`);
+  const start = createSlotDate(startDate, "00:00");
   const count = Math.min(Math.max(Math.trunc(days), 1), 30);
-
-  if (Number.isNaN(start.getTime())) return [];
-
-  const end = new Date(start);
-  end.setDate(end.getDate() + count - 1);
-  const endDate = `${end.getFullYear()}-${pad(end.getMonth() + 1)}-${pad(end.getDate())}`;
-  const endExclusive = new Date(end);
-  endExclusive.setDate(endExclusive.getDate() + 1);
+  if (!start) return [];
+  const endDate = addCalendarDays(startDate, count - 1);
+  const endExclusive = createSlotDate(addCalendarDays(startDate, count), "00:00")!;
   const compatibleFormats = compatibleFormatsFor(consultationFormat);
 
   const [configuredSlots, busyAppointments] = await Promise.all([
@@ -113,7 +94,7 @@ export async function getAvailableAppointmentDays(
       })
       .map((appointment) => appointment.scheduledAt)
       .filter((scheduledAt): scheduledAt is Date => scheduledAt instanceof Date)
-      .map((scheduledAt) => `${scheduledAt.getFullYear()}-${pad(scheduledAt.getMonth() + 1)}-${pad(scheduledAt.getDate())}:${formatSlotTime(scheduledAt)}`)
+      .map((scheduledAt) => `${moscowDateInput(scheduledAt)}:${formatSlotTime(scheduledAt)}`)
   );
 
   const slotsByDate = new Map<string, string[]>();
