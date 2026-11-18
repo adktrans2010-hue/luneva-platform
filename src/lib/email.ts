@@ -1,5 +1,6 @@
 import { connect, type Socket } from "node:net";
 import { connect as tlsConnect, type TLSSocket } from "node:tls";
+import { emailProvider, httpsEmailConfigured, sendHttpsEmail } from "./email-provider";
 
 type SendMailOptions = {
   to: string;
@@ -74,12 +75,14 @@ function escapeEmailBody(value: string) {
 }
 
 export function isEmailConfigured() {
+  if (emailProvider() !== "smtp") return httpsEmailConfigured();
   const config = getSmtpConfig();
 
   return Boolean(config.host && config.user && config.password);
 }
 
 export async function sendMail({ to, subject, text, html }: SendMailOptions) {
+  if (emailProvider() !== "smtp") return sendHttpsEmail({ to, subject, text, html });
   const config = getSmtpConfig();
 
   if (!isEmailConfigured()) {
