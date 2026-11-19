@@ -1,4 +1,5 @@
 import AppointmentForm from "@/components/AppointmentForm";
+import LocationMapPreview from "@/components/LocationMapPreview";
 import SocialLinks from "@/components/SocialLinks";
 import Link from "next/link";
 import PageStructuredData from "@/components/seo/page-structured-data";
@@ -14,24 +15,10 @@ export async function generateMetadata() {
 }
 
 const contactCards = [
-  {
-    title: "WhatsApp",
-    text: `Пишите в WhatsApp: ${SITE_CONTACTS.whatsapp}.`,
-    href: SITE_CONTACTS.whatsappHref,
-    label: "Написать в WhatsApp",
-  },
-  {
-    title: "E-mail",
-    text: `Для писем и организационных вопросов: ${SITE_CONTACTS.contactEmail}.`,
-    href: SITE_CONTACTS.emailHref,
-    label: "Написать письмо",
-  },
-  {
-    title: "Телефон",
-    text: `Основной номер WhatsApp: ${SITE_CONTACTS.phone}. На звонки не отвечаю.`,
-    href: SITE_CONTACTS.whatsappHref,
-    label: "Написать по номеру",
-  },
+  { title: "WhatsApp", text: "Вопросы о консультации", href: SITE_CONTACTS.whatsappHref, label: "Написать", icon: "↗" },
+  { title: "Email", text: SITE_CONTACTS.contactEmail, href: SITE_CONTACTS.emailHref, label: "Написать письмо", icon: "✉" },
+  { title: "Онлайн-запись", text: "Выберите удобное время", href: "/contacts#booking", label: "Записаться", icon: "+" },
+  { title: "Личный кабинет", text: "Ваши записи и история встреч", href: "/account", label: "Открыть кабинет", icon: "⌂" },
 ];
 
 const addresses = [
@@ -54,61 +41,60 @@ export default async function ContactsPage() {
   const emergencyBookingDisabled = isEmergencyBookingDisabled();
 
   return (
-    <section className="luneva-fade bg-[#fff8f6] px-6 py-24">
+    <section className="luneva-fade bg-[#fff8f6] px-5 pt-10 pb-16 md:px-6 md:pt-14 md:pb-20">
       <PageStructuredData path="/contacts" title="Контакты и запись на консультацию" breadcrumbs={[{ name: "Главная", path: "/" }, { name: "Контакты", path: "/contacts" }]} />
       <div className="mx-auto max-w-7xl">
         <p className="mb-4 text-sm uppercase tracking-[0.25em] text-[#c98778]">
           Контакты
         </p>
 
-        <h1 className="max-w-4xl font-serif text-6xl leading-tight text-[#332725]">
+        <h1 className="max-w-4xl font-serif text-4xl sm:text-5xl lg:text-6xl leading-tight text-[#332725]">
           Запись и способы связи
         </h1>
 
-        <p className="mt-8 max-w-3xl text-lg leading-8 text-[#5f5552]">
-          Можно написать в WhatsApp, отправить письмо или выбрать свободное
-          время в форме онлайн-записи.
+        <p className="mt-4 max-w-3xl text-lg leading-8 text-[#5f5552]">
+          Выберите удобный способ связи или запишитесь на консультацию онлайн.
         </p>
 
-        <div className="mt-14 grid gap-6 md:grid-cols-3">
+        <div className="mt-7 grid grid-cols-1 gap-4 md:grid-cols-4">
           {contactCards.map((item) => (
             <a
               key={item.title}
               href={item.href}
               target={item.href.startsWith("http") ? "_blank" : undefined}
               rel={item.href.startsWith("http") ? "noopener noreferrer" : undefined}
-              className="luneva-card rounded-[2rem] border border-[#ead7d1] bg-white p-8 shadow-sm"
+              className="luneva-card flex min-w-0 flex-col rounded-[2rem] border border-[#ead7d1] bg-white p-5 shadow-sm transition hover:border-[#c98778] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8d443e]"
             >
-              <div className="mb-6 text-3xl text-[#c98778]">✦</div>
+              <div aria-hidden="true" className="mb-3 grid h-9 w-9 place-items-center rounded-full bg-[#fff0eb] text-xl text-[#8d443e]">{item.icon}</div>
 
               <h2 className="text-xl font-medium text-[#332725]">
                 {item.title}
               </h2>
 
-              <p className="mt-4 leading-7 text-[#5f5552]">{item.text}</p>
+              <p className="mt-2 text-sm leading-6 text-[#5f5552] [overflow-wrap:anywhere]">{item.text}</p>
 
-              <span className="mt-6 inline-flex text-[#c98778] [overflow-wrap:anywhere]">
+              <span className="mt-auto inline-flex pt-4 text-sm font-medium text-[#8d443e] [overflow-wrap:anywhere]">
                 {item.label}
               </span>
             </a>
           ))}
         </div>
 
-        <div className="mt-16 rounded-[3rem] bg-white p-10 shadow-sm md:p-12">
+        <div className="mt-8 rounded-[2rem] bg-white p-6 shadow-sm md:p-8">
           <p className="mb-4 text-sm uppercase tracking-[0.25em] text-[#c98778]">
             Социальные сети
           </p>
 
-          <SocialLinks className="mt-8" />
+          <SocialLinks className="mt-4" />
         </div>
 
-        <div className="mt-16 grid gap-8 lg:grid-cols-2">
+        <div className="mt-10 grid gap-6 lg:grid-cols-2">
           {addresses.map((place) => (
             <div
               key={place.address}
-              className="overflow-hidden rounded-[3rem] border border-[#ead7d1] bg-white shadow-sm"
+              className="flex flex-col overflow-hidden rounded-[2rem] border border-[#ead7d1] bg-white shadow-sm"
             >
-              <div className="p-8 md:p-10">
+              <div className="flex-1 p-6 md:p-8">
                 <p className="mb-4 text-sm uppercase tracking-[0.25em] text-[#c98778]">
                   Карта
                 </p>
@@ -122,7 +108,8 @@ export default async function ContactsPage() {
                 </p>
               </div>
 
-              <div className="border-t border-[#ead7d1] bg-[#fff8f6] p-8 md:p-10">
+              <LocationMapPreview title={place.title} address={place.address} href={place.mapHref} />
+              <div className="bg-[#fff8f6] p-6 md:px-8">
                 <a
                   href={place.mapHref}
                   target="_blank"
@@ -136,7 +123,7 @@ export default async function ContactsPage() {
           ))}
         </div>
 
-        <div id="booking" className="mt-16 scroll-mt-28 rounded-[3rem] bg-white p-10 shadow-sm md:p-14">
+        <div id="booking" className="mt-12 scroll-mt-28 rounded-[2rem] bg-white p-6 shadow-sm md:p-10">
           <h2 className="font-serif text-4xl text-[#332725]">
             Онлайн-запись
           </h2>

@@ -1,0 +1,14 @@
+import assert from "node:assert/strict";
+import { selectFeaturedReviews } from "../src/lib/featured-reviews";
+const items = Array.from({ length: 16 }, (_, i) => ({ id: String(i), text: `Review ${i}` }));
+const original = JSON.stringify(items);
+const first = selectFeaturedReviews(items, 3, () => 0);
+const second = selectFeaturedReviews(items, 3, () => 0.99);
+assert.equal(first.length, 3);
+assert.equal(new Set(first.map(x => x.id)).size, 3);
+assert.notDeepEqual(first, second);
+assert.equal(JSON.stringify(items), original);
+assert.equal(selectFeaturedReviews([items[0], items[0], items[1]], 3).length, 2);
+assert.equal(selectFeaturedReviews([], 3).length, 0);
+assert.ok(first.every(x => items.includes(x)));
+console.log("PASS: count, rotation, uniqueness, original reviews preserved, sparse input");
