@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { eq, inArray, sql } from 'drizzle-orm';
 import { db, closeDatabase } from '@/src/db';
-import { appointmentRequests, yookassaPayments } from '@/src/db/schema';
+import { appointmentRequests, yookassaPayments, users, userConsultationPackages, appointmentHistory } from '@/src/db/schema';
 import { ensureTelemostForAppointment } from '@/src/lib/appointment-telemost';
 import { getTelemostConference } from '@/src/lib/yandex-telemost';
 import { consultationAccess, withoutMeetingUrl } from '@/src/lib/consultation-access';
@@ -10,10 +10,11 @@ import { formatMoscowTime } from '@/src/lib/appointment-time';
 import { POST as webhook } from '../app/api/yookassa/webhook/route';
 import { POST as adminCreate } from '../app/api/admin/appointments/[id]/telemost/route';
 
-const g=globalThis as typeof globalThis & {__owner:string[];__emails:number;__clientTelegram:number;__provider:unknown};
+const g=globalThis as typeof globalThis & {__owner:string[];__ownerPayment:number;__emails:number;__clientTelegram:number;__provider:unknown};
 export async function run(){
  const ids:string[]=[];let calls=0;let responseStatus=201;let invalid=false;let timeout=false;
- g.__owner=[];g.__emails=0;g.__clientTelegram=0;
+ g.__owner=[];g.__ownerPayment=0;g.__emails=0;g.__clientTelegram=0;
+ const testUserId=randomUUID();
  const originalFetch=globalThis.fetch;
  globalThis.fetch=async(input,init)=>{
   assert.ok(String(input).startsWith('https://cloud-api.yandex.net/v1/telemost-api/conferences'));
@@ -76,20 +77,48 @@ export async function run(){
    await db.insert(yookassaPayments).values({id:paymentId,appointmentId:id,providerPaymentId:providerId,idempotenceKey:randomUUID(),amountKopeks:500000,status:'pending',sessionsCountSnapshot:1});
    g.__provider={id:providerId,status:'succeeded',amount:{value:'5000.00',currency:'RUB'},metadata:{appointmentId:id,internalPaymentId:paymentId}};
    const request=()=>new Request('https://example.test/api/yookassa/webhook',{method:'POST',body:JSON.stringify({event:'payment.succeeded',object:{id:providerId}})});
-   const previous:number=calls,emails:number=g.__emails,clientTelegram:number=g.__clientTelegram;
+   const previous:number=calls,emails:number=g.__emails,clientTelegram:number=g.__clientTelegram,ownerPayment:number=g.__ownerPayment;
    const parallel = await Promise.all([webhook(request()), webhook(request())]);
    assert.ok(parallel.every(response => response.status === 200));
    assert.equal((await webhook(request())).status,200);
    assert.equal(calls,previous+1);assert.equal(g.__emails,emails+1);
    assert.equal(g.__clientTelegram,clientTelegram+1);
+   assert.equal(g.__ownerPayment,ownerPayment+1);
    assert.equal((await row(id)).status,'confirmed');assert.equal((await row(id)).paymentStatus,'paid');
    assert.equal((await db.select().from(yookassaPayments).where(eq(yookassaPayments.id,paymentId)))[0].status,'paid');
    assert.equal((await row(id)).telemostSyncStatus,http===201?'created':'failed');
   }
-  console.log('TELEMOST PASS: guarded create/read, concurrency, duplicate webhook, payment/email isolation, safe retry, unknown outcome, owner failure, protected client payload, T-30, admin auth');
+  await db.insert(users).values({id:testUserId,name:'TEST55A',email:`test55a-${testUserId}@example.test`,passwordHash:'synthetic'});
+  const effects=()=>({calls,emails:g.__emails,telegram:g.__clientTelegram,owner:g.__ownerPayment});
+  for(const status of ['cancelled','expired','payment_conflict','completed','unknown_status','awaiting_payment']){
+   const id=await fixture({userId:testUserId,status,paymentStatus:'invoice_sent',holdExpiresAt:new Date(Date.now()-60000)});
+   const paymentId=randomUUID(),providerId=randomUUID();
+   await db.insert(yookassaPayments).values({id:paymentId,appointmentId:id,providerPaymentId:providerId,idempotenceKey:randomUUID(),amountKopeks:500000,status:'invoice_sent',sessionsCountSnapshot:3});
+   g.__provider={id:providerId,status:'succeeded',amount:{value:'5000.00',currency:'RUB'},metadata:{appointmentId:id,internalPaymentId:paymentId}};
+   const request=()=>new Request('https://example.test/api/yookassa/webhook',{method:'POST',body:JSON.stringify({event:'payment.succeeded',object:{id:providerId}})});
+   const before=effects();
+   assert.ok((await Promise.all([webhook(request()),webhook(request())])).every(r=>r.status===200));
+   assert.equal((await webhook(request())).status,200);
+   assert.deepEqual(effects(),before);
+   assert.equal((await row(id)).status,status==='awaiting_payment'?'payment_conflict':status);
+   const [payment]=await db.select().from(yookassaPayments).where(eq(yookassaPayments.id,paymentId));
+   assert.equal(payment.status,'paid');assert.equal(payment.providerStatus,'succeeded');assert.equal(payment.paidAmountKopeks,500000);
+   assert.ok(payment.capturedAt);assert.equal(payment.notifiedAt,null);
+   const history=await db.select().from(appointmentHistory).where(eq(appointmentHistory.appointmentId,id));
+   const skipped=history.filter(h=>h.action==='late_payment_side_effects_skipped');
+   assert.equal(skipped.length,1);
+   if(status==='cancelled')assert.equal(skipped[0].details,'Оплата получена после отмены записи; автоматическое подтверждение и уведомления не выполнялись.');
+   assert.equal((await db.select().from(userConsultationPackages).where(eq(userConsultationPackages.userId,testUserId))).length,0);
+  }
+  const beforeMissing=effects();
+  assert.equal((await webhook(new Request('https://example.test/api/yookassa/webhook',{method:'POST',body:JSON.stringify({event:'payment.succeeded',object:{id:randomUUID()}})}))).status,200);
+  assert.deepEqual(effects(),beforeMissing);
+  console.log('55A PASS: normal/concurrent duplicate exactly once; cancelled/expired/conflict/completed/unknown/late hold reconciled with zero owner/email/invite/Telegram/Telemost/package effects; missing payment safe');
  }finally{
   globalThis.fetch=originalFetch;
   if(ids.length)await db.delete(appointmentRequests).where(inArray(appointmentRequests.id,ids));
+  await db.delete(userConsultationPackages).where(eq(userConsultationPackages.userId,testUserId));
+  await db.delete(users).where(eq(users.id,testUserId));
   await closeDatabase();
  }
 }

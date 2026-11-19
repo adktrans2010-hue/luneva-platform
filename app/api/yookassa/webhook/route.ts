@@ -41,6 +41,14 @@ function jsonOk() {
   return NextResponse.json({ success: true });
 }
 
+function isPaidConfirmedAppointment(
+  appointment: Pick<typeof appointmentRequests.$inferSelect, "status" | "paymentStatus"> | undefined,
+  paymentStatus: string
+) {
+  return paymentStatus === "paid" &&
+    appointment?.status === "confirmed" && appointment.paymentStatus === "paid";
+}
+
 function notificationResultForHistory<
   T extends { ok: boolean; reason?: string | null; skipped?: boolean },
 >(result: PromiseSettledResult<T>) {
@@ -251,6 +259,10 @@ export async function POST(request: Request) {
         })
         .where(eq(yookassaPayments.id, localPayment.id));
 
+      if (nextPaymentStatus === "paid") {
+        console.info("late_payment_side_effects_skipped", { paymentId: localPayment.id, reason: "appointment_missing" });
+      }
+
       return [];
     }
 
@@ -275,7 +287,9 @@ export async function POST(request: Request) {
       appointment.status === "awaiting_payment" &&
       appointment.holdExpiresAt &&
       appointment.holdExpiresAt < now;
-    const shouldUpdateAppointmentPayment = appointment.status !== "cancelled";
+    const canConfirmAppointment = ["new", "pending", "awaiting_payment", "scheduled", "confirmed"].includes(appointment.status);
+    const shouldUpdateAppointmentPayment = appointment.status !== "cancelled" &&
+      (nextPaymentStatus !== "paid" || canConfirmAppointment);
 
     const [nextAppointment] = shouldUpdateAppointmentPayment
       ? await tx
@@ -325,8 +339,20 @@ export async function POST(request: Request) {
       source: "webhook",
     });
 
+    const paidSideEffectsEligible = isPaidConfirmedAppointment(nextAppointment, nextPaymentStatus);
+    if (nextPaymentStatus === "paid" && !paidSideEffectsEligible) {
+      await tx.insert(appointmentHistory).values({
+        appointmentId: localPayment.appointmentId,
+        action: "late_payment_side_effects_skipped",
+        details: appointment.status === "cancelled"
+          ? "Оплата получена после отмены записи; автоматическое подтверждение и уведомления не выполнялись."
+          : "Оплата получена для записи, не подлежащей подтверждению; автоматическое подтверждение и уведомления не выполнялись.",
+      });
+      console.info("late_payment_side_effects_skipped", { paymentId: localPayment.id, appointmentStatus: nextAppointment.status });
+    }
+
     if (
-      nextPaymentStatus === "paid" &&
+      paidSideEffectsEligible &&
       appointment.userId &&
       localPayment.sessionsCountSnapshot &&
       localPayment.sessionsCountSnapshot > 1
@@ -367,11 +393,11 @@ export async function POST(request: Request) {
 
   // Start only for a new paid transition, after the payment transaction committed.
   // Email delivery runs independently; provider failure cannot undo the payment.
-  const telemostTask = updatedAppointment?.status === "confirmed" &&
-    nextPaymentStatus === "paid" && localPayment.status !== "paid"
+  const paidSideEffectsEligible = isPaidConfirmedAppointment(updatedAppointment, nextPaymentStatus);
+  const telemostTask = paidSideEffectsEligible && updatedAppointment && localPayment.status !== "paid"
     ? ensureTelemostForAppointment(updatedAppointment.id) : Promise.resolve();
 
-  if (updatedAppointment && nextPaymentStatus === "paid" && !localPayment.notifiedAt) {
+  if (updatedAppointment && paidSideEffectsEligible && !localPayment.notifiedAt) {
     const notifications = await Promise.allSettled([
       notifyOwnerPayment(updatedAppointment),
       sendPaidAppointmentInvitation({
