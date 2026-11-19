@@ -24,12 +24,16 @@ const contactCards = [
 const addresses = [
   {
     title: "Москва",
+    image: "/images/contacts/map-moscow.png",
+    mapAlt: "Карта проезда к кабинету Александры Луневой в Москве, Кожевнический проезд",
     address: "Москва, Кожевнический проезд, дом 4/5, строение 5",
     mapHref:
       "https://yandex.ru/maps/?text=%D0%9C%D0%BE%D1%81%D0%BA%D0%B2%D0%B0%2C%20%D0%9A%D0%BE%D0%B6%D0%B5%D0%B2%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B9%20%D0%BF%D1%80%D0%BE%D0%B5%D0%B7%D0%B4%2C%20%D0%B4%D0%BE%D0%BC%204%2F5%2C%20%D1%81%D1%82%D1%80%D0%BE%D0%B5%D0%BD%D0%B8%D0%B5%205",
   },
   {
     title: "Видное",
+    image: "/images/contacts/map-vidnoe.png",
+    mapAlt: "Карта проезда к кабинету Александры Луневой в Видном, Соседский центр",
     address: "Московская область, город Видное, Калиновая 1, «Соседский центр»",
     mapHref:
       "https://yandex.ru/maps/?text=%D0%9C%D0%BE%D1%81%D0%BA%D0%BE%D0%B2%D1%81%D0%BA%D0%B0%D1%8F%20%D0%BE%D0%B1%D0%BB%D0%B0%D1%81%D1%82%D1%8C%2C%20%D0%92%D0%B8%D0%B4%D0%BD%D0%BE%D0%B5%2C%20%D0%9A%D0%B0%D0%BB%D0%B8%D0%BD%D0%BE%D0%B2%D0%B0%D1%8F%201%2C%20%D0%A1%D0%BE%D1%81%D0%B5%D0%B4%D1%81%D0%BA%D0%B8%D0%B9%20%D1%86%D0%B5%D0%BD%D1%82%D1%80",
@@ -108,7 +112,7 @@ export default async function ContactsPage() {
                 </p>
               </div>
 
-              <LocationMapPreview title={place.title} address={place.address} href={place.mapHref} />
+              <LocationMapPreview title={place.title} address={place.address} href={place.mapHref} image={place.image} alt={place.mapAlt} />
               <div className="bg-[#fff8f6] p-6 md:px-8">
                 <a
                   href={place.mapHref}
