@@ -56,7 +56,7 @@ export function renderPaidAppointmentTelegram(
     "✅ Оплата получена. Ваша запись подтверждена.",
     "",
     `📅 ${confirmation.date}`,
-    `🕐 ${confirmation.time}`,
+    `🕐 ${confirmation.time} МСК`,
     `📍 Формат: ${confirmation.format}`,
     `💬 ${confirmation.service}`,
     "",

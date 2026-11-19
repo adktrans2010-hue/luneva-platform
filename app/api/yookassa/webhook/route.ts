@@ -233,6 +233,12 @@ export async function POST(request: Request) {
       .limit(1)
       .for("update");
 
+    const [lockedPayment] = await tx.select().from(yookassaPayments)
+      .where(eq(yookassaPayments.id, localPayment.id)).for("update");
+    if (lockedPayment?.processedAt && lockedPayment.status === nextPaymentStatus && lockedPayment.providerStatus === nextProviderStatus) {
+      return [];
+    }
+
     if (!appointment) {
       await tx
         .update(yookassaPayments)

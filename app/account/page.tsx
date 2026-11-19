@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
-import { asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/src/db";
 import {
@@ -203,6 +203,13 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
   if (!user) {
     redirect("/login");
   }
+
+  // Attach Telegram history only inside the authenticated account, never from a bot-supplied user ID.
+  await db.update(appointmentRequests).set({ userId: user.id }).where(and(
+    isNull(appointmentRequests.userId),
+    eq(appointmentRequests.normalizedEmail, user.email.trim().toLowerCase()),
+    eq(appointmentRequests.contactMethod, "telegram"),
+  ));
 
   const appointments = await db
     .select()

@@ -119,14 +119,15 @@ export async function sendPaidAppointmentInvitation({
         .where(eq(users.email, email))
         .limit(1);
 
-  const invitation = await createAccountInvitation({
+  const invitation = existingUser ? null : await createAccountInvitation({
     email,
     appointmentId: appointment.id,
     paymentId,
-    userId: existingUser?.id ?? appointment.userId,
+    userId: appointment.userId,
   });
 
   const confirmation = createPaidAppointmentConfirmation(appointment, serviceName);
+  const accountUrl = invitation?.url ?? `${getSiteUrl()}/account`;
   const access = consultationEmailAccess(appointment);
   const text = [
     "Здравствуйте!",
@@ -134,18 +135,18 @@ export async function sendPaidAppointmentInvitation({
     renderPaidAppointmentTelegram(confirmation),
     "",
     ...(access ? [access.title, access.message, access.url || "", ""] : []),
-    "Чтобы открыть личный кабинет и установить пароль, перейдите по одноразовой ссылке:",
-    invitation.url,
+    invitation ? "Чтобы открыть личный кабинет и установить пароль, перейдите по одноразовой ссылке:" : "Открыть личный кабинет:",
+    accountUrl,
     "",
-    "Ссылка действует 7 дней и может быть использована один раз.",
+    invitation ? "Ссылка действует 7 дней и может быть использована один раз." : "Войдите с вашим существующим паролем.",
   ].join("\n");
 
   await sendMail({
     to: email,
     subject: "Ваша консультация оплачена и подтверждена",
     text,
-    html: renderPaidAppointmentEmailHtml(confirmation, invitation.url, appointment),
+    html: renderPaidAppointmentEmailHtml(confirmation, accountUrl, appointment),
   });
 
-  return { ok: true as const, invitationId: invitation.invitation.id };
+  return { ok: true as const, invitationId: invitation?.invitation.id ?? null, existingUser: !!existingUser };
 }

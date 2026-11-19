@@ -14,6 +14,7 @@ import {
 type TelegramMessage = {
   text: string;
   chatId?: string | null;
+  replyMarkup?: { inline_keyboard: { text: string; url?: string; callback_data?: string }[][] };
 };
 
 type AppointmentLike = {
@@ -192,7 +193,7 @@ export function isTelegramConfigured() {
   return Boolean(process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_OWNER_CHAT_ID);
 }
 
-export async function sendTelegramMessage({ text, chatId }: TelegramMessage) {
+export async function sendTelegramMessage({ text, chatId, replyMarkup }: TelegramMessage) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   const targetChatId = chatId || process.env.TELEGRAM_OWNER_CHAT_ID;
 
@@ -212,6 +213,7 @@ export async function sendTelegramMessage({ text, chatId }: TelegramMessage) {
         text,
         parse_mode: "HTML",
         disable_web_page_preview: true,
+          ...(replyMarkup ? { reply_markup: replyMarkup } : {}),
       }),
     });
 
@@ -329,7 +331,11 @@ export async function notifyTelegramClientPaidAppointment({
   const confirmation = createPaidAppointmentConfirmation(appointment, serviceName);
   return sendTelegramMessage({
     chatId,
-    text: renderPaidAppointmentTelegram(confirmation),
+    text: renderPaidAppointmentTelegram(confirmation) + (appointment.consultationFormat === "online" ? "\n\nСсылка для подключения появится в личном кабинете за 30 минут до начала встречи." : ""),
+    replyMarkup: { inline_keyboard: [
+      [{ text: "Личный кабинет", url: "https://luneva-psy.ru/account" }],
+      [{ text: "Мои записи", callback_data: "account:bookings" }],
+    ] },
   });
 }
 

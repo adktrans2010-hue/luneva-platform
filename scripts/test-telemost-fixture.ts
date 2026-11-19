@@ -10,10 +10,10 @@ import { formatMoscowTime } from '@/src/lib/appointment-time';
 import { POST as webhook } from '../app/api/yookassa/webhook/route';
 import { POST as adminCreate } from '../app/api/admin/appointments/[id]/telemost/route';
 
-const g=globalThis as typeof globalThis & {__owner:string[];__emails:number;__provider:unknown};
+const g=globalThis as typeof globalThis & {__owner:string[];__emails:number;__clientTelegram:number;__provider:unknown};
 export async function run(){
  const ids:string[]=[];let calls=0;let responseStatus=201;let invalid=false;let timeout=false;
- g.__owner=[];g.__emails=0;
+ g.__owner=[];g.__emails=0;g.__clientTelegram=0;
  const originalFetch=globalThis.fetch;
  globalThis.fetch=async(input,init)=>{
   assert.ok(String(input).startsWith('https://cloud-api.yandex.net/v1/telemost-api/conferences'));
@@ -76,10 +76,12 @@ export async function run(){
    await db.insert(yookassaPayments).values({id:paymentId,appointmentId:id,providerPaymentId:providerId,idempotenceKey:randomUUID(),amountKopeks:500000,status:'pending',sessionsCountSnapshot:1});
    g.__provider={id:providerId,status:'succeeded',amount:{value:'5000.00',currency:'RUB'},metadata:{appointmentId:id,internalPaymentId:paymentId}};
    const request=()=>new Request('https://example.test/api/yookassa/webhook',{method:'POST',body:JSON.stringify({event:'payment.succeeded',object:{id:providerId}})});
-   const previous:number=calls,emails:number=g.__emails;
-   assert.equal((await webhook(request())).status,200);
+   const previous:number=calls,emails:number=g.__emails,clientTelegram:number=g.__clientTelegram;
+   const parallel = await Promise.all([webhook(request()), webhook(request())]);
+   assert.ok(parallel.every(response => response.status === 200));
    assert.equal((await webhook(request())).status,200);
    assert.equal(calls,previous+1);assert.equal(g.__emails,emails+1);
+   assert.equal(g.__clientTelegram,clientTelegram+1);
    assert.equal((await row(id)).status,'confirmed');assert.equal((await row(id)).paymentStatus,'paid');
    assert.equal((await db.select().from(yookassaPayments).where(eq(yookassaPayments.id,paymentId)))[0].status,'paid');
    assert.equal((await row(id)).telemostSyncStatus,http===201?'created':'failed');

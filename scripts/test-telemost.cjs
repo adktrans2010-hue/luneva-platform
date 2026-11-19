@@ -9,7 +9,7 @@ process.env.EMERGENCY_BOOKING_DISABLED='false';
  const built=await esbuild.build({entryPoints:['scripts/test-telemost-fixture.ts'],bundle:true,platform:'node',format:'cjs',packages:'external',write:false,plugins:[{name:'external-boundaries',setup(b){
  b.onResolve({filter:/^(?:@\/src\/lib\/|\.\/)(telegram|account-invitations|yookassa|yookassa-refunds|admin-api)$/},a=>({path:a.path.split('/').pop(),namespace:'mock'}));
  b.onLoad({filter:/.*/,namespace:'mock'},a=>({loader:'js',contents:{
- telegram:'export async function sendTelegramMessage(m){globalThis.__owner.push(m.text);return {ok:true}} export async function notifyOwnerPayment(){return {ok:true}} export async function notifyTelegramClientPaidAppointment(){return {ok:true,skipped:true}}',
+ telegram:'export async function sendTelegramMessage(m){globalThis.__owner.push(m.text);return {ok:true}} export async function notifyOwnerPayment(){return {ok:true}} export async function notifyTelegramClientPaidAppointment(){globalThis.__clientTelegram++;return {ok:true}}',
  'account-invitations':'export async function sendPaidAppointmentInvitation(){globalThis.__emails++;return {ok:true}}',
  yookassa:'export function isYooKassaConfigured(){return true} export async function getYooKassaPayment(){return globalThis.__provider} export function mapYooKassaPaymentStatus(s){return s.status==="succeeded"?"paid":s.status} export function parseYooKassaAmountKopeks(v){return Math.round(Number(v)*100)}',
  'yookassa-refunds':'export async function syncRefund(){throw Error("Unexpected refund")}',
