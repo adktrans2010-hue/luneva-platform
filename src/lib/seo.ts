@@ -3,10 +3,10 @@ import { and, asc, eq } from "drizzle-orm";
 
 import { db } from "@/src/db";
 import { seoPages } from "@/src/db/schema";
+import { absoluteUrl, normalizePath, siteUrl } from "@/src/lib/site-url";
+export { absoluteUrl, normalizePath, siteUrl } from "@/src/lib/site-url";
 
 export type SeoPage = typeof seoPages.$inferSelect;
-
-export const siteUrl = "https://luneva-psy.ru";
 
 export const defaultSocialImage = {
   url: `${siteUrl}/api/og-image`,
@@ -39,18 +39,6 @@ export async function getSeoPagesForSitemap() {
     .from(seoPages)
     .where(and(eq(seoPages.includeInSitemap, true), eq(seoPages.noindex, false)))
     .orderBy(asc(seoPages.path));
-}
-
-export function normalizePath(path: string) {
-  if (!path.startsWith("/")) {
-    return `/${path}`;
-  }
-
-  return path;
-}
-
-export function absoluteUrl(path: string) {
-  return new URL(normalizePath(path), siteUrl).toString();
 }
 
 export function seoToMetadata(page?: SeoPage, fallbackPath = "/"): Metadata {

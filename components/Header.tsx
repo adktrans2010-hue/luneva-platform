@@ -215,6 +215,7 @@ function MobileSection({
 
 export default function Header() {
   const pathname = usePathname() || "/";
+  const visibleNavigation = pathname === "/rpp" ? navigationItems.map(({ label, href, account }) => ({ label: href === "/rpp" ? "Отношения с едой" : label, href, account, groups: undefined })) : navigationItems;
   const [menuOpen, setMenuOpen] = useState(false);
   const [desktopOpen, setDesktopOpen] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState<string | null>(null);
@@ -261,7 +262,7 @@ export default function Header() {
 
         <nav aria-label="Основная навигация" className="hidden xl:block">
           <ul className="flex items-center gap-4 text-[13px] 2xl:gap-6 2xl:text-sm">
-            {navigationItems.map((item) =>
+            {visibleNavigation.map((item) =>
               item.groups ? (
                 <DesktopMenu
                   key={item.href}
@@ -309,7 +310,7 @@ export default function Header() {
           className="fixed inset-x-0 top-[80px] z-[80] h-[calc(100dvh-80px)] overflow-y-auto overscroll-contain border-t border-[#ead7d1] bg-[#fff8f6] px-4 py-4 shadow-[0_20px_50px_rgba(51,39,37,0.14)] sm:top-[112px] sm:h-[calc(100dvh-112px)] xl:hidden"
         >
           <ul className="mx-auto grid max-w-xl">
-            {navigationItems.map((item) => (
+            {visibleNavigation.map((item) => (
               <MobileSection
                 key={item.href}
                 item={item}

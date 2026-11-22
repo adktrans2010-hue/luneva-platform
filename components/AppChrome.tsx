@@ -46,7 +46,7 @@ export default function AppChrome({ children }: { children: React.ReactNode }) {
 
       <main>{children}</main>
 
-      <Footer />
+      <Footer advertisingLanding={pathname === "/rpp"} />
 
       <ScrollToTop />
 

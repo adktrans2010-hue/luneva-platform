@@ -1,4 +1,4 @@
-import { absoluteUrl } from "@/src/lib/seo";
+import { absoluteUrl } from "@/src/lib/site-url";
 import { SITE_CONTACTS } from "@/src/lib/site-contacts";
 
 export type BreadcrumbItem = {
@@ -10,7 +10,7 @@ const websiteId = absoluteUrl("/#website");
 const personId = absoluteUrl("/#person");
 const serviceId = absoluteUrl("/#psychological-consultations");
 
-export function createGlobalSchema() {
+export function createGlobalSchema(advertisingLanding = false) {
   const homeUrl = absoluteUrl("/");
 
   return {
@@ -44,7 +44,7 @@ export function createGlobalSchema() {
             name: "Россия",
           },
         },
-        knowsAbout: [
+        knowsAbout: advertisingLanding ? ["Психологическое консультирование", "Пищевое поведение", "Отношения с телом"] : [
           "Гештальт-терапия",
           "Психологическое консультирование",
           "Расстройства пищевого поведения",

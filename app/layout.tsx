@@ -5,9 +5,8 @@ import { Suspense } from "react";
 import AnalyticsTracker from "@/components/AnalyticsTracker";
 import AppChrome from "@/components/AppChrome";
 import YandexMetrika from "@/components/YandexMetrika";
-import JsonLd from "@/components/seo/json-ld";
+import GlobalStructuredData from "@/components/seo/global-structured-data";
 import { defaultSocialImage } from "@/src/lib/seo";
-import { createGlobalSchema } from "@/src/lib/schema-org";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -55,7 +54,7 @@ export default function RootLayout({
         </Suspense>
         <YandexMetrika />
 
-        <JsonLd data={createGlobalSchema()} />
+        <GlobalStructuredData />
 
         <AppChrome>{children}</AppChrome>
       </body>

@@ -5,7 +5,7 @@ import CookieSettingsButton from "@/components/CookieSettingsButton";
 import Logo from "@/components/Logo";
 import { footerNavigation } from "@/src/lib/navigation";
 
-export default function Footer() {
+export default function Footer({ advertisingLanding = false }: { advertisingLanding?: boolean }) {
   return (
     <footer className="relative overflow-hidden bg-[#fff8f6] px-6 pt-24 pb-10">
       <div className="absolute -bottom-40 -left-40 h-[400px] w-[400px] rounded-full bg-[#e7b8ad]/30 blur-[120px]" />
@@ -28,7 +28,7 @@ export default function Footer() {
 
             <div className="grid gap-4 text-[#5f5552]">
               {footerNavigation.map((link) => (
-                <Link key={link.href} href={link.href}>{link.label}</Link>
+                <Link key={link.href} href={link.href}>{advertisingLanding && link.href === "/rpp" ? "Отношения с едой" : link.label}</Link>
               ))}
             </div>
           </div>
