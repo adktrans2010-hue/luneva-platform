@@ -10,6 +10,7 @@ import {
 } from "@/src/lib/attribution";
 
 export const ATTRIBUTION_STORAGE_KEY = "luneva_attribution";
+export const METRIKA_READY_EVENT = "luneva:metrika-ready";
 const SENT_GOALS_STORAGE_KEY = "luneva_sent_goals";
 const VISITOR_ID_STORAGE_KEY = "luneva_visitor_id";
 const SESSION_ID_STORAGE_KEY = "luneva_session_id";
@@ -132,6 +133,18 @@ function sanitizeAttributionValue(value: string) {
     .replace(/[\u0000-\u001f\u007f]/g, "")
     .trim()
     .slice(0, 160);
+}
+
+// Preserve campaign attribution without forwarding arbitrary query parameters.
+export function getMetrikaPageUrl(pathname: string, search: string) {
+  const incoming = new URLSearchParams(search);
+  const safe = new URLSearchParams();
+  for (const key of attributionKeys) {
+    const value = sanitizeAttributionValue(incoming.get(key) ?? "");
+    if (value) safe.set(key, value);
+  }
+  const query = safe.toString();
+  return query ? `${pathname}?${query}` : pathname;
 }
 
 function readCurrentAttribution(searchParams: URLSearchParams): AttributionValues {
@@ -257,11 +270,10 @@ export function trackGoal(
   const payload = sanitizeGoalParams(params);
   const counterId = getMetrikaCounterId();
 
-  if (counterId && typeof window.ym === "function") {
+  if (counterId && window.__lunevaMetrikaActive && typeof window.ym === "function") {
     window.ym(counterId, "reachGoal", goal, payload);
+    rememberGoal(goal, options.dedupeKey);
   }
-
-  rememberGoal(goal, options.dedupeKey);
 }
 
 export function trackInternalEvent(

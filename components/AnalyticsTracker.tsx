@@ -12,6 +12,7 @@ import {
   getAttribution,
   getSessionId,
   getVisitorId,
+  getMetrikaPageUrl,
   trackGoal,
 } from "@/src/lib/client-analytics";
 
@@ -37,8 +38,7 @@ export default function AnalyticsTracker() {
 
       captureAttribution(searchParams);
 
-      // Never send arbitrary query values (payment IDs, promo codes, or user
-      // input) to either analytics sink. UTM attribution is handled separately.
+      // Keep internal paths free of query values; Metrika receives only allowlisted attribution.
       const path = pathname;
       const metrikaId = Number(process.env.NEXT_PUBLIC_YANDEX_METRIKA_ID);
 
@@ -48,9 +48,10 @@ export default function AnalyticsTracker() {
         process.env.NODE_ENV === "production" &&
         Number.isInteger(metrikaId) &&
         metrikaId > 0 &&
+        window.__lunevaMetrikaActive &&
         typeof window.ym === "function"
       ) {
-        window.ym(metrikaId, "hit", path);
+        window.ym(metrikaId, "hit", getMetrikaPageUrl(path, searchParams.toString()));
       }
 
       previousPath.current = path;

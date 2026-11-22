@@ -3,6 +3,7 @@
 import Script from "next/script";
 import { usePathname } from "next/navigation";
 import { useEffect, useSyncExternalStore } from "react";
+import { getMetrikaPageUrl, METRIKA_READY_EVENT } from "@/src/lib/client-analytics";
 
 import {
   COOKIE_CONSENT_EVENT,
@@ -60,8 +61,9 @@ export default function YandexMetrika() {
         accurateTrackBounce: true,
         webvisor: true,
       });
-      window.ym(numericCounterId, "hit", pathname, { title: document.title });
+      window.ym(numericCounterId, "hit", getMetrikaPageUrl(pathname, window.location.search), { title: document.title });
       window.__lunevaMetrikaActive = true;
+      window.dispatchEvent(new Event(METRIKA_READY_EVENT));
     }
   }, [hasConsent, isPrivateRoute, numericCounterId, pathname, validCounterId]);
 
@@ -102,10 +104,11 @@ export default function YandexMetrika() {
                 accurateTrackBounce: true,
                 webvisor: true
               });
-              ym(${numericCounterId}, "hit", ${JSON.stringify(pathname)}, {
+              ym(${numericCounterId}, "hit", ${JSON.stringify(getMetrikaPageUrl(pathname, window.location.search)).replace(/</g, "\\u003c")}, {
                 title: document.title
               });
               window.__lunevaMetrikaActive = true;
+              window.dispatchEvent(new Event(${JSON.stringify(METRIKA_READY_EVENT)}));
             }
           `,
       }}
