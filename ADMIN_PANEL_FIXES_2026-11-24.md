@@ -42,3 +42,19 @@
 
 - In the protected admin UI, create/edit a non-published test article and confirm its date persists; then remove it.
 - Confirm payment list and analytics tabs load for an authorized admin. No real payment or Telegram send is needed.
+
+## Production UAT - 2026-11-24
+
+Status: BLOCKED before any UAT data change.
+
+- The Codex desktop/browser surface is disabled by the Work environment policy, so no authenticated browser session is available for the protected admin UI.
+- No alternate credentials or session cookie were used, and no attempt was made to bypass admin authorization.
+- Consequently, the protected UI checks below were not observed in production: article date control/save/reopen, Telegram preview, payment rows, funnel tabs, and sidebar clicks.
+- Public deployment and unauthenticated protection checks remain recorded above.
+
+UAT activity confirmation:
+
+- Real Telegram post sent: NO.
+- Real payment performed: NO.
+- Direct changed: NO.
+- Production changed during UAT: NO.
