@@ -272,8 +272,13 @@ export function trackGoal(
 
   if (counterId && window.__lunevaMetrikaActive && typeof window.ym === "function") {
     window.ym(counterId, "reachGoal", goal, payload);
-    rememberGoal(goal, options.dedupeKey);
   }
+
+  // The first-party event store powers the admin funnel. It contains only
+  // the existing consent-gated, allowlisted conversion goals above.
+  trackInternalEvent(goal, payload);
+
+  rememberGoal(goal, options.dedupeKey);
 }
 
 export function trackInternalEvent(

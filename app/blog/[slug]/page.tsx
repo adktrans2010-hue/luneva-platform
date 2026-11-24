@@ -194,6 +194,13 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           {article.category}
         </p>
 
+        <time
+          dateTime={article.createdAt.toISOString()}
+          className="mt-3 block text-sm text-[#8a7a76]"
+        >
+          Опубликовано {new Intl.DateTimeFormat("ru-RU", { timeZone: "Europe/Moscow", day: "2-digit", month: "long", year: "numeric" }).format(article.createdAt)}
+        </time>
+
         <h1 className="mt-5 font-serif text-5xl leading-tight text-[#332725]">
           {article.h1 || article.title}
         </h1>

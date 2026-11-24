@@ -1,9 +1,25 @@
-import { getSiteStats } from "@/src/lib/site-stats";
+import Link from "next/link";
+import type { ReactNode } from "react";
+
+import { getFunnelStats, getSiteStats } from "@/src/lib/site-stats";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminSiteLifePage() {
+type SearchParams = Promise<{ tab?: string; period?: string }>;
+
+function selectedPeriod(value: string | undefined): 1 | 7 | 30 {
+  if (value === "1") return 1;
+  if (value === "7") return 7;
+  return 30;
+}
+
+export default async function AdminSiteLifePage({ searchParams }: { searchParams: SearchParams }) {
+  const query = await searchParams;
+  const tab = query.tab === "advertising" || query.tab === "funnel" ? query.tab : "site";
+  const analyticsTab = tab === "site" ? "funnel" : tab;
+  const period = selectedPeriod(query.period);
   const stats = await getSiteStats();
+  const funnel = tab === "site" ? null : await getFunnelStats(period);
 
   const maxDailyViews = Math.max(...stats.daily.map((day) => day.views), 1);
 
@@ -23,6 +39,11 @@ export default async function AdminSiteLifePage() {
             Простая статистика за последние 30 дней: посетители, просмотры,
             записи, популярные материалы и источники переходов.
           </p>
+          <nav className="mt-8 flex flex-wrap gap-3" aria-label="Раздел аналитики">
+            <AnalyticsTab href="/admin/site-life" active={tab === "site"}>Сайт</AnalyticsTab>
+            <AnalyticsTab href="/admin/site-life?tab=advertising" active={tab === "advertising"}>Реклама</AnalyticsTab>
+            <AnalyticsTab href="/admin/site-life?tab=funnel" active={tab === "funnel"}>Воронка</AnalyticsTab>
+          </nav>
         </div>
       </section>
 
@@ -104,10 +125,41 @@ export default async function AdminSiteLifePage() {
               suffix="визитов"
             />
           </div>
+
+          {funnel && (
+            <section className="mt-8 grid gap-6 lg:grid-cols-2">
+              <div className="rounded-[2rem] border border-[#ead7d1] bg-white p-6 shadow-sm">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <h2 className="font-serif text-3xl text-[#332725]">Воронка записи</h2>
+                    <p className="mt-2 text-[#5f5552]">События после получения согласия на аналитику.</p>
+                  </div>
+                  <PeriodTabs tab={analyticsTab} period={period} />
+                </div>
+                <div className="mt-6 grid gap-3">
+                  {funnel.stages.map((stage, index) => (
+                    <div key={stage.eventType} className="flex items-center justify-between gap-4 rounded-2xl bg-[#fff8f6] px-4 py-3">
+                      <span className="text-[#332725]">{stage.label}</span>
+                      <span className="shrink-0 text-sm text-[#8a7a76]">{stage.value}{index === 0 ? "" : ` · ${stage.conversion}%`}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <StatsList title="Источники переходов" emptyText="Источники появятся после посещений." items={funnel.sources} suffix="визитов" />
+            </section>
+          )}
         </div>
       </section>
     </>
   );
+}
+
+function AnalyticsTab({ href, active, children }: { href: string; active: boolean; children: ReactNode }) {
+  return <Link href={href} className={active ? "rounded-full bg-[#332725] px-4 py-2 text-sm text-white" : "rounded-full border border-[#332725] px-4 py-2 text-sm text-[#332725]"}>{children}</Link>;
+}
+
+function PeriodTabs({ tab, period }: { tab: "advertising" | "funnel"; period: 1 | 7 | 30 }) {
+  return <div className="flex gap-2">{([1, 7, 30] as const).map((days) => <Link key={days} href={`/admin/site-life?tab=${tab}&period=${days}`} className={days === period ? "rounded-full bg-[#332725] px-3 py-2 text-xs text-white" : "rounded-full border border-[#ead7d1] px-3 py-2 text-xs text-[#5f5552]"}>{days === 1 ? "Сегодня" : `${days} дней`}</Link>)}</div>;
 }
 
 function StatCard({ label, value }: { label: string; value: string | number }) {

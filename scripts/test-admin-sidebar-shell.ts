@@ -28,12 +28,13 @@ async function main() {
 
   assert.ok(isAdminNavigationItemActive(byHref("admin", "/admin/appointments"), "/admin/appointments"));
   assert.ok(isAdminNavigationItemActive(byHref("admin", "/admin/clients"), "/admin/clients"));
+  assert.ok(isAdminNavigationItemActive(byHref("admin", "/admin/payments"), "/admin/payments"));
   assert.ok(isAdminNavigationItemActive(byHref("admin", "/admin/site-life"), "/admin/site-life"));
   assert.ok(!isAdminNavigationItemActive(byHref("admin", "/admin/site-life"), "/admin/site-life", "?tab=advertising"));
   assert.ok(isAdminNavigationItemActive(byHref("admin", "/admin/site-life?tab=advertising"), "/admin/site-life", "?tab=advertising"));
   assert.ok(isAdminNavigationItemActive(byHref("admin", "/admin/ai/knowledge"), "/admin/ai/knowledge"));
   assert.ok(isAdminNavigationItemActive(byHref("clinical_admin", "/admin/ai/conversations"), "/admin/ai/conversations/example-id"));
-  assert.ok(!isAdminNavigationItemActive(byHref("admin", "/admin/appointments#payments"), "/admin/appointments"));
+  assert.ok(!isAdminNavigationItemActive(byHref("admin", "/admin/payments"), "/admin/appointments"));
 
   assert.ok(isAdminAuthPath("/admin/login"));
   assert.ok(isAdminAuthPath("/admin/password"));

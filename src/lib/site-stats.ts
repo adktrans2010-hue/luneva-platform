@@ -172,3 +172,51 @@ export async function getSiteStats() {
     })),
   };
 }
+
+const funnelStages = [
+  ["page_view", "Визиты"],
+  ["view_service", "Просмотр услуги"],
+  ["click_book", "Переход к записи"],
+  ["booking_started", "Начало записи"],
+  ["slot_selected", "Выбор слота"],
+  ["booking_created", "Заявка создана"],
+  ["payment_started", "Начало оплаты"],
+  ["payment_success", "Успешная оплата"],
+] as const;
+
+export async function getFunnelStats(days: 1 | 7 | 30) {
+  const since = sql`now() - (${days} * interval '1 day')`;
+  const [eventResult, sourcesResult] = await Promise.all([
+    db.execute<ListRow>(sql`
+      select event_type as label, count(*) as value
+      from analytics_events
+      where event_type in ('page_view', 'view_service', 'click_book', 'booking_started', 'slot_selected', 'booking_created', 'payment_started', 'payment_success')
+        and created_at >= ${since}
+      group by event_type
+    `),
+    db.execute<ListRow>(sql`
+      select source as label, count(*) as value
+      from analytics_events
+      where event_type = 'page_view' and created_at >= ${since}
+      group by source
+      order by count(*) desc
+      limit 12
+    `),
+  ]);
+  const counts = new Map(rows<ListRow>(eventResult).map((item) => [String(item.label), numberValue(item.value)]));
+  let previous = 0;
+
+  return {
+    days,
+    stages: funnelStages.map(([eventType, label]) => {
+      const value = counts.get(eventType) ?? 0;
+      const conversion = previous > 0 ? Math.round((value / previous) * 100) : 0;
+      previous = value;
+      return { eventType, label, value, conversion };
+    }),
+    sources: rows<ListRow>(sourcesResult).map((item) => ({
+      label: String(item.label),
+      value: numberValue(item.value),
+    })),
+  };
+}
