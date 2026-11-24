@@ -33,10 +33,12 @@
 - Real Telegram posts sent: NO.
 - Real payments performed: NO.
 - Yandex Direct changed: NO.
-- Railway CLI authentication is unavailable in this Codex process, so its deployment status must be verified from GitHub/Railway deployment output and public/admin checks after the commits are pushed.
+- Site deployment: Railway `fce13912-3363-4029-b231-b0ef5aef9b43`, commit `1ef2a0d`, SUCCESS.
+- Publisher API deployment: Railway `a7bbed82-1a42-403a-8a34-b1b6fd4d2f2c`, commit `9c9b0ad`, SUCCESS.
+- Rollback point for web: Railway deployment `01da7b6e-533c-47ab-9ee1-4807515d188a`, commit `4b7914c`.
+- Public production checks: `/` and `/blog` returned `200`; `/admin/payments` and `/admin/site-life?tab=funnel` redirect to the protected login page; unauthenticated `/api/admin/payments` and `/api/admin/articles` return `401`.
 
 ## Remaining production checks
 
-- Verify the Railway deployment for both commits.
 - In the protected admin UI, create/edit a non-published test article and confirm its date persists; then remove it.
 - Confirm payment list and analytics tabs load for an authorized admin. No real payment or Telegram send is needed.
