@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { adminFetch } from "@/src/lib/admin-fetch";
+import { publicationDateToInput } from "@/src/lib/article-publication-date";
 
 type Article = {
   id: string;
@@ -32,26 +33,30 @@ type ArticleDraft = {
   image: string;
   faq: string;
   published: boolean;
+  publicationDate: string;
 };
 
-const emptyDraft: ArticleDraft = {
-  title: "",
-  category: "",
-  excerpt: "",
-  content: "",
-  seoTitle: "",
-  seoDescription: "",
-  h1: "",
-  image: "",
-  faq: "",
-  published: false,
-};
+function createEmptyDraft(): ArticleDraft {
+  return {
+    title: "",
+    category: "",
+    excerpt: "",
+    content: "",
+    seoTitle: "",
+    seoDescription: "",
+    h1: "",
+    image: "",
+    faq: "",
+    published: false,
+    publicationDate: publicationDateToInput(new Date()),
+  };
+}
 
 const customTopicsStorageKey = "luneva-admin-article-topics";
 
 export default function AdminArticles() {
   const [articles, setArticles] = useState<Article[]>([]);
-  const [draft, setDraft] = useState<ArticleDraft>(emptyDraft);
+  const [draft, setDraft] = useState<ArticleDraft>(createEmptyDraft);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [openedId, setOpenedId] = useState<string | null>(null);
@@ -87,7 +92,7 @@ export default function AdminArticles() {
       return;
     }
 
-    setDraft(emptyDraft);
+    setDraft(createEmptyDraft());
     setSaving(false);
     await loadArticles();
   }
@@ -98,7 +103,7 @@ export default function AdminArticles() {
     const response = await adminFetch(`/api/admin/articles/${article.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(article),
+      body: JSON.stringify({ ...article, publicationDate: publicationDateToInput(article.createdAt) }),
     });
 
     if (!response.ok) {
@@ -363,6 +368,18 @@ export default function AdminArticles() {
               className="rounded-2xl border border-[#ead7d1] px-4 py-3"
               placeholder="Заголовок"
             />
+
+            <label className="grid gap-2 text-sm text-[#5f5552]">
+              Дата публикации
+              <input
+                type="date"
+                value={draft.publicationDate}
+                onChange={(event) =>
+                  setDraft((current) => ({ ...current, publicationDate: event.target.value }))
+                }
+                className="rounded-2xl border border-[#ead7d1] px-4 py-3"
+              />
+            </label>
 
             <div className="grid gap-3 sm:grid-cols-[1fr_1fr]">
               <select
@@ -650,6 +667,20 @@ export default function AdminArticles() {
                         className="rounded-2xl border border-[#ead7d1] px-4 py-3"
                         placeholder="Заголовок"
                       />
+
+                      <label className="grid gap-2 text-sm text-[#5f5552]">
+                        Дата публикации
+                        <input
+                          type="date"
+                          value={publicationDateToInput(article.createdAt)}
+                          onChange={(event) =>
+                            updateLocalArticle(article.id, {
+                              createdAt: new Date(`${event.target.value}T12:00:00.000Z`).toISOString(),
+                            })
+                          }
+                          className="rounded-2xl border border-[#ead7d1] px-4 py-3"
+                        />
+                      </label>
 
                       <div className="grid gap-3 sm:grid-cols-[1fr_1fr]">
                         <select

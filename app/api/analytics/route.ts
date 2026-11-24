@@ -4,7 +4,17 @@ import { db } from "@/src/db";
 import { analyticsEvents } from "@/src/db/schema";
 import { consumeRateLimit, getRequestClientIp } from "@/src/lib/rate-limit";
 
-const allowedEvents = new Set(["page_view", "video_click"]);
+const allowedEvents = new Set([
+  "page_view",
+  "video_click",
+  "view_service",
+  "click_book",
+  "booking_started",
+  "slot_selected",
+  "booking_created",
+  "payment_started",
+  "payment_success",
+]);
 
 function normalizePath(path: string) {
   if (!path.startsWith("/")) return "/";

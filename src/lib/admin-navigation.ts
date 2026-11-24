@@ -56,7 +56,7 @@ export const adminNavigation: readonly AdminNavigationGroup[] = [
       { label: "Записи и расписание", href: "/admin/appointments", icon: "calendar", roles: standardRoles },
       { label: "Клиенты", href: "/admin/clients", icon: "people", roles: standardRoles },
       { label: "Пакеты консультаций", href: "/admin/packages", icon: "package", roles: standardRoles },
-      { label: "Платежи", href: "/admin/appointments#payments", icon: "payment", roles: standardRoles },
+      { label: "Платежи", href: "/admin/payments", icon: "payment", roles: standardRoles },
     ],
   },
   {

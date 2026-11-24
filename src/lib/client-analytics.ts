@@ -261,6 +261,10 @@ export function trackGoal(
     window.ym(counterId, "reachGoal", goal, payload);
   }
 
+  // The first-party event store powers the admin funnel. It contains only
+  // the existing consent-gated, allowlisted conversion goals above.
+  trackInternalEvent(goal, payload);
+
   rememberGoal(goal, options.dedupeKey);
 }
 
