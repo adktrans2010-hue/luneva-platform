@@ -4,6 +4,7 @@ import { moscowDateInput } from "@/src/lib/appointment-time";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
 import LegalConsent from "@/components/legal/legal-consent";
+import { useBookingStarted } from "@/src/lib/use-booking-started";
 import { getAttribution, trackGoal } from "@/src/lib/client-analytics";
 
 type AccountPackage = {
@@ -46,7 +47,6 @@ export default function AccountBookingForm({ packages }: AccountBookingFormProps
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [legalAccepted, setLegalAccepted] = useState(false);
-  const [formOpenedTracked, setFormOpenedTracked] = useState(false);
 
   const availablePackages = packages.filter(
     (item) =>
@@ -101,20 +101,11 @@ export default function AccountBookingForm({ packages }: AccountBookingFormProps
     setLoadingSlots(true);
   }
 
-  function trackFormOpenOnce() {
-    if (formOpenedTracked) return;
-
-    setFormOpenedTracked(true);
-    trackGoal(
-      "booking_started",
-      {
+  const trackFormOpenOnce = useBookingStarted({
         service_type: paymentMethod === "package" ? "package" : "consultation",
         consultation_format: consultationFormat,
         booking_channel: "account",
-      },
-      { once: true },
-    );
-  }
+      });
 
   async function submitAppointment(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

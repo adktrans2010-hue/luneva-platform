@@ -255,6 +255,15 @@ function rememberGoal(goal: AnalyticsGoal, dedupeKey?: string) {
   }
 }
 
+// Form lifecycle owns retries and deduplication for this single goal.
+export function sendBookingStartedToMetrika(params: SafeGoalParams) {
+  if (!hasCookieConsent()) return false;
+  const counterId = getMetrikaCounterId();
+  if (!counterId || !window.__lunevaMetrikaActive || typeof window.ym !== "function") return false;
+  window.ym(counterId, "reachGoal", "booking_started", sanitizeGoalParams(params));
+  return true;
+}
+
 export function trackGoal(
   goal: AnalyticsGoal,
   params: Record<string, unknown> = {},
@@ -287,7 +296,7 @@ export function trackInternalEvent(
 ) {
   if (!hasCookieConsent()) return;
 
-  void fetch("/api/analytics", {
+  return fetch("/api/analytics", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     keepalive: true,

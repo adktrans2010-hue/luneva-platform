@@ -8,6 +8,7 @@ import {
   formatKopeks,
   type PublicConsultationProduct,
 } from "@/src/lib/consultation-product-shared";
+import { useBookingStarted } from "@/src/lib/use-booking-started";
 import { getAttribution, trackGoal } from "@/src/lib/client-analytics";
 import { SITE_CONTACTS } from "@/src/lib/site-contacts";
 import {
@@ -138,7 +139,6 @@ function BookingForm({ products }: Pick<AppointmentFormProps, "products">) {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [legalAccepted, setLegalAccepted] = useState(false);
-  const [formOpenedTracked, setFormOpenedTracked] = useState(false);
   const [campaignPromo] = useState(campaignPromoFromUrl);
   const [promoOpen, setPromoOpen] = useState(() => Boolean(campaignPromo));
   const [promoInput, setPromoInput] = useState(campaignPromo);
@@ -333,20 +333,11 @@ function BookingForm({ products }: Pick<AppointmentFormProps, "products">) {
     window.setTimeout(() => contactFieldsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
   }
 
-  function trackFormOpenOnce() {
-    if (formOpenedTracked) return;
-
-    setFormOpenedTracked(true);
-    trackGoal(
-      "booking_started",
-      {
+  const trackFormOpenOnce = useBookingStarted({
         service_type: selectedProduct?.code ?? "consultation",
         consultation_format: consultationFormat,
         booking_channel: "website",
-      },
-      { once: true },
-    );
-  }
+      });
 
   const nearestSlots = useMemo<QuickSlot[]>(
     () => availability.flatMap((day) => day.slots.map((time) => ({ date: day.date, time }))).slice(0, 12),

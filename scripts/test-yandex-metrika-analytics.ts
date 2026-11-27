@@ -27,6 +27,7 @@ const storage = new Map<string, string>([["luneva_cookie_consent", "accepted"]])
 Object.defineProperty(globalThis, "window", {
   configurable: true,
   value: {
+    location: {pathname:"/contacts",search:""},
     localStorage: {
       getItem: (key: string) => storage.get(key) ?? null,
       setItem: (key: string, value: string) => storage.set(key, value),
@@ -38,6 +39,8 @@ Object.defineProperty(globalThis, "window", {
   },
 });
 
+Object.defineProperty(globalThis,"document",{value:{title:"test",referrer:""}, configurable:true});
+Object.defineProperty(globalThis,"fetch",{value:async()=>({ok:true}), configurable:true});
 assert.doesNotThrow(() => trackGoal("click_book"));
 
 assert.equal(getMetrikaPageUrl('/rpp', '?utm_source=test&utm_campaign=metrika_validation_20261122&token=private&email=private&paymentId=private'), '/rpp?utm_source=test&utm_campaign=metrika_validation_20261122');
@@ -54,7 +57,8 @@ assert.equal(calls.length, 0);
 window.__lunevaMetrikaActive = true;
 trackGoal('view_service', {}, { once: true });
 trackGoal('view_service', {}, { once: true });
-assert.equal(calls.length, 1, 'a not-ready attempt must not suppress the first real goal');
+assert.equal(calls.length, 0, 'preserve baseline shared dedupe for non-booking goals');
+trackGoal('view_service', {}, {once:true, dedupeKey:'fresh-ready'});
 assert.deepEqual(calls[0], [113474556, 'reachGoal', 'view_service', {}]);
 storage.set('luneva_cookie_consent', 'rejected');
 trackGoal('booking_started');
